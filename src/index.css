@@ -11,7 +11,13 @@
     margin: 0;
     padding: 0;
     font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    background-color: #F8FAFC;
+    /* Tri-color ambient mesh background: Indigo + Cyan + Amber */
+    background-color: #F8FAFD;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 55%),
+      radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.09) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 55%);
+    background-attachment: fixed;
     color: #0F172A;
   }
 
@@ -21,7 +27,7 @@
   }
 }
 
-/* Custom sleek scrollbar for desktop */
+/* Custom sleek scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -34,7 +40,7 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #818CF8;
 }
 
 /* Hide scrollbar for clean touch swipe rows */
@@ -46,10 +52,19 @@
   scrollbar-width: none;
 }
 
-/* Premium ambient glass card utility */
+/* Glass panel with iridescent gradient border highlight */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 25px -4px rgba(79, 70, 229, 0.05), 0 2px 8px -2px rgba(14, 165, 233, 0.03);
+}
+
+/* Subtle glow animations */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

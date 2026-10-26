@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { TaskPriority } from '../../types';
-import { Check, ShieldAlert, Sparkles, Calendar, CalendarDays, Clock, Send } from 'lucide-react';
+import { Check, ShieldAlert, Sparkles, Calendar, CalendarDays, Clock, Send, Users } from 'lucide-react';
 import { MiniCalendar } from '../common/MiniCalendar';
 
 export const AssignTaskView: React.FC = () => {
-  const { users, assignAdminTask, tasks, setCurrentPage } = useTaskToggle();
+  const { users, assignAdminTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
 
   const staffList = users.filter((u) => u.role === 'staff');
 
@@ -53,6 +53,14 @@ export const AssignTaskView: React.FC = () => {
     );
   };
 
+  const handleSelectAllStaff = () => {
+    if (selectedStaffIds.length === staffList.length) {
+      setSelectedStaffIds([]);
+    } else {
+      setSelectedStaffIds(staffList.map((s) => s.id));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || selectedStaffIds.length === 0) {
@@ -83,21 +91,29 @@ export const AssignTaskView: React.FC = () => {
 
   return (
     <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <div className="pb-2 border-b border-slate-200/60">
-        <h1 className="text-2xl sm:text-3xl font-extrabold font-['Outfit'] text-slate-900 tracking-tight">
-          Assign Work to Team
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-          Dispatch official assignments to one or more staff members with strict completion dates
-        </p>
+      {/* Page Header with Rich Multi-Color Gradients */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-indigo-100/70">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+              Assign Work to Team
+            </h1>
+            <span className="text-[11px] font-black px-3 py-1 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white shadow-xs shadow-indigo-300/40">
+              {orgSettings.orgName} Executive
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-semibold flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
+            <span>Dispatch official assignments to one or more staff members with strict completion dates</span>
+          </p>
+        </div>
       </div>
 
       {successToast && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-3 animate-in fade-in shadow-xs">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 text-emerald-950 flex items-center gap-3 animate-in fade-in shadow-xs">
           <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
           <span className="text-xs sm:text-sm font-bold">
-            Task assigned for {dueDate}! Dispatched to selected staff members.
+            Task assigned for {dueDate} by {dueTime}! Dispatched to selected staff members.
           </span>
         </div>
       )}
@@ -105,11 +121,11 @@ export const AssignTaskView: React.FC = () => {
       {/* Full-width Responsive Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Assignment Form (2 cols on xl) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-slate-200/90 shadow-sm">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-indigo-100/90 shadow-md shadow-indigo-100/30">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task title */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
                 Task Title
               </label>
               <input
@@ -118,13 +134,13 @@ export const AssignTaskView: React.FC = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Update inventory sheet and audit stock"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200/90 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
                 Task Description & Instructions
               </label>
               <textarea
@@ -132,16 +148,26 @@ export const AssignTaskView: React.FC = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Add all stock received this week and mark low-stock items for procurement."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200/90 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
               />
             </div>
 
             {/* Staff multi-select pills */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                Assign To (Select one or more staff)
-              </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                  Assign To (Select one or more staff)
+                </label>
+                <button
+                  type="button"
+                  onClick={handleSelectAllStaff}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                >
+                  {selectedStaffIds.length === staffList.length ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2.5">
                 {staffList.map((staff) => {
                   const isSelected = selectedStaffIds.includes(staff.id);
                   return (
@@ -149,14 +175,14 @@ export const AssignTaskView: React.FC = () => {
                       type="button"
                       key={staff.id}
                       onClick={() => toggleStaff(staff.id)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
                         isSelected
-                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-xs'
+                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-200'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200/90 border border-slate-200'
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold ${
+                        className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
                           isSelected ? 'bg-white text-indigo-700' : 'bg-slate-300 text-slate-700'
                         }`}
                       >
@@ -171,18 +197,18 @@ export const AssignTaskView: React.FC = () => {
             </div>
 
             {/* Due Date & Time with Mini Calendar Popover */}
-            <div className="space-y-3 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+            <div className="space-y-3 bg-gradient-to-r from-slate-50 via-indigo-50/30 to-slate-50 p-4 sm:p-5 rounded-2xl border border-indigo-100/80">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
+                <label className="block text-xs font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-indigo-600" />
                   <span>Target Completion Deadline</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowCalendarPopover(!showCalendarPopover)}
-                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"
+                  className="text-xs font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1 rounded-xl border border-indigo-100 shadow-2xs"
                 >
-                  <CalendarDays className="w-3.5 h-3.5" />
+                  <CalendarDays className="w-3.5 h-3.5 text-cyan-600" />
                   <span>{showCalendarPopover ? 'Close Calendar' : 'Pick from Calendar'}</span>
                 </button>
               </div>
@@ -208,7 +234,7 @@ export const AssignTaskView: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative mt-2">
                 {/* Due Date Input with Mini Calendar Trigger */}
                 <div className="relative">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
                     Completion Date
                   </span>
                   <div
@@ -240,17 +266,17 @@ export const AssignTaskView: React.FC = () => {
 
                 {/* Due Time Input */}
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
                     Completion Time
                   </span>
                   <div className="relative">
-                    <Clock className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                    <Clock className="w-4 h-4 text-cyan-600 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={dueTime}
                       onChange={(e) => setDueTime(e.target.value)}
                       placeholder="2:30 PM"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-bold text-slate-900 bg-white shadow-2xs"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 text-sm font-bold text-slate-900 bg-white shadow-2xs"
                     />
                   </div>
                 </div>
@@ -259,10 +285,10 @@ export const AssignTaskView: React.FC = () => {
 
             {/* Priority pills */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
                 Task Priority Level
               </label>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
                 {(['Low', 'Medium', 'High'] as TaskPriority[]).map((p) => {
                   const isSelected = priority === p;
                   return (
@@ -270,13 +296,13 @@ export const AssignTaskView: React.FC = () => {
                       type="button"
                       key={p}
                       onClick={() => setPriority(p)}
-                      className={`px-5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
                         isSelected
                           ? p === 'High'
-                            ? 'bg-rose-600 text-white shadow-xs'
+                            ? 'bg-rose-600 text-white shadow-md shadow-rose-200'
                             : p === 'Medium'
-                            ? 'bg-indigo-600 text-white shadow-xs'
-                            : 'bg-slate-800 text-white shadow-xs'
+                            ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md shadow-indigo-200'
+                            : 'bg-slate-800 text-white shadow-md'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
@@ -293,10 +319,10 @@ export const AssignTaskView: React.FC = () => {
             </div>
 
             {/* Submit & Cancel buttons */}
-            <div className="flex items-center gap-3 pt-3">
+            <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                className="px-7 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-bold shadow-md shadow-indigo-200/80 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
+                className="px-7 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-xs sm:text-sm font-black shadow-md shadow-indigo-300/60 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
               >
                 <Send className="w-4 h-4" />
                 <span>Assign Task to Team</span>
@@ -304,7 +330,7 @@ export const AssignTaskView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setCurrentPage('dashboard')}
-                className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-all cursor-pointer"
+                className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -315,14 +341,14 @@ export const AssignTaskView: React.FC = () => {
         {/* Sidebar Cards (1 col on xl) */}
         <div className="space-y-5 sm:space-y-6">
           {/* Compulsory work card */}
-          <div className="bg-gradient-to-br from-indigo-50 to-violet-50/60 border border-indigo-100 rounded-2xl p-5 sm:p-6 shadow-2xs">
+          <div className="bg-gradient-to-br from-indigo-50/90 to-violet-50/70 border border-indigo-100 rounded-2xl p-5 sm:p-6 shadow-2xs">
             <div className="flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">
+                <h3 className="text-xs font-black uppercase tracking-wider text-indigo-900 mb-1">
                   Mandatory Execution Policy
                 </h3>
-                <p className="text-xs text-indigo-800 leading-relaxed font-medium">
+                <p className="text-xs text-indigo-800 leading-relaxed font-semibold">
                   Tasks dispatched by Admin are compulsory and lock directly into staff to-do lists. Staff cannot reject or delete them.
                 </p>
               </div>
@@ -330,10 +356,10 @@ export const AssignTaskView: React.FC = () => {
           </div>
 
           {/* Recently assigned list with prominent date & time */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-sm">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-indigo-100/90 shadow-md shadow-indigo-100/30">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
               <span>Recently Assigned</span>
-              <Clock className="w-4 h-4 text-slate-400" />
+              <Clock className="w-4 h-4 text-cyan-600" />
             </h3>
             <div className="space-y-3.5">
               {recentlyAssigned.map((task) => (
@@ -342,8 +368,8 @@ export const AssignTaskView: React.FC = () => {
                     {task.title}
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
-                    <span className="font-medium">{task.assignedToName}</span>
-                    <span className="inline-flex items-center gap-1 font-bold text-indigo-700 bg-indigo-50/80 px-2 py-0.5 rounded-md border border-indigo-100">
+                    <span className="font-semibold text-slate-600">{task.assignedToName}</span>
+                    <span className="inline-flex items-center gap-1 font-black text-indigo-700 bg-indigo-50/90 px-2 py-0.5 rounded-md border border-indigo-100">
                       <Calendar className="w-3 h-3 text-indigo-500" />
                       <span>{task.dueDate} · {task.dueTime}</span>
                     </span>

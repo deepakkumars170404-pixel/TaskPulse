@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { Clock, Calendar, Check, Info, Sparkles, ShieldCheck } from 'lucide-react';
+import { Clock, Calendar, Check, Info, Sparkles, ShieldCheck, UserCheck } from 'lucide-react';
 
 export const TimingSettingsView: React.FC = () => {
-  const { officeTiming, eventTiming, users, updateOfficeTiming, updateEventTiming } = useTaskToggle();
+  const { officeTiming, eventTiming, users, updateOfficeTiming, updateEventTiming, orgSettings } = useTaskToggle();
 
   // General Timing Form state
   const [openTime, setOpenTime] = useState(officeTiming.openTime);
@@ -62,57 +62,61 @@ export const TimingSettingsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
+      {/* Header with Rich Multi-Color Gradients */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-indigo-100/70">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900">Timing Settings</h1>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" />
-              <span>Owner Access</span>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+              Timing & Office Hours
+            </h1>
+            <span className="text-[11px] font-black px-3 py-1 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white shadow-xs shadow-indigo-300/40">
+              {orgSettings.orgName} Executive
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Control general office hours and event-day staff timings across the organization
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-semibold flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
+            <span>Control general office hours and event-day staff timings across the organization</span>
           </p>
         </div>
       </div>
 
       {/* Toast Feedbacks */}
       {generalToast && (
-        <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 text-emerald-950 flex items-center gap-3 animate-in fade-in shadow-xs">
           <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
           <span className="text-xs sm:text-sm font-bold">
-            General office timing updated! Changes reflected immediately on all pages and staff chips.
+            General office timing updated! Changes reflected immediately across all pages and staff chips.
           </span>
         </div>
       )}
 
       {eventToast && (
-        <div className="p-3.5 sm:p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 text-amber-950 flex items-center gap-3 animate-in fade-in shadow-xs">
           <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
           <span className="text-xs sm:text-sm font-bold">
-            Event timing and staff allotment applied! Allotted staff will now see their revised schedule.
+            Event timing and staff allotment applied! Allotted staff now see the revised schedule.
           </span>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        {/* General Office Timing (Full Admin Control) */}
-        <div className="bg-white rounded-2xl p-4 sm:p-7 border border-slate-200/80 shadow-xs">
-          <form onSubmit={handleSaveGeneralTiming} className="space-y-5 sm:space-y-6">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-              <Clock className="w-4 h-4 text-indigo-600" />
-              <h2 className="text-sm sm:text-base font-bold text-slate-900">General office timing</h2>
+        {/* General Office Timing Card */}
+        <div className="bg-white rounded-2xl p-5 sm:p-8 border border-indigo-100/90 shadow-md shadow-indigo-100/30">
+          <form onSubmit={handleSaveGeneralTiming} className="space-y-6">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 font-['Outfit']">General Office Timing</h2>
+                <p className="text-[11px] text-slate-400 font-semibold">Standard operating hours for regular days</p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              Changes show on every staff page immediately as the header office hours chip.
-            </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5 sm:mb-2">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
                   Opens at
                 </label>
                 <input
@@ -121,12 +125,12 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setOpenTime(e.target.value)}
                   placeholder="9:00 AM"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-bold text-slate-900 shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5 sm:mb-2">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
                   Closes at
                 </label>
                 <input
@@ -135,16 +139,16 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setCloseTime(e.target.value)}
                   placeholder="5:00 PM"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-bold text-slate-900 shadow-2xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                Working days (click to toggle)
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2.5">
+                Working Days (Toggle active days)
               </label>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <div className="flex flex-wrap gap-2">
                 {daysOfWeek.map((day) => {
                   const isActive = workingDays.includes(day);
                   return (
@@ -152,10 +156,10 @@ export const TimingSettingsView: React.FC = () => {
                       type="button"
                       key={day}
                       onClick={() => toggleDay(day)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-indigo-600 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'
+                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-200'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200/80 border border-slate-200'
                       }`}
                     >
                       {day}
@@ -168,28 +172,30 @@ export const TimingSettingsView: React.FC = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-200 transition-all cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-xs sm:text-sm font-black shadow-md shadow-indigo-300/60 transition-all cursor-pointer active:scale-95"
               >
-                Save timing
+                Save General Timing
               </button>
             </div>
           </form>
         </div>
 
-        {/* Event Timing Change (Full Admin Control) */}
-        <div className="bg-white rounded-2xl p-4 sm:p-7 border border-slate-200/80 shadow-xs">
-          <form onSubmit={handleSaveEventTiming} className="space-y-4 sm:space-y-5">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-              <Calendar className="w-4 h-4 text-amber-600" />
-              <h2 className="text-sm sm:text-base font-bold text-slate-900">Event timing change</h2>
+        {/* Event Timing Change Card */}
+        <div className="bg-white rounded-2xl p-5 sm:p-8 border border-amber-200/80 shadow-md shadow-amber-100/30">
+          <form onSubmit={handleSaveEventTiming} className="space-y-5">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-amber-100">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-200">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 font-['Outfit']">Special Event Hours</h2>
+                <p className="text-[11px] text-amber-800 font-semibold">Overriding schedule for organization events</p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              For organisation events that need different staff hours.
-            </p>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                Event name
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+                Event Name
               </label>
               <input
                 type="text"
@@ -197,14 +203,14 @@ export const TimingSettingsView: React.FC = () => {
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="e.g. Annual Day Preparation"
                 required
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 text-sm font-bold text-slate-900 shadow-2xs"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Date
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+                  Event Date
                 </label>
                 <input
                   type="text"
@@ -212,13 +218,13 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setEventDate(e.target.value)}
                   placeholder="26 Oct 2026"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 text-sm font-bold text-slate-900 shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                  New timing
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+                  Special Timing
                 </label>
                 <input
                   type="text"
@@ -226,16 +232,16 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setNewEventTiming(e.target.value)}
                   placeholder="8:00 AM - 6:00 PM"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 text-sm font-bold text-slate-900 shadow-2xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                Allot staff (click to toggle allotment)
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2.5">
+                Allot Staff to Event
               </label>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <div className="flex flex-wrap gap-2">
                 {users
                   .filter((u) => u.role === 'staff')
                   .map((staff) => {
@@ -245,13 +251,13 @@ export const TimingSettingsView: React.FC = () => {
                         type="button"
                         key={staff.id}
                         onClick={() => toggleStaffAllotment(staff.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
                           isAllotted
-                            ? 'bg-amber-100 text-amber-900 border border-amber-300 font-bold shadow-2xs'
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-amber-200'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
                         }`}
                       >
-                        {isAllotted && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                        {isAllotted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                         <span>{staff.name}</span>
                       </button>
                     );
@@ -262,9 +268,9 @@ export const TimingSettingsView: React.FC = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-200 transition-all cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-xs sm:text-sm font-black shadow-md shadow-amber-300 transition-all cursor-pointer active:scale-95"
               >
-                Apply to selected staff
+                Apply Event Schedule
               </button>
             </div>
           </form>
@@ -272,10 +278,10 @@ export const TimingSettingsView: React.FC = () => {
       </div>
 
       {/* Live Preview Line for Staff */}
-      <div className="p-3.5 sm:p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center gap-2.5 text-xs text-amber-900 font-semibold">
-        <Info className="w-4 h-4 text-amber-700 shrink-0" />
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50/90 to-orange-50/80 border border-amber-300 flex items-center gap-3 text-xs text-amber-950 font-bold shadow-xs">
+        <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
         <span>
-          Preview for staff: *Sun {eventDate} · {eventName} : {newEventTiming}*
+          Live staff notification preview: *Scheduled for {eventDate} · {eventName} ({newEventTiming}) for {allottedStaffIds.length} allotted team members.*
         </span>
       </div>
     </div>
