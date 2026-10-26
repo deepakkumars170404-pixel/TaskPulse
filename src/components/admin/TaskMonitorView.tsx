@@ -13,12 +13,14 @@ import {
   ArrowRight,
   TrendingUp,
   UserCheck,
+  MousePointerClick,
+  Check,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { Task } from '../../types';
 
 export const TaskMonitorView: React.FC = () => {
-  const { tasks, orgSettings } = useTaskToggle();
+  const { tasks, orgSettings, toggleTaskStatus } = useTaskToggle();
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'staff' | 'blocked'>('all');
   const [dateTimeline, setDateTimeline] = useState<'all' | 'previous' | 'today' | 'upcoming'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -227,6 +229,20 @@ export const TaskMonitorView: React.FC = () => {
 
       {/* High-End Enterprise Tasks Table with Colorful Accents & Clear Date + Time */}
       <div className="bg-white rounded-2xl border border-indigo-100/90 shadow-md shadow-indigo-100/30 overflow-hidden">
+        {/* Table top toolbar with Click-to-Strike hint */}
+        <div className="p-3.5 px-4 sm:px-6 bg-slate-50/70 border-b border-indigo-100/70 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <MousePointerClick className="w-3 h-3 text-emerald-600" />
+              <span>Interactive Table</span>
+            </span>
+            <span>Click any task row to strike & toggle completion</span>
+          </div>
+          <span className="text-[11px] text-slate-400 font-semibold hidden sm:inline">
+            Showing {filteredTasks.length} tasks
+          </span>
+        </div>
+
         <div className="overflow-x-auto no-scrollbar">
           <table className="w-full text-left text-xs min-w-[760px]">
             <thead>
@@ -270,26 +286,57 @@ export const TaskMonitorView: React.FC = () => {
                   return (
                     <tr
                       key={task.id}
-                      className={`hover:bg-indigo-50/30 transition-colors ${borderAccent}`}
+                      onClick={() => toggleTaskStatus(task.id)}
+                      className={`hover:bg-indigo-50/40 transition-colors cursor-pointer select-none ${borderAccent} ${
+                        isDone ? 'bg-slate-50/70 opacity-80' : ''
+                      }`}
+                      title="Click anywhere to toggle task completion"
                     >
-                      {/* Task Title */}
+                      {/* Task Title with Checkbox & Strikethrough */}
                       <td className="py-4 px-4 sm:px-6 max-w-[240px]">
-                        <div className="font-extrabold text-slate-900 truncate text-[13px]">{task.title}</div>
-                        {task.description && (
-                          <div className="text-[11px] text-slate-500 truncate mt-0.5 font-medium">{task.description}</div>
-                        )}
-                        <div className="flex items-center gap-1.5 mt-1.5">
-                          <span
-                            className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
-                              task.priority === 'High'
-                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                : task.priority === 'Medium'
-                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                : 'bg-slate-100 text-slate-600'
+                        <div className="flex items-start gap-2.5">
+                          <div
+                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                              isDone
+                                ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-2xs'
+                                : 'border-2 border-slate-300'
                             }`}
                           >
-                            {task.priority} Priority
-                          </span>
+                            {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div
+                              className={`font-extrabold truncate text-[13px] transition-all ${
+                                isDone
+                                  ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
+                                  : 'text-slate-900'
+                              }`}
+                            >
+                              {task.title}
+                            </div>
+                            {task.description && (
+                              <div
+                                className={`text-[11px] truncate mt-0.5 font-medium ${
+                                  isDone ? 'line-through text-slate-400/80' : 'text-slate-500'
+                                }`}
+                              >
+                                {task.description}
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                              <span
+                                className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                                  task.priority === 'High'
+                                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                    : task.priority === 'Medium'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                {task.priority} Priority
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
@@ -341,8 +388,13 @@ export const TaskMonitorView: React.FC = () => {
                       {/* Status Column with Nearby Written Issue */}
                       <td className="py-4 px-4 text-center">
                         <div className="inline-flex flex-col items-center gap-1.5">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black whitespace-nowrap shadow-2xs ${
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleTaskStatus(task.id);
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black whitespace-nowrap shadow-2xs cursor-pointer active:scale-95 transition-all ${
                               isDone
                                 ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-800 border border-emerald-300'
                                 : isAccepted
@@ -351,6 +403,7 @@ export const TaskMonitorView: React.FC = () => {
                                 ? 'bg-amber-50 text-amber-900 border border-amber-300 animate-pulse'
                                 : 'bg-amber-50 text-amber-800 border border-amber-200'
                             }`}
+                            title="Click to toggle status"
                           >
                             <span
                               className={`w-2 h-2 rounded-full ${
@@ -366,13 +419,16 @@ export const TaskMonitorView: React.FC = () => {
                                 ? 'Awaiting Accept'
                                 : 'Pending'}
                             </span>
-                          </span>
+                          </button>
 
                           {/* Nearby Issue Button that opens Easy Readable Popup */}
                           {!isDone && task.pendingReason && (
                             <button
                               type="button"
-                              onClick={() => setSelectedTaskForIssue(task)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTaskForIssue(task);
+                              }}
                               className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-100 to-orange-100 hover:from-amber-200 hover:to-orange-200 text-amber-950 border border-amber-300 text-[10px] font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs max-w-[180px] truncate"
                               title="Click to view full issue in readable popup"
                             >

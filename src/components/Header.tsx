@@ -101,6 +101,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           />
         </div>
 
+        {/* Quick Floating Widget Trigger Button */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('toggle-floating-widget'))}
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-50 to-cyan-50 hover:from-indigo-100 hover:to-cyan-100 border border-indigo-200/90 text-indigo-950 text-xs font-black shadow-2xs cursor-pointer active:scale-95 transition-all"
+          title="Open TaskToggle Draggable Mini Popup"
+        >
+          <Zap className="w-3.5 h-3.5 text-cyan-600 fill-cyan-500" />
+          <span>Quick Mini</span>
+        </button>
+
         {/* Office Hours Chip - Cyan / Indigo Tint */}
         <div className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-indigo-50/80 via-sky-50/70 to-cyan-50/80 border border-indigo-200/80 text-indigo-950 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs transition-all">
           <Clock className="w-3.5 h-3.5 text-cyan-600 shrink-0" />

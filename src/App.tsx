@@ -11,6 +11,7 @@ import { TimingSettingsView } from './components/admin/TimingSettingsView';
 import { MyToDoView } from './components/staff/MyToDoView';
 import { CreateToDoView } from './components/staff/CreateToDoView';
 import { TaskRequestsView } from './components/staff/TaskRequestsView';
+import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
 
 const MainLayout: React.FC = () => {
   const { currentPage, currentUser } = useTaskToggle();
@@ -60,6 +61,9 @@ const MainLayout: React.FC = () => {
 
       {/* Modern Bottom Navigation Bar for Mobile Phones */}
       {!isEmbedded && <BottomNav />}
+
+      {/* Floating Draggable Quick Task Widget (Picture-in-Picture Mini Popup) */}
+      <FloatingTaskWidget />
     </div>
   );
 };

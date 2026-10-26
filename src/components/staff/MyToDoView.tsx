@@ -15,6 +15,7 @@ import {
   ListTodo,
   Layers,
   UserCheck,
+  MousePointerClick,
 } from 'lucide-react';
 
 export const MyToDoView: React.FC = () => {
@@ -98,7 +99,7 @@ export const MyToDoView: React.FC = () => {
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 font-semibold flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Sat, 24 Oct 2026 · Check off tasks as you finish them</span>
+            <span>Sat, 24 Oct 2026 · Click anywhere on any card to instantly strike & complete</span>
           </p>
         </div>
 
@@ -138,18 +139,24 @@ export const MyToDoView: React.FC = () => {
         {/* Main List (2 cols on xl) */}
         <div className="xl:col-span-2 space-y-4">
           <div className="bg-white rounded-2xl p-4 sm:p-7 border border-indigo-100/90 shadow-md shadow-indigo-100/30">
-            {/* List Header with Show Completed toggle */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+            {/* List Header with Show Completed toggle & Fast Hint */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
               <div>
-                <h2 className="text-sm sm:text-base font-black text-slate-900 font-['Outfit']">
-                  Active Task Queue
-                </h2>
-                <p className="text-[11px] text-slate-400 font-semibold">
-                  Prioritized by completion date & mandatory status
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm sm:text-base font-black text-slate-900 font-['Outfit']">
+                    Active Task Queue
+                  </h2>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <MousePointerClick className="w-3 h-3 text-emerald-600" />
+                    <span>Click anywhere to strike</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                  Tap any part of a task card to strike it through as completed
                 </p>
               </div>
 
-              <div className="flex items-center gap-2.5 bg-gradient-to-r from-slate-50 to-indigo-50/40 px-3.5 py-1.5 rounded-xl border border-indigo-100">
+              <div className="flex items-center gap-2.5 bg-gradient-to-r from-slate-50 to-indigo-50/40 px-3.5 py-1.5 rounded-xl border border-indigo-100 self-start sm:self-auto">
                 <span className="text-xs font-bold text-slate-700">Show completed</span>
                 <button
                   type="button"
@@ -168,7 +175,7 @@ export const MyToDoView: React.FC = () => {
               </div>
             </div>
 
-            {/* Task list */}
+            {/* Task list with Whole-Card Click-to-Strike */}
             {visibleTasks.length === 0 ? (
               <div className="text-center py-16 text-slate-400 text-xs sm:text-sm font-semibold italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
                 No tasks to display for this category.
@@ -193,11 +200,13 @@ export const MyToDoView: React.FC = () => {
                   return (
                     <div
                       key={task.id}
-                      className={`rounded-2xl border transition-all duration-200 ${borderLeftStyle} ${
+                      onClick={() => toggleTaskStatus(task.id)}
+                      className={`rounded-2xl border transition-all duration-200 cursor-pointer select-none ${borderLeftStyle} ${
                         isDone
                           ? 'bg-slate-50/70 border-slate-200 opacity-80'
-                          : 'bg-white border-slate-200/90 hover:border-indigo-300 hover:shadow-md'
+                          : 'bg-white border-slate-200/90 hover:border-indigo-400 hover:shadow-md hover:scale-[1.005] active:scale-[0.995]'
                       }`}
+                      title="Click anywhere on this task to strike & complete"
                     >
                       {/* Task Row */}
                       <div className="p-4 sm:p-4.5">
@@ -206,7 +215,10 @@ export const MyToDoView: React.FC = () => {
                             {/* Checkbox toggle with enlarged touch area */}
                             <button
                               type="button"
-                              onClick={() => toggleTaskStatus(task.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleTaskStatus(task.id);
+                              }}
                               className={`w-6.5 h-6.5 rounded-xl flex items-center justify-center transition-all shrink-0 mt-0.5 cursor-pointer ${
                                 isDone
                                   ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-xs'
@@ -220,16 +232,21 @@ export const MyToDoView: React.FC = () => {
                             {/* Title, Category & Prominent Target Deadline (Date & Time) */}
                             <div className="min-w-0 flex-1">
                               <h3
-                                onClick={() => toggleTaskStatus(task.id)}
-                                className={`text-sm sm:text-base font-extrabold cursor-pointer transition-all ${
-                                  isDone ? 'line-through text-slate-400 font-medium' : 'text-slate-900'
+                                className={`text-sm sm:text-base font-extrabold transition-all ${
+                                  isDone
+                                    ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
+                                    : 'text-slate-900 hover:text-indigo-950'
                                 }`}
                               >
                                 {task.title}
                               </h3>
 
                               {task.description && (
-                                <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
+                                <p
+                                  className={`text-xs mt-1 leading-relaxed font-medium transition-all ${
+                                    isDone ? 'line-through text-slate-400/80' : 'text-slate-500'
+                                  }`}
+                                >
                                   {task.description}
                                 </p>
                               )}
@@ -295,7 +312,10 @@ export const MyToDoView: React.FC = () => {
                             {!isDone && (
                               <button
                                 type="button"
-                                onClick={() => handleOpenReasonBox(task.id, task.pendingReason)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenReasonBox(task.id, task.pendingReason);
+                                }}
                                 className={`px-2.5 py-1 rounded-xl text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-xs ${
                                   task.pendingReason
                                     ? 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-950 border border-amber-300 hover:from-amber-200 hover:to-orange-200'
@@ -312,7 +332,10 @@ export const MyToDoView: React.FC = () => {
 
                         {/* Display Existing Pending Reason Note if present */}
                         {!isDone && task.pendingReason && !isEditingReason && (
-                          <div className="mt-3 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 text-xs text-amber-950 flex items-start justify-between gap-2 shadow-2xs">
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-3 p-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 text-xs text-amber-950 flex items-start justify-between gap-2 shadow-2xs cursor-default"
+                          >
                             <div className="flex items-start gap-2">
                               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                               <div>
@@ -326,7 +349,11 @@ export const MyToDoView: React.FC = () => {
                               </div>
                             </div>
                             <button
-                              onClick={() => handleOpenReasonBox(task.id, task.pendingReason)}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenReasonBox(task.id, task.pendingReason);
+                              }}
                               className="text-[11px] font-black text-amber-900 underline hover:text-amber-950 shrink-0 cursor-pointer"
                             >
                               Edit
@@ -336,14 +363,21 @@ export const MyToDoView: React.FC = () => {
 
                         {/* Interactive Blank Box to Report Issue / Reason */}
                         {isEditingReason && (
-                          <div className="mt-3.5 p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3 animate-in fade-in shadow-xs">
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-3.5 p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3 animate-in fade-in shadow-xs cursor-default"
+                          >
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                 <MessageSquare className="w-3.5 h-3.5 text-indigo-600" />
                                 <span>Why is this task delayed or pending? (Visible to Admin)</span>
                               </span>
                               <button
-                                onClick={() => setEditingReasonTaskId(null)}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingReasonTaskId(null);
+                                }}
                                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
                               >
                                 <X className="w-4 h-4" />
@@ -361,14 +395,20 @@ export const MyToDoView: React.FC = () => {
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 type="button"
-                                onClick={() => setEditingReasonTaskId(null)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingReasonTaskId(null);
+                                }}
                                 className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/60 cursor-pointer"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleSaveReason(task.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleSaveReason(task.id);
+                                }}
                                 className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-xs font-black shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
                               >
                                 <Send className="w-3 h-3" />

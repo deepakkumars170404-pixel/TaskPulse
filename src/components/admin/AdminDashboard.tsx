@@ -12,12 +12,14 @@ import {
   Layers,
   TrendingUp,
   Activity,
+  MousePointerClick,
+  Check,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { Task } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
-  const { tasks, users, setCurrentPage, eventTiming, orgSettings } = useTaskToggle();
+  const { tasks, users, setCurrentPage, eventTiming, orgSettings, toggleTaskStatus } = useTaskToggle();
 
   // Selected Date Filter: 'all' | 'previous' | 'today' | 'upcoming'
   const [dateFilter, setDateFilter] = useState<'today' | 'previous' | 'upcoming' | 'all'>('today');
@@ -118,101 +120,106 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-indigo-100">
               {dateFilter === 'today' ? "Today's Workload" : 'Timeline Workload'}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shadow-xs">
-              <Layers className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+              <Layers className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-black font-['Outfit'] mt-2 tracking-tight relative z-10">
+          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] mt-2.5 relative z-10">
             {totalTasks}
           </div>
-          <div className="text-[11px] text-indigo-200 font-medium mt-1.5 flex items-center gap-1 relative z-10">
-            <span>Total team assignments</span>
+          <div className="text-[11px] text-indigo-200 font-semibold mt-1 flex items-center gap-1 relative z-10">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span>Assigned across departments</span>
           </div>
         </div>
 
-        {/* Card 2: Completed Tasks - Vibrant Emerald / Teal Gradient */}
-        <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white rounded-2xl p-4 sm:p-5 shadow-lg shadow-emerald-500/25 relative overflow-hidden group hover:scale-[1.02] transition-all">
+        {/* Card 2: Completed - Emerald / Mint Gradient */}
+        <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white rounded-2xl p-4 sm:p-5 shadow-lg shadow-emerald-500/25 relative overflow-hidden group hover:scale-[1.02] transition-all">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between relative z-10">
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">
               Finished On Time
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shadow-xs">
-              <CheckCircle2 className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-black font-['Outfit'] mt-2 tracking-tight relative z-10">
+          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] mt-2.5 relative z-10">
             {completedTasks}
           </div>
-          <div className="text-[11px] text-emerald-100 font-bold mt-1.5 flex items-center gap-1 relative z-10">
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>{completionRate}% success rate</span>
+          <div className="text-[11px] text-emerald-200 font-semibold mt-1 flex items-center gap-1 relative z-10">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+            <span>{completionRate}% Delivered successfully</span>
           </div>
         </div>
 
-        {/* Card 3: Pending Tasks - Sunset Amber / Warm Orange Gradient */}
+        {/* Card 3: Pending / In-Progress - Sunset Amber / Warm Orange */}
         <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 text-white rounded-2xl p-4 sm:p-5 shadow-lg shadow-amber-500/25 relative overflow-hidden group hover:scale-[1.02] transition-all">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between relative z-10">
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-100">
-              Pending Actions
+              In-Progress Work
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shadow-xs">
-              <Clock className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-black font-['Outfit'] mt-2 tracking-tight relative z-10">
+          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] mt-2.5 relative z-10">
             {pendingTasks}
           </div>
-          <div className="text-[11px] text-amber-100 font-medium mt-1.5 relative z-10">
-            <span>Needs attention</span>
+          <div className="text-[11px] text-amber-100 font-semibold mt-1 flex items-center gap-1 relative z-10">
+            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+            <span>Pending team execution</span>
           </div>
         </div>
 
-        {/* Card 4: Staff Active - Vibrant Cyan / Electric Blue Gradient */}
+        {/* Card 4: Active Staff - Electric Cyan / Sky Blue Gradient */}
         <div className="bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 text-white rounded-2xl p-4 sm:p-5 shadow-lg shadow-cyan-500/25 relative overflow-hidden group hover:scale-[1.02] transition-all">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
           <div className="flex items-center justify-between relative z-10">
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-cyan-100">
-              Staff Active
+              Active Team Roster
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shadow-xs">
-              <Users className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+              <Users className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-black font-['Outfit'] mt-2 tracking-tight relative z-10">
+          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] mt-2.5 relative z-10">
             {staffCount}
           </div>
-          <div className="text-[11px] text-cyan-100 font-medium mt-1.5 relative z-10">
-            <span>Team members online</span>
+          <div className="text-[11px] text-cyan-200 font-semibold mt-1 flex items-center gap-1 relative z-10">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-300" />
+            <span>Operating under Deepak Org</span>
           </div>
         </div>
       </div>
 
-      {/* Content Grid: Tasks Table (2 cols) & Widgets (1 col) */}
+      {/* Main Overview Grid: Tasks Table (2 cols) & Progress (1 col) */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
-        {/* Main Tasks Table with Prominent Target Completion (Date & Time) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl border border-indigo-100/90 shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-5 border-b border-indigo-50 flex items-center justify-between bg-gradient-to-r from-white via-indigo-50/20 to-cyan-50/20">
+        {/* Left Table (2 cols on xl) */}
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-indigo-100/90 shadow-md shadow-indigo-100/30 overflow-hidden">
+          {/* Table Header Controls with Click-to-Strike notice */}
+          <div className="p-4 sm:p-5 border-b border-indigo-100/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-gradient-to-r from-slate-50 via-indigo-50/30 to-slate-50">
             <div>
-              <h2 className="text-sm sm:text-base font-black text-slate-900 font-['Outfit']">
-                {dateFilter === 'today'
-                  ? "Today's Scheduled Tasks"
-                  : dateFilter === 'previous'
-                  ? 'Archived Task Records'
-                  : dateFilter === 'upcoming'
-                  ? 'Upcoming Scheduled Deadlines'
-                  : 'Complete Tasks Directory'}
-              </h2>
-              <p className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                Exact date and time when every task must be finished
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-black text-slate-900 font-['Outfit']">
+                  {dateFilter === 'today' ? "Today's Target Tasks" : 'Timeline Target Tasks'}
+                </h3>
+                <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <MousePointerClick className="w-3 h-3 text-emerald-600" />
+                  <span>Click anywhere to strike</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                Tap any task row to strike & complete it instantly
               </p>
             </div>
+
             <button
               onClick={() => setCurrentPage('monitor')}
-              className="text-xs font-black text-indigo-700 hover:text-indigo-900 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/70 transition-all cursor-pointer shadow-2xs"
+              className="text-xs font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer self-start sm:self-auto bg-white px-3 py-1.5 rounded-xl border border-indigo-100 shadow-2xs hover:shadow-xs transition-all"
             >
-              <span>Full Monitor</span>
+              <span>Open Central Monitor</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -220,119 +227,159 @@ export const AdminDashboard: React.FC = () => {
           <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-left text-xs min-w-[620px]">
               <thead>
-                <tr className="bg-gradient-to-r from-slate-50 via-indigo-50/40 to-cyan-50/30 border-b border-indigo-100/80 text-[11px] font-black uppercase tracking-wider text-slate-600">
-                  <th className="py-3 px-4 sm:px-5 font-black">Task Title</th>
-                  <th className="py-3 px-4 font-black">Assigned Staff</th>
-                  <th className="py-3 px-4 font-black">Priority</th>
-                  {/* Dedicated Prominent Target Completion (Date & Time) */}
-                  <th className="py-3 px-4 font-black text-indigo-950">
+                <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-black uppercase tracking-wider text-slate-600">
+                  <th className="py-3 px-4 sm:px-5">Task Title</th>
+                  <th className="py-3 px-4">Assignee</th>
+                  <th className="py-3 px-4">Priority</th>
+                  <th className="py-3 px-4 text-indigo-950 font-black">
                     <div className="flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-cyan-600" />
+                      <Calendar className="w-3.5 h-3.5 text-indigo-600" />
                       <span>Target Deadline (Date & Time)</span>
                     </div>
                   </th>
-                  <th className="py-3 px-4 sm:px-5 font-black text-right">Status & Issues</th>
+                  <th className="py-3 px-4 sm:px-5 text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {displayTasks.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-slate-400 italic">
+                    <td colSpan={5} className="py-12 text-center text-slate-400 font-semibold italic">
                       No tasks found for this selected timeline.
                     </td>
                   </tr>
                 ) : (
-                  displayTasks.map((task) => (
-                    <tr key={task.id} className="hover:bg-gradient-to-r hover:from-indigo-50/30 hover:to-cyan-50/20 transition-colors">
-                      {/* Task Title */}
-                      <td className="py-3.5 px-4 sm:px-5 max-w-[210px]">
-                        <div className="font-extrabold text-slate-900 truncate text-[13px]">{task.title}</div>
-                        <div className="text-[11px] text-slate-400 mt-0.5 capitalize flex items-center gap-1 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                          <span>{task.type === 'admin' ? 'Admin Assigned' : `By ${task.createdByName}`}</span>
-                        </div>
-                      </td>
+                  displayTasks.map((task) => {
+                    const isDone = task.status === 'done';
 
-                      {/* Assigned Staff */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-slate-800 to-indigo-900 text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-2xs ring-1 ring-white">
-                            {task.assignedToName
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .substring(0, 2)}
+                    return (
+                      <tr
+                        key={task.id}
+                        onClick={() => toggleTaskStatus(task.id)}
+                        className={`hover:bg-gradient-to-r hover:from-indigo-50/40 hover:to-cyan-50/30 transition-all cursor-pointer select-none ${
+                          isDone ? 'bg-slate-50/70 opacity-80' : ''
+                        }`}
+                        title="Click anywhere to toggle task completion"
+                      >
+                        {/* Task Title with Checkbox & Strikethrough */}
+                        <td className="py-3.5 px-4 sm:px-5 max-w-[220px]">
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 ${
+                                isDone
+                                  ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-2xs'
+                                  : 'border-2 border-slate-300'
+                              }`}
+                            >
+                              {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div
+                                className={`font-extrabold truncate text-[13px] transition-all ${
+                                  isDone
+                                    ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
+                                    : 'text-slate-900'
+                                }`}
+                              >
+                                {task.title}
+                              </div>
+                              <div className="text-[11px] text-slate-400 mt-0.5 capitalize flex items-center gap-1 font-semibold">
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                                <span>{task.type === 'admin' ? 'Admin Assigned' : `By ${task.createdByName}`}</span>
+                              </div>
+                            </div>
                           </div>
-                          <span className="font-bold text-slate-800 truncate max-w-[110px]">
-                            {task.assignedToName}
-                          </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Priority Badge */}
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black whitespace-nowrap ${
-                            task.priority === 'High'
-                              ? 'bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs'
-                              : task.priority === 'Medium'
-                              ? 'bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs'
-                              : 'bg-cyan-50 text-cyan-800 border border-cyan-200 shadow-2xs'
-                          }`}
-                        >
+                        {/* Assigned Staff */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-slate-800 to-indigo-900 text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-2xs ring-1 ring-white">
+                              {task.assignedToName
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                                .substring(0, 2)}
+                            </div>
+                            <span className="font-bold text-slate-800 truncate max-w-[110px]">
+                              {task.assignedToName}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Priority Badge */}
+                        <td className="py-3.5 px-4">
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              task.priority === 'High' ? 'bg-rose-500' : task.priority === 'Medium' ? 'bg-amber-500' : 'bg-cyan-500'
-                            }`}
-                          />
-                          <span>{task.priority}</span>
-                        </span>
-                      </td>
-
-                      {/* Prominent Target Deadline (Date & Time) - Colorful Tri-tone Badge */}
-                      <td className="py-3.5 px-4">
-                        <div className="inline-flex flex-col gap-1 items-start bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-cyan-50/90 border border-indigo-200/90 rounded-xl px-3 py-1.5 shadow-2xs">
-                          <div className="flex items-center gap-1.5 text-xs font-black text-indigo-950 whitespace-nowrap">
-                            <Calendar className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
-                            <span>{task.dueDate}</span>
-                          </div>
-                          <div className="flex items-center gap-1 text-[11px] font-bold text-indigo-700 whitespace-nowrap">
-                            <Clock className="w-3 h-3 text-indigo-500 shrink-0" />
-                            <span>By {task.dueTime}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Status Column & Issue Trigger */}
-                      <td className="py-3.5 px-4 sm:px-5 text-right">
-                        <div className="flex flex-col items-end gap-1.5">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-black ${
-                              task.status === 'done'
-                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs shadow-emerald-200'
-                                : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs shadow-amber-200 animate-pulse'
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black whitespace-nowrap ${
+                              task.priority === 'High'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs'
+                                : task.priority === 'Medium'
+                                ? 'bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs'
+                                : 'bg-cyan-50 text-cyan-800 border border-cyan-200 shadow-2xs'
                             }`}
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                            <span>{task.status === 'done' ? 'Completed' : 'Pending'}</span>
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                task.priority === 'High' ? 'bg-rose-500' : task.priority === 'Medium' ? 'bg-amber-500' : 'bg-cyan-500'
+                              }`}
+                            />
+                            <span>{task.priority}</span>
                           </span>
+                        </td>
 
-                          {/* Nearby Written Issue Button / Popup Trigger */}
-                          {task.status !== 'done' && task.pendingReason && (
+                        {/* Prominent Target Deadline (Date & Time) */}
+                        <td className="py-3.5 px-4">
+                          <div className="inline-flex flex-col gap-1 items-start bg-gradient-to-r from-indigo-50/90 via-sky-50/80 to-cyan-50/90 border border-indigo-200/90 rounded-xl px-3 py-1.5 shadow-2xs">
+                            <div className="flex items-center gap-1.5 text-xs font-black text-indigo-950 whitespace-nowrap">
+                              <Calendar className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                              <span>{task.dueDate}</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[11px] font-bold text-indigo-700 whitespace-nowrap">
+                              <Clock className="w-3 h-3 text-indigo-500 shrink-0" />
+                              <span>By {task.dueTime}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Status Column & Issue Trigger */}
+                        <td className="py-3.5 px-4 sm:px-5 text-right">
+                          <div className="flex flex-col items-end gap-1.5">
                             <button
                               type="button"
-                              onClick={() => setSelectedTaskForIssue(task)}
-                              className="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs max-w-[190px] truncate"
-                              title="Click to view full issue in readable popup"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleTaskStatus(task.id);
+                              }}
+                              className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-black cursor-pointer shadow-xs active:scale-95 transition-all ${
+                                isDone
+                                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-200'
+                                  : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-amber-200'
+                              }`}
+                              title="Click to toggle status"
                             >
-                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                              <span className="truncate">Issue: "{task.pendingReason}"</span>
+                              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                              <span>{isDone ? 'Completed' : 'Pending'}</span>
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+
+                            {/* Nearby Written Issue Button / Popup Trigger */}
+                            {!isDone && task.pendingReason && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedTaskForIssue(task);
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs max-w-[190px] truncate"
+                                title="Click to view full issue in readable popup"
+                              >
+                                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                <span className="truncate">Issue: "{task.pendingReason}"</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
