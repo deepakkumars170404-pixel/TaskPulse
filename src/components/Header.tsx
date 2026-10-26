@@ -9,6 +9,7 @@ import {
   FlaskConical,
   Menu,
   Database,
+  Sparkles,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -36,37 +37,41 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   }, [showSwitchDropdown]);
 
   return (
-    <header className="bg-white border-b border-slate-200 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+    <header className="bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between sticky top-0 z-30 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] transition-all">
       {/* Left: Mobile Menu Trigger + Brand logo & name */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-2.5 sm:gap-3.5">
         {/* Hamburger Menu button for mobile */}
         {onOpenMobileMenu && (
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 border border-slate-200/80 transition-colors cursor-pointer"
             aria-label="Open navigation drawer"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
 
-        {/* Logo icon */}
-        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-200 shrink-0">
-          <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+        {/* Brand Logo with 3D gradient & subtle glow */}
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-300/40 shrink-0 ring-2 ring-white">
+          <CheckSquare className="w-5 h-5 stroke-[2.5]" />
         </div>
 
         {/* Brand name & Org tag */}
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="font-['Outfit'] font-bold text-base sm:text-lg tracking-tight text-slate-900 leading-none">
+          <div className="flex items-center gap-2">
+            <span className="font-['Outfit'] font-extrabold text-base sm:text-xl tracking-tight text-slate-900 leading-none">
               TaskToggle
             </span>
-            <span className="hidden xs:inline-block text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 truncate max-w-[100px] sm:max-w-none">
-              {orgSettings.orgName}
+            {/* Organization Badge (Deepak) */}
+            <span className="hidden xs:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
+              <Sparkles className="w-3 h-3 text-indigo-500" />
+              <span>{orgSettings.orgName}</span>
             </span>
           </div>
-          <p className="hidden sm:block text-[11px] text-slate-400 font-medium">Daily To-Do & Task Toggle</p>
+          <p className="hidden sm:block text-[11px] text-slate-400 font-medium tracking-wide">
+            Enterprise Task Scheduling & Timing Engine
+          </p>
         </div>
       </div>
 
@@ -74,32 +79,32 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Backend Cloud Sync Chip */}
         <div
-          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+          className={`hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
             isBackendConnected
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              ? 'bg-emerald-50/90 text-emerald-800 border-emerald-200/90 shadow-2xs'
               : 'bg-slate-50 text-slate-600 border-slate-200'
           }`}
           title={
             isBackendConnected
-              ? 'Connected to live Supabase backend database'
-              : 'Backend serverless endpoints active. Add VITE_SUPABASE_URL for live cloud DB sync.'
+              ? 'Live Supabase Cloud Database Connected & Synchronized'
+              : 'Backend Serverless API Active'
           }
         >
-          <Database className={`w-3 h-3 ${isBackendConnected ? 'text-emerald-600' : 'text-slate-400'}`} />
-          <span>{isBackendConnected ? 'Cloud Sync' : 'Backend Ready'}</span>
+          <Database className={`w-3.5 h-3.5 ${isBackendConnected ? 'text-emerald-600' : 'text-slate-400'}`} />
+          <span>{isBackendConnected ? 'Supabase Live' : 'Backend Ready'}</span>
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              isBackendConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+            className={`w-2 h-2 rounded-full ${
+              isBackendConnected ? 'bg-emerald-500 animate-pulse ring-2 ring-emerald-200' : 'bg-slate-300'
             }`}
           />
         </div>
 
         {/* Office Hours Chip */}
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-indigo-50/80 border border-indigo-100/80 text-indigo-900 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-slate-50 to-indigo-50/50 border border-slate-200/90 hover:border-indigo-200 text-slate-700 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-2xs transition-all">
           <Clock className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
           <span className="text-[11px] sm:text-xs">
-            <span className="hidden md:inline">Office hours </span>
-            <strong className="font-bold text-indigo-700">{officeTiming.openTime} – {officeTiming.closeTime}</strong>
+            <span className="hidden lg:inline text-slate-500 font-medium">Office: </span>
+            <strong className="font-bold text-slate-800">{officeTiming.openTime} – {officeTiming.closeTime}</strong>
           </span>
         </div>
 
@@ -108,12 +113,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           <button
             type="button"
             onClick={() => setShowSwitchDropdown(!showSwitchDropdown)}
-            className="flex items-center gap-1.5 sm:gap-2 bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-200/90 text-indigo-900 p-1 sm:pr-3 rounded-full transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-2 bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-indigo-300 text-slate-800 p-1 sm:pr-3 rounded-full transition-all cursor-pointer shadow-xs"
             title="Click to switch characters for testing (Admin vs Staff)"
             aria-expanded={showSwitchDropdown}
           >
             <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${
+              className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-full flex items-center justify-center text-white text-xs font-extrabold shrink-0 shadow-xs ring-1 ring-white ${
                 currentUser.avatarBg || 'bg-indigo-600'
               }`}
             >
@@ -125,8 +130,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 <span className="text-xs font-bold text-slate-900 leading-tight">
                   {currentUser.name}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full font-extrabold uppercase bg-amber-200/80 text-amber-950 flex items-center gap-0.5">
-                  <FlaskConical className="w-2.5 h-2.5" />
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full font-extrabold uppercase bg-amber-100 text-amber-900 border border-amber-200/80 flex items-center gap-0.5">
+                  <FlaskConical className="w-2.5 h-2.5 text-amber-600" />
                   <span>Test</span>
                 </span>
               </div>
@@ -135,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               </span>
             </div>
 
-            <ChevronDown className="w-3.5 h-3.5 text-indigo-500 pr-0.5 sm:pr-0" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 pr-0.5 sm:pr-0" />
           </button>
 
           {/* Character Switcher Dropdown */}
