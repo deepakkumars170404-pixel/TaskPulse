@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useTaskPulse } from '../context/TaskPulseContext';
+import { useTaskToggle } from '../context/TaskToggleContext';
 import { CheckSquare, Clock, ChevronDown, UserCheck, ShieldCheck, FlaskConical } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { currentUser, users, switchUser, officeTiming, orgSettings } = useTaskPulse();
+  const { currentUser, users, switchUser, officeTiming, orgSettings } = useTaskToggle();
   const [showSwitchDropdown, setShowSwitchDropdown] = useState(false);
 
   return (
@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <span className="font-['Outfit'] font-bold text-lg tracking-tight text-slate-900">
-              TaskPulse
+              TaskToggle
             </span>
             <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
               {orgSettings.orgName}

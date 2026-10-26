@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTaskPulse } from '../context/TaskPulseContext';
+import { useTaskToggle } from '../context/TaskToggleContext';
 import {
   LayoutDashboard,
   UserPlus,
@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
-  const { currentUser, currentPage, setCurrentPage, logout, tasks } = useTaskPulse();
+  const { currentUser, currentPage, setCurrentPage, logout, tasks } = useTaskToggle();
 
   // Calculate pending requests count for current staff member
   const pendingRequestsCount = tasks.filter(

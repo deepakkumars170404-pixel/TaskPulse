@@ -8,7 +8,7 @@ import {
   INITIAL_ORG_SETTINGS,
 } from '../data/initialData';
 
-interface TaskPulseContextType {
+interface TaskToggleContextType {
   currentUser: User;
   users: User[];
   tasks: Task[];
@@ -45,11 +45,11 @@ interface TaskPulseContextType {
   updateOrgSettings: (settings: Partial<OrgSettings>) => void;
 }
 
-const TaskPulseContext = createContext<TaskPulseContextType | undefined>(undefined);
+const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
-const STORAGE_KEY_PREFIX = 'taskpulse_';
+const STORAGE_KEY_PREFIX = 'tasktoggle_';
 
-export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load persistent state or fall back to mock data
   const [users] = useState<User[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}users`);
@@ -291,7 +291,7 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <TaskPulseContext.Provider
+    <TaskToggleContext.Provider
       value={{
         currentUser,
         users,
@@ -317,14 +317,14 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }}
     >
       {children}
-    </TaskPulseContext.Provider>
+    </TaskToggleContext.Provider>
   );
 };
 
-export const useTaskPulse = () => {
-  const context = useContext(TaskPulseContext);
+export const useTaskToggle = () => {
+  const context = useContext(TaskToggleContext);
   if (!context) {
-    throw new Error('useTaskPulse must be used within a TaskPulseProvider');
+    throw new Error('useTaskToggle must be used within a TaskToggleProvider');
   }
   return context;
 };

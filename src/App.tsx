@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TaskPulseProvider, useTaskPulse } from './context/TaskPulseContext';
+import { TaskToggleProvider, useTaskToggle } from './context/TaskToggleContext';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { LoginView } from './components/LoginView';
@@ -12,9 +12,9 @@ import { CreateToDoView } from './components/staff/CreateToDoView';
 import { TaskRequestsView } from './components/staff/TaskRequestsView';
 
 const MainLayout: React.FC = () => {
-  const { currentPage, currentUser } = useTaskPulse();
+  const { currentPage, currentUser } = useTaskToggle();
 
-  // Detect if TaskPulse is embedded inside ConnectX (via ?embedded=true in URL)
+  // Detect if TaskToggle is embedded inside ConnectX (via ?embedded=true in URL)
   const isEmbedded = useMemo(() => {
     return new URLSearchParams(window.location.search).get('embedded') === 'true';
   }, []);
@@ -53,9 +53,9 @@ const MainLayout: React.FC = () => {
 
 export function App() {
   return (
-    <TaskPulseProvider>
+    <TaskToggleProvider>
       <MainLayout />
-    </TaskPulseProvider>
+    </TaskToggleProvider>
   );
 }
 

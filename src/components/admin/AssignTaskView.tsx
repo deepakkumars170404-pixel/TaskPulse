@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useTaskPulse } from '../../context/TaskPulseContext';
+import { useTaskToggle } from '../../context/TaskToggleContext';
 import { TaskPriority } from '../../types';
 import { Check, ShieldAlert, Sparkles, Calendar, CalendarDays } from 'lucide-react';
 import { MiniCalendar } from '../common/MiniCalendar';
 
 export const AssignTaskView: React.FC = () => {
-  const { users, assignAdminTask, tasks, setCurrentPage } = useTaskPulse();
+  const { users, assignAdminTask, tasks, setCurrentPage } = useTaskToggle();
 
   const staffList = users.filter((u) => u.role === 'staff');
 

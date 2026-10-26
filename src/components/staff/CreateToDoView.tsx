@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useTaskPulse } from '../../context/TaskPulseContext';
+import { useTaskToggle } from '../../context/TaskToggleContext';
 import { HelpCircle, Sparkles, User, Users } from 'lucide-react';
 
 export const CreateToDoView: React.FC = () => {
-  const { currentUser, users, createStaffTask, tasks, setCurrentPage } = useTaskPulse();
+  const { currentUser, users, createStaffTask, tasks, setCurrentPage } = useTaskToggle();
 
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');

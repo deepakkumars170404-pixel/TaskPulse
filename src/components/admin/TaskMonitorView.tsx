@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useTaskPulse } from '../../context/TaskPulseContext';
+import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Info, Search, AlertTriangle, Calendar } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { Task } from '../../types';
 
 export const TaskMonitorView: React.FC = () => {
-  const { tasks } = useTaskPulse();
+  const { tasks } = useTaskToggle();
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'staff' | 'blocked'>('all');
   const [dateTimeline, setDateTimeline] = useState<'all' | 'previous' | 'today' | 'upcoming'>('all');
   const [searchQuery, setSearchQuery] = useState('');

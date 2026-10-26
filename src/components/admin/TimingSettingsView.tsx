@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useTaskPulse } from '../../context/TaskPulseContext';
+import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Clock, Calendar, Check, Info, Sparkles, ShieldCheck } from 'lucide-react';
 
 export const TimingSettingsView: React.FC = () => {
-  const { officeTiming, eventTiming, users, updateOfficeTiming, updateEventTiming } = useTaskPulse();
+  const { officeTiming, eventTiming, users, updateOfficeTiming, updateEventTiming } = useTaskToggle();
 
   // General Timing Form state
   const [openTime, setOpenTime] = useState(officeTiming.openTime);

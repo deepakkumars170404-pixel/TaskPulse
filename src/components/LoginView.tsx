@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useTaskPulse } from '../context/TaskPulseContext';
+import { useTaskToggle } from '../context/TaskToggleContext';
 import { Role } from '../types';
 import { CheckSquare, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
-  const { login } = useTaskPulse();
+  const { login } = useTaskToggle();
   const [role, setRole] = useState<Role>('admin');
   const [email, setEmail] = useState('admin@company.com');
   const [password, setPassword] = useState('••••••••');
@@ -36,7 +36,7 @@ export const LoginView: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-xs flex items-center justify-center text-white">
               <CheckSquare className="w-5 h-5 stroke-[2.5]" />
             </div>
-            <span className="font-['Outfit'] font-bold text-lg tracking-tight">TaskPulse</span>
+            <span className="font-['Outfit'] font-bold text-lg tracking-tight">TaskToggle</span>
           </div>
 
           {/* Center Pitch */}

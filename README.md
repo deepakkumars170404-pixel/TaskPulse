@@ -1,4 +1,4 @@
-﻿# TaskPulse
+﻿# TaskToggle
 
 Intelligent Daily Task Distribution & Timing Platform.
 

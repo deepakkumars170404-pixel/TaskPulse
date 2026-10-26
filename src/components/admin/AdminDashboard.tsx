@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useTaskPulse } from '../../context/TaskPulseContext';
+import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Plus, CheckCircle, Clock, Users, ArrowUpRight, Calendar, AlertTriangle } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { Task } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
-  const { tasks, users, setCurrentPage, eventTiming } = useTaskPulse();
+  const { tasks, users, setCurrentPage, eventTiming } = useTaskToggle();
 
   // Selected Date Filter: 'all' | 'previous' | 'today' | 'upcoming' | specific date
   const [dateFilter, setDateFilter] = useState<'today' | 'previous' | 'upcoming' | 'all'>('today');

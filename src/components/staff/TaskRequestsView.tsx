@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTaskPulse } from '../../context/TaskPulseContext';
+import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Check, Info, Inbox } from 'lucide-react';
 
 export const TaskRequestsView: React.FC = () => {
-  const { currentUser, tasks, acceptTaskRequest } = useTaskPulse();
+  const { currentUser, tasks, acceptTaskRequest } = useTaskToggle();
 
   // Pending requests created by other staff for current staff
   const pendingRequests = tasks.filter(

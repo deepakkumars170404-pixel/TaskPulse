@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTaskPulse } from '../../context/TaskPulseContext';
+import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Check, Calendar, AlertCircle, MessageSquare, Send, X, ShieldAlert } from 'lucide-react';
 
 export const MyToDoView: React.FC = () => {
@@ -12,7 +12,7 @@ export const MyToDoView: React.FC = () => {
     officeTiming,
     eventTiming,
     reportPendingReason,
-  } = useTaskPulse();
+  } = useTaskToggle();
 
   const [activeTab, setActiveTab] = useState<'today' | 'admin' | 'staff' | 'self'>('today');
   // Track which task has active reason reporting box open
