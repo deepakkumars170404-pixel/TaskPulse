@@ -81,6 +81,11 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   });
 
   const [orgSettings, setOrgSettings] = useState<OrgSettings>(() => {
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const orgParam = params?.get('org');
+    if (orgParam) {
+      return { orgName: orgParam };
+    }
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}org_settings`);
     return saved ? JSON.parse(saved) : INITIAL_ORG_SETTINGS;
   });
@@ -90,6 +95,20 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   });
 
   const [showCompleted, setShowCompleted] = useState<boolean>(true);
+
+  // Sync role and view from URL if embedded from ConnectX
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const roleParam = params.get('role');
+    if (roleParam === 'admin' || roleParam === 'staff') {
+      const match = users.find((u) => u.role === roleParam);
+      if (match) {
+        setCurrentUser(match);
+        setCurrentPage(roleParam === 'admin' ? 'dashboard' : 'mytodo');
+      }
+    }
+  }, [users]);
 
   // Sync state to localStorage
   useEffect(() => {

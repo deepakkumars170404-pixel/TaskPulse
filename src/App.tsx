@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TaskPulseProvider, useTaskPulse } from './context/TaskPulseContext';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -14,13 +14,20 @@ import { TaskRequestsView } from './components/staff/TaskRequestsView';
 const MainLayout: React.FC = () => {
   const { currentPage, currentUser } = useTaskPulse();
 
-  if (currentPage === 'login') {
+  // Detect if TaskPulse is embedded inside ConnectX (via ?embedded=true in URL)
+  const isEmbedded = useMemo(() => {
+    return new URLSearchParams(window.location.search).get('embedded') === 'true';
+  }, []);
+
+  if (currentPage === 'login' && !isEmbedded) {
     return <LoginView />;
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F6FB]">
-      <Header />
+    <div className={`min-h-screen flex flex-col ${isEmbedded ? 'bg-transparent' : 'bg-[#F4F6FB]'}`}>
+      {/* If embedded inside ConnectX, hide redundant outer header so ConnectX controls header */}
+      {!isEmbedded && <Header />}
+
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
         <main className="flex-1 overflow-y-auto">
@@ -53,4 +60,3 @@ export function App() {
 }
 
 export default App;
-
