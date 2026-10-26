@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 
 interface MiniCalendarProps {
   selectedDate: string; // e.g. "24 Oct 2026"
@@ -82,7 +82,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl p-4 w-72 select-none z-50">
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl p-3.5 sm:p-4 w-72 max-w-[calc(100vw-2.5rem)] select-none z-50">
       {/* Month & Year Header with Navigation */}
       <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
         <button
@@ -172,9 +172,8 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
           Today (24 Oct)
         </button>
 
-        <span className="text-[10px] text-slate-400 font-medium">Click any day to assign</span>
+        <span className="text-[10px] text-slate-400 font-medium">Click day to assign</span>
       </div>
     </div>
   );
 };
-

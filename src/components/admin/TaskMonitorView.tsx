@@ -42,12 +42,12 @@ export const TaskMonitorView: React.FC = () => {
   const blockedCount = tasks.filter((t) => t.status !== 'done' && t.pendingReason).length;
 
   return (
-    <div className="w-full p-6 sm:p-8 space-y-6">
+    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Task Monitor</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900">Task Monitor</h1>
+          <p className="text-xs sm:text-sm text-slate-500">
             See all tasks, previous to-do archives, upcoming dates, and reported issues
           </p>
         </div>
@@ -60,29 +60,29 @@ export const TaskMonitorView: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks, staff or issues..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
           />
         </div>
       </div>
 
-      {/* Date Timeline Filter Bar */}
-      <div className="bg-white p-2.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="w-4 h-4 text-indigo-600 ml-2 mr-1" />
-          <span className="text-xs font-bold text-slate-700 mr-2">Timeline:</span>
+      {/* Date Timeline Filter Bar (Horizontal scroll on mobile) */}
+      <div className="bg-white p-2 sm:p-2.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          <Calendar className="w-4 h-4 text-indigo-600 ml-1 sm:ml-2 mr-1 shrink-0" />
+          <span className="text-xs font-bold text-slate-700 mr-1 shrink-0 hidden xs:inline">Timeline:</span>
 
           {(
             [
               { id: 'all', label: 'All Dates' },
-              { id: 'previous', label: 'Previous To-Do Lists' },
+              { id: 'previous', label: 'Previous' },
               { id: 'today', label: 'Today (24 Oct)' },
-              { id: 'upcoming', label: 'Upcoming Days' },
+              { id: 'upcoming', label: 'Upcoming' },
             ] as const
           ).map((timeline) => (
             <button
               key={timeline.id}
               onClick={() => setDateTimeline(timeline.id)}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 dateTimeline === timeline.id
                   ? 'bg-slate-800 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100'
@@ -94,8 +94,8 @@ export const TaskMonitorView: React.FC = () => {
         </div>
       </div>
 
-      {/* Status Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* Status Filter Tabs (Horizontal scroll on mobile) */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
         {(
           [
             { id: 'all', label: 'All Statuses' },
@@ -107,7 +107,7 @@ export const TaskMonitorView: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setFilter(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               filter === tab.id
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
@@ -120,7 +120,7 @@ export const TaskMonitorView: React.FC = () => {
         {/* Dedicated "Issues Reported" tab */}
         <button
           onClick={() => setFilter('blocked')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
             filter === 'blocked'
               ? 'bg-amber-600 text-white shadow-xs'
               : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
@@ -142,15 +142,15 @@ export const TaskMonitorView: React.FC = () => {
 
       {/* Tasks Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full text-left text-xs min-w-[560px]">
             <thead>
               <tr className="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                <th className="py-3.5 px-6 font-semibold">Task</th>
-                <th className="py-3.5 px-6 font-semibold">Staff</th>
-                <th className="py-3.5 px-6 font-semibold">Given by</th>
-                <th className="py-3.5 px-6 font-semibold text-center">Status & Nearby Issue</th>
-                <th className="py-3.5 px-6 font-semibold text-right">Completed at</th>
+                <th className="py-3.5 px-4 sm:px-6 font-semibold">Task</th>
+                <th className="py-3.5 px-4 sm:px-6 font-semibold">Staff</th>
+                <th className="py-3.5 px-4 sm:px-6 font-semibold">Given by</th>
+                <th className="py-3.5 px-4 sm:px-6 font-semibold text-center">Status & Nearby Issue</th>
+                <th className="py-3.5 px-4 sm:px-6 font-semibold text-right">Completed at</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -168,11 +168,11 @@ export const TaskMonitorView: React.FC = () => {
 
                   return (
                     <tr key={task.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-4 px-6 max-w-[260px]">
-                        <div className="font-bold text-slate-800">{task.title}</div>
+                      <td className="py-3.5 px-4 sm:px-6 max-w-[220px] sm:max-w-[260px]">
+                        <div className="font-bold text-slate-800 truncate">{task.title}</div>
                         <div className="text-[10px] text-slate-400 mt-0.5">Due: {task.dueDate} · {task.dueTime}</div>
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-3.5 px-4 sm:px-6">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-slate-700 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
                             {task.assignedToName
@@ -181,18 +181,18 @@ export const TaskMonitorView: React.FC = () => {
                               .join('')
                               .substring(0, 2)}
                           </div>
-                          <span className="font-medium text-slate-700">{task.assignedToName}</span>
+                          <span className="font-medium text-slate-700 truncate max-w-[110px]">{task.assignedToName}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-6 font-medium text-slate-600">
+                      <td className="py-3.5 px-4 sm:px-6 font-medium text-slate-600 whitespace-nowrap">
                         {task.type === 'admin' ? 'Admin' : task.createdByName}
                       </td>
 
                       {/* Status Column with Nearby Written Issue Visibility */}
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-3.5 px-4 sm:px-6 text-center">
                         <div className="inline-flex flex-col items-center gap-1.5">
                           <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
                               isDone
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : isAccepted
@@ -216,7 +216,7 @@ export const TaskMonitorView: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => setSelectedTaskForIssue(task)}
-                              className="px-2 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer max-w-[180px] truncate"
+                              className="px-2 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer max-w-[150px] sm:max-w-[180px] truncate"
                               title="Click to view full issue in readable popup"
                             >
                               <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
@@ -226,7 +226,7 @@ export const TaskMonitorView: React.FC = () => {
                         </div>
                       </td>
 
-                      <td className="py-4 px-6 text-right font-medium text-slate-500">
+                      <td className="py-3.5 px-4 sm:px-6 text-right font-medium text-slate-500 whitespace-nowrap">
                         {task.completedAt || '—'}
                       </td>
                     </tr>
@@ -238,8 +238,8 @@ export const TaskMonitorView: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom callout note matching mockups */}
-      <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center gap-2.5 text-xs text-indigo-900 font-medium">
+      {/* Bottom callout note */}
+      <div className="p-3.5 sm:p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center gap-2.5 text-xs text-indigo-900 font-medium">
         <Info className="w-4 h-4 text-indigo-600 shrink-0" />
         <span>Admin can see everything staff complete, including tasks staff create for each other.</span>
       </div>

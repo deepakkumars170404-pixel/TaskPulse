@@ -82,29 +82,29 @@ export const AssignTaskView: React.FC = () => {
     .slice(0, 6);
 
   return (
-    <div className="w-full p-6 sm:p-8 space-y-6">
+    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Assign Task</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900">Assign Task</h1>
+        <p className="text-xs sm:text-sm text-slate-500">
           Give work to staff with 1-click date picking for easy scheduling
         </p>
       </div>
 
       {successToast && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
-          <Sparkles className="w-5 h-5 text-emerald-600" />
-          <span className="text-sm font-semibold">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
+          <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span className="text-xs sm:text-sm font-semibold">
             Task assigned for {dueDate}! It has been dispatched to selected staff members.
           </span>
         </div>
       )}
 
       {/* Full-width Responsive Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Assignment Form (2 cols on xl) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-4 sm:p-7 border border-slate-200/80 shadow-xs">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Task title */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
@@ -173,7 +173,7 @@ export const AssignTaskView: React.FC = () => {
                   className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 cursor-pointer"
                 >
                   <CalendarDays className="w-3.5 h-3.5" />
-                  <span>{showCalendarPopover ? 'Close Mini Calendar' : 'Open Mini Calendar'}</span>
+                  <span>{showCalendarPopover ? 'Close Calendar' : 'Open Calendar'}</span>
                 </button>
               </div>
 
@@ -210,7 +210,7 @@ export const AssignTaskView: React.FC = () => {
                   {showCalendarPopover && (
                     <div
                       ref={calendarRef}
-                      className="absolute left-0 top-12 z-50 animate-in fade-in zoom-in-95 duration-150"
+                      className="absolute left-0 sm:left-auto right-auto top-12 z-50 animate-in fade-in zoom-in-95 duration-150 max-w-[calc(100vw-2.5rem)]"
                     >
                       <MiniCalendar
                         selectedDate={dueDate}
@@ -243,7 +243,7 @@ export const AssignTaskView: React.FC = () => {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
                 Priority
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {(['Low', 'Medium', 'High'] as TaskPriority[]).map((p) => {
                   const isSelected = priority === p;
                   return (
@@ -288,9 +288,9 @@ export const AssignTaskView: React.FC = () => {
         </div>
 
         {/* Sidebar Cards (1 col on xl) */}
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {/* Compulsory work card */}
-          <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-6">
+          <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-5 sm:p-6">
             <div className="flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
               <div>
@@ -305,7 +305,7 @@ export const AssignTaskView: React.FC = () => {
           </div>
 
           {/* Recently assigned list */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
               Recently assigned
             </h3>

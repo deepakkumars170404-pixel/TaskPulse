@@ -42,17 +42,17 @@ export const CreateToDoView: React.FC = () => {
     .slice(0, 5);
 
   return (
-    <div className="w-full p-6 sm:p-8 space-y-6">
+    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Create To-Do</h1>
-        <p className="text-sm text-slate-500">Add a task for yourself or for another staff member</p>
+        <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900">Create To-Do</h1>
+        <p className="text-xs sm:text-sm text-slate-500">Add a task for yourself or for another staff member</p>
       </div>
 
       {successToast && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
-          <Sparkles className="w-5 h-5 text-emerald-600" />
-          <span className="text-sm font-semibold">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
+          <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span className="text-xs sm:text-sm font-semibold">
             {targetUserId === currentUser.id
               ? 'Task added straight to your to-do list!'
               : 'Task sent to colleague! It will appear on their Requests tab awaiting acceptance.'}
@@ -60,10 +60,10 @@ export const CreateToDoView: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Form */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-4 sm:p-7 border border-slate-200/80 shadow-xs">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Task title */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
@@ -103,7 +103,7 @@ export const CreateToDoView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setTargetUserId(currentUser.id)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                     targetUserId === currentUser.id
                       ? 'bg-indigo-600 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
@@ -121,7 +121,7 @@ export const CreateToDoView: React.FC = () => {
                       type="button"
                       key={staff.id}
                       onClick={() => setTargetUserId(staff.id)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      className={`px-3.5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                         isSelected
                           ? 'bg-indigo-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
@@ -138,7 +138,7 @@ export const CreateToDoView: React.FC = () => {
             {/* Due date & Due time */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5 sm:mb-2">
                   Due date
                 </label>
                 <input
@@ -150,7 +150,7 @@ export const CreateToDoView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5 sm:mb-2">
                   Due time
                 </label>
                 <input
@@ -182,7 +182,7 @@ export const CreateToDoView: React.FC = () => {
         </div>
 
         {/* Sidebar Info & Sent by Me */}
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {/* How it works card */}
           <div className="bg-sky-50/70 border border-sky-100 rounded-2xl p-5">
             <div className="flex items-start gap-3">
@@ -202,7 +202,7 @@ export const CreateToDoView: React.FC = () => {
           </div>
 
           {/* Sent by me */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
               Sent by me
             </h3>
@@ -235,4 +235,3 @@ export const CreateToDoView: React.FC = () => {
     </div>
   );
 };
-

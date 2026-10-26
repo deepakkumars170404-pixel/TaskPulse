@@ -1,12 +1,17 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     margin: 0;
     padding: 0;
     font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
     background-color: #F4F6FB;
     color: #0F172A;
+    overscroll-behavior-y: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -14,7 +19,7 @@
   }
 }
 
-/* Custom sleek scrollbar */
+/* Custom sleek scrollbar for desktop */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -30,3 +35,11 @@
   background: #94A3B8;
 }
 
+/* Hide scrollbar for clean touch swipe rows */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

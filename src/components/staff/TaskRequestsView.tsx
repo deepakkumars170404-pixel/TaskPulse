@@ -16,27 +16,27 @@ export const TaskRequestsView: React.FC = () => {
   );
 
   return (
-    <div className="w-full p-6 sm:p-8 space-y-6">
+    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Task Requests</h1>
-        <p className="text-sm text-slate-500">Tasks other staff members created for you</p>
+        <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900">Task Requests</h1>
+        <p className="text-xs sm:text-sm text-slate-500">Tasks other staff members created for you</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Waiting for your acceptance (2 cols) */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
-            <div className="mb-5">
-              <h2 className="text-base font-bold text-slate-900">Waiting for your acceptance</h2>
+          <div className="bg-white rounded-2xl p-4 sm:p-7 border border-slate-200/80 shadow-xs">
+            <div className="mb-4 sm:mb-5">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900">Waiting for your acceptance</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Accepting adds the task to your to-do list. Until accepted it stays Pending.
               </p>
             </div>
 
             {pendingRequests.length === 0 ? (
-              <div className="text-center py-12 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                <Inbox className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+              <div className="text-center py-10 sm:py-12 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                <Inbox className="w-9 h-9 sm:w-10 sm:h-10 text-slate-300 mx-auto mb-2" />
                 <p className="text-sm font-semibold text-slate-600">No requests waiting</p>
                 <p className="text-xs text-slate-400 mt-1">You are all caught up on staff delegations!</p>
               </div>
@@ -45,11 +45,11 @@ export const TaskRequestsView: React.FC = () => {
                 {pendingRequests.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between p-4 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white transition-all shadow-xs"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-slate-200/90 hover:border-slate-300 bg-white transition-all shadow-xs"
                   >
-                    <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
                       {/* Avatar */}
-                      <div className="w-9 h-9 rounded-full bg-slate-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
                         {task.createdByName
                           .split(' ')
                           .map((n) => n[0])
@@ -58,8 +58,8 @@ export const TaskRequestsView: React.FC = () => {
                           .toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-slate-900 truncate">{task.title}</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{task.title}</h3>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
                           From <strong className="font-semibold text-slate-700">{task.createdByName}</strong> · due {task.dueTime}
                         </p>
                       </div>
@@ -67,7 +67,7 @@ export const TaskRequestsView: React.FC = () => {
 
                     <button
                       onClick={() => acceptTaskRequest(task.id)}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                     >
                       <Check className="w-4 h-4 stroke-[2.5]" />
                       <span>Accept</span>
@@ -80,9 +80,9 @@ export const TaskRequestsView: React.FC = () => {
         </div>
 
         {/* Right column: Accepted today & Rules callout (1 col) */}
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {/* Accepted today */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
               Accepted today
             </h3>
@@ -94,25 +94,24 @@ export const TaskRequestsView: React.FC = () => {
                   <div key={task.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-xs font-bold text-slate-800">{task.title}</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
                         Accepted
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-1">From {task.createdByName}</div>
+                    <div className="text-[11px] text-slate-500 mt-1">From: {task.createdByName}</div>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Admin Rule Callout */}
-          <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5">
-            <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs text-indigo-900 leading-relaxed font-medium">
-                  <strong>Accept applies only to staff-to-staff tasks.</strong> Admin tasks are compulsory and need no acceptance.
-                </p>
+          {/* Rules callout */}
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5">
+            <div className="flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+              <div className="text-xs text-slate-600 leading-relaxed">
+                <strong className="text-slate-800 block mb-1">Staff Delegation Rules:</strong>
+                Staff cannot assign directly to a peer without their consent. Accepting makes it official on your daily to-do list.
               </div>
             </div>
           </div>
@@ -121,4 +120,3 @@ export const TaskRequestsView: React.FC = () => {
     </div>
   );
 };
-
