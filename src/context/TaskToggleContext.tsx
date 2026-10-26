@@ -90,7 +90,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return saved ? JSON.parse(saved) : INITIAL_EVENT_TIMING;
   });
 
-  // Organization settings
+  // Organization settings (Default: Deepak)
   const [orgSettings, setOrgSettings] = useState<OrgSettings>(() => {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const orgParam = params?.get('org');
@@ -110,17 +110,21 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Function to pull latest data from backend / database
   const refreshData = useCallback(async () => {
     try {
-      const [fetchedUsers, fetchedTasks, fetchedOffice, fetchedEvent] = await Promise.all([
+      const [fetchedUsers, fetchedTasks, fetchedOffice, fetchedEvent, fetchedOrg] = await Promise.all([
         backendApi.getUsers(),
         backendApi.getTasks(),
         backendApi.getOfficeTiming(),
         backendApi.getEventTiming(),
+        backendApi.getOrgSettings(),
       ]);
 
       if (fetchedUsers && fetchedUsers.length > 0) setUsers(fetchedUsers);
       if (fetchedTasks) setTasks(fetchedTasks);
       if (fetchedOffice) setOfficeTiming(fetchedOffice);
       if (fetchedEvent) setEventTiming(fetchedEvent);
+      if (fetchedOrg && !new URLSearchParams(window.location.search).get('org')) {
+        setOrgSettings(fetchedOrg);
+      }
     } catch (err) {
       console.warn('[TaskToggleContext] Initial sync error:', err);
     }
@@ -387,7 +391,11 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const updateOrgSettings = (settings: Partial<OrgSettings>) => {
-    setOrgSettings((prev) => ({ ...prev, ...settings }));
+    setOrgSettings((prev) => {
+      const updated = { ...prev, ...settings };
+      backendApi.updateOrgSettings(updated).catch((err) => console.warn('[Backend] org error:', err));
+      return updated;
+    });
   };
 
   return (

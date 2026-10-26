@@ -1,6 +1,7 @@
 -- ==============================================================================
 -- TaskToggle Supabase Database Schema
 -- Run this complete script in your Supabase Project -> SQL Editor to initialize
+-- Organization: Deepak
 -- ==============================================================================
 
 -- 1. Create USERS table
@@ -56,10 +57,10 @@ CREATE TABLE IF NOT EXISTS public.event_timing (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Create ORG_SETTINGS table
+-- 5. Create ORG_SETTINGS table (Organization: Deepak)
 CREATE TABLE IF NOT EXISTS public.org_settings (
   id TEXT PRIMARY KEY DEFAULT 'primary',
-  org_name TEXT NOT NULL DEFAULT 'Acme Corp',
+  org_name TEXT NOT NULL DEFAULT 'Deepak',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -101,6 +102,12 @@ BEGIN
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.office_timing;
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'org_settings'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.org_settings;
+  END IF;
 END $$;
 
 -- 6. Seed Default Initial Data
@@ -110,15 +117,21 @@ INSERT INTO public.users (id, name, email, role, initials, avatar_bg) VALUES
   ('staff_arun', 'Arun Patel', 'arun@company.com', 'staff', 'AP', 'bg-emerald-600'),
   ('staff_meena', 'Meena Sundaram', 'meena@company.com', 'staff', 'MS', 'bg-purple-600'),
   ('staff_karthik', 'Karthik Rao', 'karthik@company.com', 'staff', 'KR', 'bg-amber-600')
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  role = EXCLUDED.role;
 
 INSERT INTO public.office_timing (id, open_time, close_time, working_days) VALUES
   ('primary', '09:30 AM', '06:30 PM', ARRAY['Mon', 'Tue', 'Wed', 'Thu', 'Fri'])
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  open_time = EXCLUDED.open_time,
+  close_time = EXCLUDED.close_time;
 
+-- Insert organization named Deepak
 INSERT INTO public.org_settings (id, org_name) VALUES
-  ('primary', 'Acme Corp')
-ON CONFLICT (id) DO NOTHING;
+  ('primary', 'Deepak')
+ON CONFLICT (id) DO UPDATE SET
+  org_name = EXCLUDED.org_name;
 
 INSERT INTO public.event_timing (id, event_name, date, new_timing, allotted_staff_ids, is_active) VALUES
   ('evt_annual_2026', 'Annual Day Preparation', '26 Oct 2026', '8:00 AM - 6:00 PM', ARRAY['staff_arun', 'staff_meena', 'staff_priya', 'staff_karthik'], TRUE)

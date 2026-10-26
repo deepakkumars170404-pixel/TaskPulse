@@ -256,6 +256,6 @@ export const INITIAL_EVENT_TIMING: EventTiming = {
 };
 
 export const INITIAL_ORG_SETTINGS: OrgSettings = {
-  orgName: 'Enterprise Workspace',
+  orgName: 'Deepak',
   accentColor: '#4F46E5',
 };

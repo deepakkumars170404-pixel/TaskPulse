@@ -1,10 +1,11 @@
 import { supabase, isSupabaseConfigured, mapDbTaskToFrontend, mapFrontendTaskToDb } from '../lib/supabase';
-import { Task, User, OfficeTiming, EventTiming } from '../types';
+import { Task, User, OfficeTiming, EventTiming, OrgSettings } from '../types';
 import {
   INITIAL_USERS,
   INITIAL_TASKS,
   INITIAL_OFFICE_TIMING,
   INITIAL_EVENT_TIMING,
+  INITIAL_ORG_SETTINGS,
 } from '../data/initialData';
 
 const STORAGE_PREFIX = 'tasktoggle_';
@@ -185,6 +186,39 @@ class BackendApiService {
           });
       } catch (err) {
         console.warn('[BackendAPI] Error updating event timing in Supabase:', err);
+      }
+    }
+  }
+
+  // --- ORGANIZATION SETTINGS ---
+  async getOrgSettings(): Promise<OrgSettings> {
+    if (this.hasSupabase && supabase) {
+      try {
+        const { data, error } = await supabase.from('org_settings').select('*').limit(1).maybeSingle();
+        if (!error && data && data.org_name) {
+          const org = { orgName: data.org_name };
+          localStorage.setItem(`${STORAGE_PREFIX}org_settings`, JSON.stringify(org));
+          return org;
+        }
+      } catch (err) {
+        console.warn('[BackendAPI] Error fetching org settings from Supabase:', err);
+      }
+    }
+
+    const saved = localStorage.getItem(`${STORAGE_PREFIX}org_settings`);
+    return saved ? JSON.parse(saved) : INITIAL_ORG_SETTINGS;
+  }
+
+  async updateOrgSettings(settings: Partial<OrgSettings>): Promise<void> {
+    if (this.hasSupabase && supabase && settings.orgName) {
+      try {
+        await supabase.from('org_settings').upsert({
+          id: 'primary',
+          org_name: settings.orgName,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn('[BackendAPI] Error updating org settings in Supabase:', err);
       }
     }
   }
