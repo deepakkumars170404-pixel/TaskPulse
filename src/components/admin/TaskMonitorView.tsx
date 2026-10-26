@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { useTaskPulse } from '../../context/TaskPulseContext';
-import { Info, Search, AlertTriangle } from 'lucide-react';
+import { Info, Search, AlertTriangle, Calendar } from 'lucide-react';
+import { IssueModal } from '../common/IssueModal';
+import { Task } from '../../types';
 
 export const TaskMonitorView: React.FC = () => {
   const { tasks } = useTaskPulse();
   const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'staff' | 'blocked'>('all');
+  const [dateTimeline, setDateTimeline] = useState<'all' | 'previous' | 'today' | 'upcoming'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTaskForIssue, setSelectedTaskForIssue] = useState<Task | null>(null);
 
-  // Filter tasks based on selected tab and search
+  const TODAY_STR = '24 Oct 2026';
+
+  // Filter tasks based on selected tab, timeline, and search
   const filteredTasks = tasks.filter((t) => {
-    // Tab filter
+    // Timeline filter
+    if (dateTimeline === 'today' && t.dueDate !== TODAY_STR && t.dueDate) return false;
+    if (dateTimeline === 'previous' && t.dueDate && t.dueDate >= TODAY_STR) return false;
+    if (dateTimeline === 'upcoming' && t.dueDate && t.dueDate <= TODAY_STR) return false;
+
+    // Status filter
     if (filter === 'completed' && t.status !== 'done') return false;
     if (filter === 'pending' && t.status === 'done') return false;
     if (filter === 'staff' && t.type !== 'staff') return false;
@@ -37,7 +48,7 @@ export const TaskMonitorView: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Task Monitor</h1>
           <p className="text-sm text-slate-500">
-            See what staff have completed, what is pending, and reported issues
+            See all tasks, previous to-do archives, upcoming dates, and reported issues
           </p>
         </div>
 
@@ -54,11 +65,40 @@ export const TaskMonitorView: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Date Timeline Filter Bar */}
+      <div className="bg-white p-2.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5">
+          <Calendar className="w-4 h-4 text-indigo-600 ml-2 mr-1" />
+          <span className="text-xs font-bold text-slate-700 mr-2">Timeline:</span>
+
+          {(
+            [
+              { id: 'all', label: 'All Dates' },
+              { id: 'previous', label: 'Previous To-Do Lists' },
+              { id: 'today', label: 'Today (24 Oct)' },
+              { id: 'upcoming', label: 'Upcoming Days' },
+            ] as const
+          ).map((timeline) => (
+            <button
+              key={timeline.id}
+              onClick={() => setDateTimeline(timeline.id)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                dateTimeline === timeline.id
+                  ? 'bg-slate-800 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              {timeline.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Status Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2">
         {(
           [
-            { id: 'all', label: 'All' },
+            { id: 'all', label: 'All Statuses' },
             { id: 'completed', label: 'Completed' },
             { id: 'pending', label: 'Pending' },
             { id: 'staff', label: 'Staff to staff' },
@@ -109,7 +149,7 @@ export const TaskMonitorView: React.FC = () => {
                 <th className="py-3.5 px-6 font-semibold">Task</th>
                 <th className="py-3.5 px-6 font-semibold">Staff</th>
                 <th className="py-3.5 px-6 font-semibold">Given by</th>
-                <th className="py-3.5 px-6 font-semibold text-center">Status</th>
+                <th className="py-3.5 px-6 font-semibold text-center">Status & Nearby Issue</th>
                 <th className="py-3.5 px-6 font-semibold text-right">Completed at</th>
               </tr>
             </thead>
@@ -128,17 +168,9 @@ export const TaskMonitorView: React.FC = () => {
 
                   return (
                     <tr key={task.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-4 px-6 max-w-[280px]">
+                      <td className="py-4 px-6 max-w-[260px]">
                         <div className="font-bold text-slate-800">{task.title}</div>
-                        {/* If task has reported pending reason, display here clearly */}
-                        {!isDone && task.pendingReason && (
-                          <div className="mt-1.5 inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200/90 text-amber-900 px-2.5 py-1 rounded-lg text-[11px] font-medium">
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                            <span>
-                              <strong>Pending Reason:</strong> "{task.pendingReason}"
-                            </span>
-                          </div>
-                        )}
+                        <div className="text-[10px] text-slate-400 mt-0.5">Due: {task.dueDate} · {task.dueTime}</div>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">
@@ -155,27 +187,45 @@ export const TaskMonitorView: React.FC = () => {
                       <td className="py-4 px-6 font-medium text-slate-600">
                         {task.type === 'admin' ? 'Admin' : task.createdByName}
                       </td>
+
+                      {/* Status Column with Nearby Written Issue Visibility */}
                       <td className="py-4 px-6 text-center">
-                        <span
-                          className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            isDone
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        <div className="inline-flex flex-col items-center gap-1.5">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                              isDone
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : isAccepted
+                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                : isAwaitingAccept
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
+                            {isDone
+                              ? 'Done'
                               : isAccepted
-                              ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                              ? 'Accepted'
                               : isAwaitingAccept
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}
-                        >
-                          {isDone
-                            ? 'Done'
-                            : isAccepted
-                            ? 'Accepted'
-                            : isAwaitingAccept
-                            ? 'Awaiting accept'
-                            : 'Pending'}
-                        </span>
+                              ? 'Awaiting accept'
+                              : 'Pending'}
+                          </span>
+
+                          {/* Nearby Issue Button that opens Easy Readable Popup */}
+                          {!isDone && task.pendingReason && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedTaskForIssue(task)}
+                              className="px-2 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer max-w-[180px] truncate"
+                              title="Click to view full issue in readable popup"
+                            >
+                              <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                              <span className="truncate">Issue: "{task.pendingReason}"</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
+
                       <td className="py-4 px-6 text-right font-medium text-slate-500">
                         {task.completedAt || '—'}
                       </td>
@@ -193,6 +243,12 @@ export const TaskMonitorView: React.FC = () => {
         <Info className="w-4 h-4 text-indigo-600 shrink-0" />
         <span>Admin can see everything staff complete, including tasks staff create for each other.</span>
       </div>
+
+      {/* Readable Issue Popup Modal */}
+      <IssueModal
+        task={selectedTaskForIssue}
+        onClose={() => setSelectedTaskForIssue(null)}
+      />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTaskPulse } from '../../context/TaskPulseContext';
 import { TaskPriority } from '../../types';
-import { Check, ShieldAlert, Sparkles } from 'lucide-react';
+import { Check, ShieldAlert, Sparkles, Calendar } from 'lucide-react';
 
 export const AssignTaskView: React.FC = () => {
   const { users, assignAdminTask, tasks, setCurrentPage } = useTaskPulse();
@@ -15,6 +15,14 @@ export const AssignTaskView: React.FC = () => {
   const [dueTime, setDueTime] = useState('2:30 PM');
   const [priority, setPriority] = useState<TaskPriority>('Medium');
   const [successToast, setSuccessToast] = useState(false);
+
+  // Quick Date presets for easy assignment (Now, Tomorrow, Upcoming Days)
+  const datePresets = [
+    { label: 'Today', value: '24 Oct 2026' },
+    { label: 'Tomorrow', value: '25 Oct 2026' },
+    { label: 'Upcoming (26 Oct)', value: '26 Oct 2026' },
+    { label: 'Next Week (02 Nov)', value: '02 Nov 2026' },
+  ];
 
   // Toggle staff selection
   const toggleStaff = (id: string) => {
@@ -56,14 +64,16 @@ export const AssignTaskView: React.FC = () => {
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Assign Task</h1>
-        <p className="text-sm text-slate-500">Give work to one or more staff members</p>
+        <p className="text-sm text-slate-500">
+          Give work to staff for today or assign tasks in advance for upcoming dates
+        </p>
       </div>
 
       {successToast && (
         <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
           <Sparkles className="w-5 h-5 text-emerald-600" />
           <span className="text-sm font-semibold">
-            Task assigned successfully! It has been dispatched to selected staff members.
+            Task assigned for {dueDate}! It has been dispatched to selected staff members.
           </span>
         </div>
       )}
@@ -114,7 +124,7 @@ export const AssignTaskView: React.FC = () => {
                       type="button"
                       key={staff.id}
                       onClick={() => toggleStaff(staff.id)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                         isSelected
                           ? 'bg-indigo-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 border border-slate-200'
@@ -128,30 +138,50 @@ export const AssignTaskView: React.FC = () => {
               </div>
             </div>
 
-            {/* Due date & Due time */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                  Due date
-                </label>
-                <input
-                  type="text"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900"
-                />
+            {/* Due date selection (Now to Upcoming Days) */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                Select Date (Current or Upcoming)
+              </label>
+              {/* Presets */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {datePresets.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.value}
+                    onClick={() => setDueDate(preset.value)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      dueDate === preset.value
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                  Due time
-                </label>
-                <input
-                  type="text"
-                  value={dueTime}
-                  onChange={(e) => setDueTime(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    placeholder="e.g. 26 Oct 2026"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900"
+                  />
+                  <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    value={dueTime}
+                    onChange={(e) => setDueTime(e.target.value)}
+                    placeholder="2:30 PM"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900"
+                  />
+                </div>
               </div>
             </div>
 
@@ -168,7 +198,7 @@ export const AssignTaskView: React.FC = () => {
                       type="button"
                       key={p}
                       onClick={() => setPriority(p)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                         isSelected
                           ? p === 'High'
                             ? 'bg-rose-500 text-white shadow-xs'
@@ -215,7 +245,7 @@ export const AssignTaskView: React.FC = () => {
                   Compulsory work
                 </h3>
                 <p className="text-xs text-indigo-700 leading-relaxed font-medium">
-                  Tasks assigned by admin must be completed by staff. Staff cannot decline them or delete them.
+                  Tasks assigned by admin must be completed by staff. Staff cannot decline or delete them.
                 </p>
               </div>
             </div>
@@ -234,7 +264,7 @@ export const AssignTaskView: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
                     <span>{task.assignedToName}</span>
-                    <span className="font-semibold text-slate-400">{task.dueTime}</span>
+                    <span className="font-semibold text-slate-400">{task.dueDate} · {task.dueTime}</span>
                   </div>
                 </div>
               ))}
@@ -245,4 +275,3 @@ export const AssignTaskView: React.FC = () => {
     </div>
   );
 };
-
