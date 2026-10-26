@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority } from '../types';
 import {
   INITIAL_USERS,
@@ -7,6 +7,8 @@ import {
   INITIAL_EVENT_TIMING,
   INITIAL_ORG_SETTINGS,
 } from '../data/initialData';
+import { backendApi } from '../services/backendApi';
+import { mapDbTaskToFrontend } from '../lib/supabase';
 
 interface TaskToggleContextType {
   currentUser: User;
@@ -17,6 +19,7 @@ interface TaskToggleContextType {
   orgSettings: OrgSettings;
   currentPage: string;
   showCompleted: boolean;
+  isBackendConnected: boolean;
   setShowCompleted: (val: boolean) => void;
   setCurrentPage: (page: string) => void;
   switchUser: (userId: string) => void;
@@ -43,6 +46,7 @@ interface TaskToggleContextType {
   updateOfficeTiming: (timing: OfficeTiming) => void;
   updateEventTiming: (event: EventTiming) => void;
   updateOrgSettings: (settings: Partial<OrgSettings>) => void;
+  refreshData: () => Promise<void>;
 }
 
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
@@ -50,12 +54,15 @@ const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undef
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
 
 export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load persistent state or fall back to mock data
-  const [users] = useState<User[]>(() => {
+  const [isBackendConnected] = useState<boolean>(backendApi.isConnected());
+
+  // Users state
+  const [users, setUsers] = useState<User[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}users`);
     return saved ? JSON.parse(saved) : INITIAL_USERS;
   });
 
+  // Current active user
   const [currentUser, setCurrentUser] = useState<User>(() => {
     const savedId = localStorage.getItem(`${STORAGE_KEY_PREFIX}current_user_id`);
     if (savedId) {
@@ -65,21 +72,25 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return INITIAL_USERS[0];
   });
 
+  // Tasks state
   const [tasks, setTasks] = useState<Task[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}tasks`);
     return saved ? JSON.parse(saved) : INITIAL_TASKS;
   });
 
+  // Office hours state
   const [officeTiming, setOfficeTiming] = useState<OfficeTiming>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}office_timing`);
     return saved ? JSON.parse(saved) : INITIAL_OFFICE_TIMING;
   });
 
+  // Event timing state
   const [eventTiming, setEventTiming] = useState<EventTiming | null>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}event_timing`);
     return saved ? JSON.parse(saved) : INITIAL_EVENT_TIMING;
   });
 
+  // Organization settings
   const [orgSettings, setOrgSettings] = useState<OrgSettings>(() => {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const orgParam = params?.get('org');
@@ -96,6 +107,55 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const [showCompleted, setShowCompleted] = useState<boolean>(true);
 
+  // Function to pull latest data from backend / database
+  const refreshData = useCallback(async () => {
+    try {
+      const [fetchedUsers, fetchedTasks, fetchedOffice, fetchedEvent] = await Promise.all([
+        backendApi.getUsers(),
+        backendApi.getTasks(),
+        backendApi.getOfficeTiming(),
+        backendApi.getEventTiming(),
+      ]);
+
+      if (fetchedUsers && fetchedUsers.length > 0) setUsers(fetchedUsers);
+      if (fetchedTasks) setTasks(fetchedTasks);
+      if (fetchedOffice) setOfficeTiming(fetchedOffice);
+      if (fetchedEvent) setEventTiming(fetchedEvent);
+    } catch (err) {
+      console.warn('[TaskToggleContext] Initial sync error:', err);
+    }
+  }, []);
+
+  // Fetch initial data on mount
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  // Real-time synchronization subscription
+  useEffect(() => {
+    const unsubscribe = backendApi.subscribeToTasks((payload) => {
+      if (payload.eventType === 'INSERT') {
+        const newTask = mapDbTaskToFrontend(payload.new);
+        setTasks((prev) => {
+          if (prev.some((t) => t.id === newTask.id)) return prev;
+          return [newTask, ...prev];
+        });
+      } else if (payload.eventType === 'UPDATE') {
+        const updatedTask = mapDbTaskToFrontend(payload.new);
+        setTasks((prev) =>
+          prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+        );
+      } else if (payload.eventType === 'DELETE') {
+        const deletedId = payload.old.id;
+        setTasks((prev) => prev.filter((t) => t.id !== deletedId));
+      }
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   // Sync role and view from URL if embedded from ConnectX
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -110,7 +170,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [users]);
 
-  // Sync state to localStorage
+  // Sync state to localStorage for offline cache
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY_PREFIX}tasks`, JSON.stringify(tasks));
   }, [tasks]);
@@ -185,7 +245,13 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       };
     });
 
+    // Optimistic UI update
     setTasks((prev) => [...newTasks, ...prev]);
+
+    // Backend database persistence
+    newTasks.forEach((t) => {
+      backendApi.createTask(t).catch((err) => console.warn('[Backend] assign error:', err));
+    });
   };
 
   // Rule 2: Staff creates task for self or other staff
@@ -215,36 +281,54 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       createdAt: new Date().toISOString(),
     };
 
+    // Optimistic UI update
     setTasks((prev) => [newTask, ...prev]);
+
+    // Backend database persistence
+    backendApi.createTask(newTask).catch((err) => console.warn('[Backend] create error:', err));
   };
 
   // Rule 3: Toggle task completed / pending
   const toggleTaskStatus = (taskId: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let updatedStatus: 'pending' | 'accepted' | 'done' = 'pending';
+    let updatedCompletedAt: string | undefined = undefined;
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
           const isDone = t.status === 'done';
+          updatedStatus = isDone
+            ? t.type === 'staff' && !t.acceptedAt
+              ? 'pending'
+              : t.type === 'staff'
+              ? 'accepted'
+              : 'pending'
+            : 'done';
+          updatedCompletedAt = isDone ? undefined : nowTimeStr;
+
           return {
             ...t,
-            status: isDone
-              ? t.type === 'staff' && !t.acceptedAt
-                ? 'pending'
-                : t.type === 'staff'
-                ? 'accepted'
-                : 'pending'
-              : 'done',
-            completedAt: isDone ? undefined : nowTimeStr,
+            status: updatedStatus,
+            completedAt: updatedCompletedAt,
           };
         }
         return t;
       })
     );
+
+    // Backend database update
+    backendApi.updateTask(taskId, {
+      status: updatedStatus,
+      completedAt: updatedCompletedAt,
+    }).catch((err) => console.warn('[Backend] toggle error:', err));
   };
 
   // Rule 4: Accept incoming staff-to-staff task request
   const acceptTaskRequest = (taskId: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
@@ -257,33 +341,49 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return t;
       })
     );
+
+    // Backend database update
+    backendApi.updateTask(taskId, {
+      status: 'accepted',
+      acceptedAt: nowTimeStr,
+    }).catch((err) => console.warn('[Backend] accept error:', err));
   };
 
   // Rule 5: Staff reports reason / issue for pending task
   const reportPendingReason = (taskId: string, reason: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const trimmed = reason.trim();
+
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
           return {
             ...t,
-            pendingReason: reason.trim(),
+            pendingReason: trimmed,
             pendingReasonUpdatedAt: nowTimeStr,
           };
         }
         return t;
       })
     );
+
+    // Backend database update
+    backendApi.updateTask(taskId, {
+      pendingReason: trimmed,
+      pendingReasonUpdatedAt: nowTimeStr,
+    }).catch((err) => console.warn('[Backend] reason report error:', err));
   };
 
   // Rule 6: Admin updates office timing (Owner access)
   const updateOfficeTiming = (newTiming: OfficeTiming) => {
     setOfficeTiming(newTiming);
+    backendApi.updateOfficeTiming(newTiming).catch((err) => console.warn('[Backend] timing error:', err));
   };
 
   // Rule 7: Admin updates event timing & staff allotment (Owner access)
   const updateEventTiming = (newEvent: EventTiming) => {
     setEventTiming(newEvent);
+    backendApi.updateEventTiming(newEvent).catch((err) => console.warn('[Backend] event timing error:', err));
   };
 
   const updateOrgSettings = (settings: Partial<OrgSettings>) => {
@@ -301,6 +401,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         orgSettings,
         currentPage,
         showCompleted,
+        isBackendConnected,
         setShowCompleted,
         setCurrentPage,
         switchUser,
@@ -314,6 +415,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updateOfficeTiming,
         updateEventTiming,
         updateOrgSettings,
+        refreshData,
       }}
     >
       {children}

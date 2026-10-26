@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   FlaskConical,
   Menu,
+  Database,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -15,7 +16,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
-  const { currentUser, users, switchUser, officeTiming, orgSettings } = useTaskToggle();
+  const { currentUser, users, switchUser, officeTiming, orgSettings, isBackendConnected } = useTaskToggle();
   const [showSwitchDropdown, setShowSwitchDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -69,8 +70,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         </div>
       </div>
 
-      {/* Right controls: Office hours chip & Temporary Testing Character Switcher */}
+      {/* Right controls: Backend Status, Office hours chip & Testing Character Switcher */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Backend Cloud Sync Chip */}
+        <div
+          className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+            isBackendConnected
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-slate-50 text-slate-600 border-slate-200'
+          }`}
+          title={
+            isBackendConnected
+              ? 'Connected to live Supabase backend database'
+              : 'Backend serverless endpoints active. Add VITE_SUPABASE_URL for live cloud DB sync.'
+          }
+        >
+          <Database className={`w-3 h-3 ${isBackendConnected ? 'text-emerald-600' : 'text-slate-400'}`} />
+          <span>{isBackendConnected ? 'Cloud Sync' : 'Backend Ready'}</span>
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              isBackendConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+            }`}
+          />
+        </div>
+
         {/* Office Hours Chip */}
         <div className="flex items-center gap-1.5 sm:gap-2 bg-indigo-50/80 border border-indigo-100/80 text-indigo-900 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs">
           <Clock className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
