@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import {
   Check,
@@ -15,7 +16,12 @@ import {
   ChevronDown,
   Layers,
   ArrowUpRight,
+  ExternalLink,
+  Minimize2,
+  Maximize2,
+  MonitorUp,
 } from 'lucide-react';
+import { Task } from '../../types';
 
 export const FloatingTaskWidget: React.FC = () => {
   const {
@@ -29,29 +35,35 @@ export const FloatingTaskWidget: React.FC = () => {
     orgSettings,
   } = useTaskToggle();
 
-  // Widget visibility & collapse states
+  // In-browser widget states: 'logo' (only logo size) | 'expanded' (full details)
+  const [inBrowserMode, setInBrowserMode] = useState<'logo' | 'expanded'>('logo');
   const [isVisible, setIsVisible] = useState(true);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [quickTitle, setQuickTitle] = useState('');
   const [filter, setFilter] = useState<'pending' | 'done' | 'all'>('pending');
 
-  // Drag position state
+  // Document Picture-in-Picture state (OS-level floating window over all other apps)
+  const [pipWindow, setPipWindow] = useState<Window | null>(null);
+  const [isPipLogoOnly, setIsPipLogoOnly] = useState(true);
+
+  // In-browser drag position state
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ mouseX: number; mouseY: number; startX: number; startY: number } | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
 
-  // Set default initial position on mount (bottom-right above navigation)
+  const isPiPSupported = typeof window !== 'undefined' && 'documentPictureInPicture' in window;
+
+  // Initialize position on mount (bottom-right)
   useEffect(() => {
-    const initX = Math.max(16, window.innerWidth - (window.innerWidth < 640 ? 340 : 390));
+    const initX = Math.max(16, window.innerWidth - (window.innerWidth < 640 ? 340 : 380));
     const initY = Math.max(70, window.innerHeight - (window.innerWidth < 640 ? 460 : 520));
     setPosition({ x: initX, y: initY });
 
     const handleResize = () => {
       setPosition((prev) => {
         if (!prev) return null;
-        const width = window.innerWidth < 640 ? 320 : 370;
-        const height = 450;
+        const width = inBrowserMode === 'logo' ? 70 : window.innerWidth < 640 ? 320 : 370;
+        const height = inBrowserMode === 'logo' ? 70 : 450;
         return {
           x: Math.min(Math.max(10, prev.x), window.innerWidth - width - 10),
           y: Math.min(Math.max(10, prev.y), window.innerHeight - height - 10),
@@ -63,17 +75,91 @@ export const FloatingTaskWidget: React.FC = () => {
 
     const handleToggleCustom = () => {
       setIsVisible(true);
-      setIsMinimized(false);
+      setInBrowserMode('expanded');
     };
+    const handleOpenPipCustom = () => {
+      openPiP(true);
+    };
+
     window.addEventListener('toggle-floating-widget', handleToggleCustom);
+    window.addEventListener('open-pip-window', handleOpenPipCustom);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('toggle-floating-widget', handleToggleCustom);
+      window.removeEventListener('open-pip-window', handleOpenPipCustom);
     };
-  }, []);
+  }, [inBrowserMode]);
 
-  // Mouse & Touch Drag Handlers
+  // Open Document Picture-in-Picture window (Floats over all other desktop apps!)
+  const openPiP = async (startInLogoMode = true) => {
+    if (!isPiPSupported || !window.documentPictureInPicture) {
+      alert(
+        'Document Picture-in-Picture is supported natively in Google Chrome and Microsoft Edge on Desktop.\n\nPlease open this webpage in Google Chrome to let TaskToggle float over Word, Excel, and all other apps!'
+      );
+      return;
+    }
+
+    try {
+      // In logo mode: open as a small window (~200x180); in expanded mode: (~360x520)
+      const initialWidth = startInLogoMode ? 220 : 360;
+      const initialHeight = startInLogoMode ? 190 : 520;
+
+      const pipWin = await window.documentPictureInPicture.requestWindow({
+        width: initialWidth,
+        height: initialHeight,
+      });
+
+      // Clone all stylesheets and link tags from main document into PiP window
+      const styleElements = document.querySelectorAll('style, link[rel="stylesheet"]');
+      styleElements.forEach((el) => {
+        pipWin.document.head.appendChild(el.cloneNode(true));
+      });
+
+      pipWin.document.title = 'TaskToggle (Deepak)';
+      pipWin.document.body.style.margin = '0';
+      pipWin.document.body.style.padding = '0';
+      pipWin.document.body.style.fontFamily = "'Outfit', system-ui, sans-serif";
+      pipWin.document.body.style.background = '#F8FAFD';
+      pipWin.document.body.style.overflow = 'hidden';
+
+      pipWin.addEventListener('pagehide', () => {
+        setPipWindow(null);
+      });
+
+      setIsPipLogoOnly(startInLogoMode);
+      setPipWindow(pipWin);
+    } catch (err) {
+      console.warn('[PiP] Could not open PiP window:', err);
+    }
+  };
+
+  const closePiP = () => {
+    if (pipWindow) {
+      pipWindow.close();
+      setPipWindow(null);
+    }
+  };
+
+  const expandPiP = () => {
+    setIsPipLogoOnly(false);
+    try {
+      pipWindow?.resizeTo(360, 520);
+    } catch (e) {
+      // Ignore if resizeTo restricted
+    }
+  };
+
+  const shrinkPiPToLogo = () => {
+    setIsPipLogoOnly(true);
+    try {
+      pipWindow?.resizeTo(220, 190);
+    } catch (e) {
+      // Ignore if resizeTo restricted
+    }
+  };
+
+  // Mouse & Touch In-Browser Drag Handlers
   const startDrag = (clientX: number, clientY: number) => {
     if (!position) return;
     setIsDragging(true);
@@ -86,7 +172,6 @@ export const FloatingTaskWidget: React.FC = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only drag from handle / header
     startDrag(e.clientX, e.clientY);
   };
 
@@ -102,8 +187,8 @@ export const FloatingTaskWidget: React.FC = () => {
       const dx = e.clientX - dragStartRef.current.mouseX;
       const dy = e.clientY - dragStartRef.current.mouseY;
 
-      const widgetWidth = isMinimized ? 220 : window.innerWidth < 640 ? 320 : 370;
-      const widgetHeight = isMinimized ? 50 : 450;
+      const widgetWidth = inBrowserMode === 'logo' ? 70 : window.innerWidth < 640 ? 320 : 370;
+      const widgetHeight = inBrowserMode === 'logo' ? 70 : 450;
 
       const newX = Math.min(Math.max(10, dragStartRef.current.startX + dx), window.innerWidth - widgetWidth - 10);
       const newY = Math.min(Math.max(10, dragStartRef.current.startY + dy), window.innerHeight - widgetHeight - 10);
@@ -113,13 +198,13 @@ export const FloatingTaskWidget: React.FC = () => {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (!isDragging || !dragStartRef.current || e.touches.length !== 1) return;
-      e.preventDefault(); // Prevent scrolling while dragging widget
+      e.preventDefault();
       const touch = e.touches[0];
       const dx = touch.clientX - dragStartRef.current.mouseX;
       const dy = touch.clientY - dragStartRef.current.mouseY;
 
-      const widgetWidth = isMinimized ? 220 : window.innerWidth < 640 ? 320 : 370;
-      const widgetHeight = isMinimized ? 50 : 450;
+      const widgetWidth = inBrowserMode === 'logo' ? 70 : window.innerWidth < 640 ? 320 : 370;
+      const widgetHeight = inBrowserMode === 'logo' ? 70 : 450;
 
       const newX = Math.min(Math.max(10, dragStartRef.current.startX + dx), window.innerWidth - widgetWidth - 10);
       const newY = Math.min(Math.max(10, dragStartRef.current.startY + dy), window.innerHeight - widgetHeight - 10);
@@ -145,7 +230,7 @@ export const FloatingTaskWidget: React.FC = () => {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleMouseUp);
     };
-  }, [isDragging, isMinimized]);
+  }, [isDragging, inBrowserMode]);
 
   // Tasks relevant to current user
   const relevantTasks = tasks.filter((t) => {
@@ -172,7 +257,6 @@ export const FloatingTaskWidget: React.FC = () => {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     if (currentUser.role === 'admin') {
-      // Admin quick creates for first staff member or all
       const staffList = users.filter((u) => u.role === 'staff');
       const targetStaffId = staffList.length > 0 ? staffList[0].id : currentUser.id;
       assignAdminTask({
@@ -184,7 +268,6 @@ export const FloatingTaskWidget: React.FC = () => {
         priority: 'Medium',
       });
     } else {
-      // Staff creates personal to-do directly
       createStaffTask({
         title: quickTitle,
         details: 'Quick task added via Mini Popup',
@@ -197,266 +280,419 @@ export const FloatingTaskWidget: React.FC = () => {
     setQuickTitle('');
   };
 
-  if (!isVisible) {
-    // If closed, return a floating launcher pill at bottom-right so user can re-open anytime
-    return (
-      <button
-        onClick={() => setIsVisible(true)}
-        className="fixed bottom-20 right-4 z-50 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white shadow-xl shadow-indigo-300/60 flex items-center gap-2 text-xs font-black cursor-pointer hover:scale-105 active:scale-95 transition-all border-2 border-white/80"
-        title="Open TaskToggle Draggable Mini Popup"
-      >
-        <Zap className="w-4 h-4 text-cyan-300 fill-cyan-300" />
-        <span>Quick Tasks ({pendingTasks.length})</span>
-      </button>
-    );
-  }
-
-  if (!position) return null;
-
-  return (
-    <div
-      ref={widgetRef}
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-      }}
-      className={`fixed z-50 select-none transition-shadow ${
-        isDragging ? 'cursor-grabbing opacity-95 scale-[1.01]' : ''
-      }`}
-    >
-      {/* 1. Minimized State: Sleek Draggable Floating Capsule */}
-      {isMinimized ? (
-        <div
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          className="bg-white/95 backdrop-blur-xl border border-indigo-200/90 shadow-2xl rounded-2xl p-2.5 flex items-center gap-3 cursor-grab hover:shadow-indigo-300/50 transition-all border-l-4 border-l-cyan-500 ring-2 ring-indigo-500/10"
-        >
-          <div className="flex items-center gap-1.5 text-slate-400 pl-0.5">
-            <GripHorizontal className="w-4 h-4" />
-          </div>
-
-          <div
-            onClick={() => setIsMinimized(false)}
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 text-white flex items-center justify-center shadow-xs">
-              <CheckSquare className="w-4 h-4 stroke-[2.5]" />
-            </div>
-            <div className="text-left">
-              <div className="text-xs font-black text-slate-900 leading-tight flex items-center gap-1.5">
-                <span>TaskToggle</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-              </div>
-              <div className="text-[10px] text-indigo-700 font-extrabold">
-                {pendingTasks.length} Pending · Tap to Expand
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 ml-1">
-            <button
-              type="button"
-              onClick={() => setIsMinimized(false)}
-              className="w-7 h-7 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex items-center justify-center transition-all cursor-pointer"
-              title="Expand popup"
-            >
-              <ChevronUp className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsVisible(false)}
-              className="w-7 h-7 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-all cursor-pointer"
-              title="Close popup"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
+  // Reusable Tasks List with Click-to-Strike
+  const renderTasksList = () => (
+    <div className="overflow-y-auto p-3 space-y-2 flex-1 max-h-[260px] divide-y divide-slate-50">
+      {displayedTasks.length === 0 ? (
+        <div className="py-8 text-center text-slate-400 text-xs font-bold italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+          {filter === 'pending' ? 'No pending tasks!' : 'No tasks in this tab'}
         </div>
       ) : (
-        /* 2. Expanded State: Full Draggable Fast Mini Popup */
-        <div className="w-[320px] sm:w-[370px] bg-white/95 backdrop-blur-xl border border-indigo-200/90 shadow-2xl rounded-3xl overflow-hidden flex flex-col max-h-[490px] ring-4 ring-indigo-500/10 animate-in zoom-in-95 duration-150">
-          {/* Draggable Header */}
-          <div
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing border-b border-white/10"
-          >
-            <div className="flex items-center gap-2">
-              <GripHorizontal className="w-4 h-4 text-cyan-200 shrink-0" />
-              <div className="flex items-center gap-1.5">
-                <CheckSquare className="w-4 h-4 stroke-[2.5]" />
-                <span className="text-xs font-black tracking-tight font-['Outfit']">TaskToggle Mini</span>
-                <span className="text-[9px] font-black px-1.5 py-0.2 bg-white/20 rounded-md">
-                  {orgSettings.orgName}
-                </span>
-              </div>
-            </div>
+        displayedTasks.map((task) => {
+          const isDone = task.status === 'done';
 
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-cyan-100/90 font-bold mr-1 hidden xs:inline">
-                ⠿ Drag anywhere
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsMinimized(true)}
-                className="w-6 h-6 rounded-lg bg-white/15 hover:bg-white/30 flex items-center justify-center text-white cursor-pointer transition-all"
-                title="Minimize popup"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsVisible(false)}
-                className="w-6 h-6 rounded-lg bg-white/15 hover:bg-rose-500 flex items-center justify-center text-white cursor-pointer transition-all"
-                title="Hide popup"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Super Fast Task Creator ("Fast for me") */}
-          <form
-            onSubmit={handleQuickAdd}
-            className="p-3 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-cyan-50/30 border-b border-indigo-100/80 flex items-center gap-2"
-          >
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={quickTitle}
-                onChange={(e) => setQuickTitle(e.target.value)}
-                placeholder="⚡ Fast task... press Enter to add"
-                className="w-full pl-3 pr-2 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 shadow-2xs"
-              />
-            </div>
-            <button
-              type="submit"
-              className="px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-xs font-black shadow-xs flex items-center gap-1 cursor-pointer shrink-0 active:scale-95 transition-all"
-              title="Add task immediately"
+          return (
+            <div
+              key={task.id}
+              onClick={() => toggleTaskStatus(task.id)}
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer select-none flex items-start gap-2.5 group ${
+                isDone
+                  ? 'bg-slate-50/80 border-slate-200 opacity-75'
+                  : 'bg-white border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 hover:shadow-xs active:scale-[0.98]'
+              }`}
+              title="Click anywhere to strike & toggle completed"
             >
-              <Plus className="w-3.5 h-3.5 stroke-[3]" />
-              <span>Add</span>
-            </button>
-          </form>
+              {/* Checkbox circle */}
+              <div
+                className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                  isDone
+                    ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-2xs'
+                    : 'border-2 border-slate-300 group-hover:border-indigo-600'
+                }`}
+              >
+                {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
 
-          {/* Filter Pills & Fast Guidance */}
-          <div className="px-3 pt-2 pb-1.5 flex items-center justify-between border-b border-slate-100 bg-white">
-            <div className="flex items-center gap-1">
-              {(['pending', 'done', 'all'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setFilter(tab)}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-black capitalize transition-all cursor-pointer ${
-                    filter === tab
-                      ? 'bg-indigo-600 text-white shadow-2xs'
-                      : 'text-slate-500 hover:bg-slate-100'
+              {/* Task Title & Details */}
+              <div className="min-w-0 flex-1 text-left">
+                <div
+                  className={`text-xs font-extrabold leading-snug truncate transition-all ${
+                    isDone
+                      ? 'line-through text-slate-400 decoration-emerald-500 decoration-2'
+                      : 'text-slate-900 group-hover:text-indigo-950'
                   }`}
                 >
-                  {tab === 'pending'
-                    ? `Pending (${pendingTasks.length})`
-                    : tab === 'done'
-                    ? `Done (${completedTasks.length})`
-                    : `All (${relevantTasks.length})`}
-                </button>
-              ))}
-            </div>
+                  {task.title}
+                </div>
 
-            <span className="text-[10px] text-slate-400 font-bold italic">
-              Tap task to strike
-            </span>
-          </div>
+                {/* Target Deadline (Date & Time) */}
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold mt-1">
+                  <span className="inline-flex items-center gap-1 text-indigo-900 bg-indigo-50/80 px-1.5 py-0.2 rounded border border-indigo-100">
+                    <Calendar className="w-2.5 h-2.5 text-indigo-600" />
+                    <span>{task.dueDate}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-cyan-800 bg-cyan-50/80 px-1.5 py-0.2 rounded border border-cyan-100">
+                    <Clock className="w-2.5 h-2.5 text-cyan-600" />
+                    <span>{task.dueTime}</span>
+                  </span>
 
-          {/* Scrollable Tasks List with Click-to-Strike anywhere */}
-          <div className="overflow-y-auto p-3 space-y-2 flex-1 max-h-[250px] divide-y divide-slate-50">
-            {displayedTasks.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-xs font-bold italic bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                {filter === 'pending' ? 'No pending tasks!' : 'No tasks in this tab'}
+                  {isDone && task.completedAt && (
+                    <span className="text-emerald-700 text-[9px] font-black ml-auto">
+                      Done {task.completedAt}
+                    </span>
+                  )}
+                </div>
               </div>
-            ) : (
-              displayedTasks.map((task) => {
-                const isDone = task.status === 'done';
-
-                return (
-                  <div
-                    key={task.id}
-                    onClick={() => toggleTaskStatus(task.id)}
-                    className={`p-2.5 rounded-xl border transition-all cursor-pointer select-none flex items-start gap-2.5 group ${
-                      isDone
-                        ? 'bg-slate-50/80 border-slate-200 opacity-75'
-                        : 'bg-white border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 hover:shadow-xs active:scale-[0.98]'
-                    }`}
-                    title="Click anywhere to strike & toggle completed"
-                  >
-                    {/* Checkbox button */}
-                    <div
-                      className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 ${
-                        isDone
-                          ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-2xs'
-                          : 'border-2 border-slate-300 group-hover:border-indigo-600'
-                      }`}
-                    >
-                      {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                    </div>
-
-                    {/* Task Title & Details */}
-                    <div className="min-w-0 flex-1 text-left">
-                      <div
-                        className={`text-xs font-extrabold leading-snug truncate transition-all ${
-                          isDone
-                            ? 'line-through text-slate-400 decoration-emerald-500 decoration-2'
-                            : 'text-slate-900 group-hover:text-indigo-950'
-                        }`}
-                      >
-                        {task.title}
-                      </div>
-
-                      {/* Prominent Target Deadline (Date & Time) */}
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold mt-1">
-                        <span className="inline-flex items-center gap-1 text-indigo-900 bg-indigo-50/80 px-1.5 py-0.2 rounded border border-indigo-100">
-                          <Calendar className="w-2.5 h-2.5 text-indigo-600" />
-                          <span>{task.dueDate}</span>
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-cyan-800 bg-cyan-50/80 px-1.5 py-0.2 rounded border border-cyan-100">
-                          <Clock className="w-2.5 h-2.5 text-cyan-600" />
-                          <span>{task.dueTime}</span>
-                        </span>
-
-                        {isDone && task.completedAt && (
-                          <span className="text-emerald-700 text-[9px] font-black ml-auto">
-                            Done {task.completedAt}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Quick Footer Navigation */}
-          <div className="p-2.5 bg-slate-50/90 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
-            <span>
-              {completedTasks.length}/{relevantTasks.length} Finished
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                if (currentUser.role === 'admin') {
-                  setCurrentPage('monitor');
-                } else {
-                  setCurrentPage('mytodo');
-                }
-              }}
-              className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer font-black"
-            >
-              <span>Open Full Page</span>
-              <ArrowUpRight className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
+            </div>
+          );
+        })
       )}
     </div>
+  );
+
+  // Reusable Quick Task Creator Input
+  const renderQuickCreate = () => (
+    <form
+      onSubmit={handleQuickAdd}
+      className="p-3 bg-gradient-to-r from-slate-50 via-indigo-50/40 to-cyan-50/30 border-b border-indigo-100/80 flex items-center gap-2"
+    >
+      <div className="relative flex-1">
+        <input
+          type="text"
+          value={quickTitle}
+          onChange={(e) => setQuickTitle(e.target.value)}
+          placeholder="⚡ Fast task... press Enter to add"
+          className="w-full pl-3 pr-2 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-600 shadow-2xs"
+        />
+      </div>
+      <button
+        type="submit"
+        className="px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-xs font-black shadow-xs flex items-center gap-1 cursor-pointer shrink-0 active:scale-95 transition-all"
+        title="Add task immediately"
+      >
+        <Plus className="w-3.5 h-3.5 stroke-[3]" />
+        <span>Add</span>
+      </button>
+    </form>
+  );
+
+  return (
+    <>
+      {/* =========================================================================
+          1. OS-LEVEL PICTURE-IN-PICTURE (Floats over ALL other apps on Windows/Mac)
+          ========================================================================= */}
+      {pipWindow &&
+        createPortal(
+          <div className="w-full h-screen flex flex-col bg-[#F8FAFD] select-none overflow-hidden font-['Outfit']">
+            {isPipLogoOnly ? (
+              /* Logo-only display inside PiP: Clicking opens details */
+              <div
+                onClick={expandPiP}
+                className="w-full h-full min-h-[170px] flex flex-col items-center justify-center p-3 cursor-pointer bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 text-white hover:brightness-105 transition-all group relative overflow-hidden"
+                title="Click logo to open task details"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
+
+                {/* Logo Icon */}
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg ring-4 ring-white/20 group-hover:scale-110 transition-transform">
+                    <CheckSquare className="w-8 h-8 stroke-[2.5] text-white" />
+                  </div>
+                  {pendingTasks.length > 0 && (
+                    <span className="absolute -top-1.5 -right-2 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shadow-md ring-2 ring-indigo-900 animate-pulse">
+                      {pendingTasks.length}
+                    </span>
+                  )}
+                </div>
+
+                {/* Title & Click Prompt */}
+                <div className="mt-2 text-xs font-black tracking-tight text-white flex items-center gap-1.5">
+                  <span>TaskToggle</span>
+                  <span className="text-[9px] px-1.5 py-0.2 bg-white/20 rounded font-bold text-cyan-200">
+                    {orgSettings.orgName}
+                  </span>
+                </div>
+                <div className="text-[10px] text-cyan-200/90 font-bold mt-0.5 flex items-center gap-1">
+                  <span>Click to open details</span>
+                  <Maximize2 className="w-3 h-3 text-cyan-300" />
+                </div>
+              </div>
+            ) : (
+              /* Expanded details inside PiP */
+              <div className="w-full h-full flex flex-col overflow-hidden bg-white">
+                {/* Header with Shrink to Logo button */}
+                <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white px-3.5 py-2.5 flex items-center justify-between border-b border-white/10 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center">
+                      <CheckSquare className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </div>
+                    <span className="text-xs font-black">TaskToggle Mini</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 bg-white/20 rounded-md">
+                      {orgSettings.orgName}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={shrinkPiPToLogo}
+                      className="px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all"
+                      title="Shrink back to logo size only"
+                    >
+                      <Minimize2 className="w-3 h-3" />
+                      <span>Logo Size</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closePiP}
+                      className="w-6 h-6 rounded-lg bg-white/20 hover:bg-rose-500 text-white flex items-center justify-center cursor-pointer transition-all"
+                      title="Close window"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Task Creator */}
+                {renderQuickCreate()}
+
+                {/* Filter Pills */}
+                <div className="px-3 pt-2 pb-1.5 flex items-center justify-between border-b border-slate-100 bg-white shrink-0">
+                  <div className="flex items-center gap-1">
+                    {(['pending', 'done', 'all'] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setFilter(tab)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-black capitalize transition-all cursor-pointer ${
+                          filter === tab
+                            ? 'bg-indigo-600 text-white shadow-2xs'
+                            : 'text-slate-500 hover:bg-slate-100'
+                        }`}
+                      >
+                        {tab === 'pending'
+                          ? `Pending (${pendingTasks.length})`
+                          : tab === 'done'
+                          ? `Done (${completedTasks.length})`
+                          : `All (${relevantTasks.length})`}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-bold italic">
+                    Tap to strike
+                  </span>
+                </div>
+
+                {/* Tasks List */}
+                {renderTasksList()}
+
+                {/* Footer */}
+                <div className="p-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-500 shrink-0">
+                  <span>
+                    {completedTasks.length}/{relevantTasks.length} Finished
+                  </span>
+                  <button
+                    type="button"
+                    onClick={shrinkPiPToLogo}
+                    className="text-indigo-600 font-black cursor-pointer hover:underline"
+                  >
+                    Minimize to Logo
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>,
+          pipWindow.document.body
+        )}
+
+      {/* =========================================================================
+          2. IN-BROWSER DRAGGABLE FLOATING WIDGET (With Logo-Only Mode & Popout PiP)
+          ========================================================================= */}
+      {isVisible && position && !pipWindow && (
+        <div
+          ref={widgetRef}
+          style={{
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+          }}
+          className={`fixed z-50 select-none transition-shadow ${
+            isDragging ? 'cursor-grabbing opacity-95 scale-[1.01]' : ''
+          }`}
+        >
+          {inBrowserMode === 'logo' ? (
+            /* =======================================================
+               A. LOGO SIZE ONLY MODE: Compact Floating Logo Circle
+               ======================================================= */
+            <div
+              onMouseDown={handleMouseDown}
+              onTouchStart={handleTouchStart}
+              onClick={() => {
+                if (!isDragging) setInBrowserMode('expanded');
+              }}
+              className="relative group cursor-grab active:cursor-grabbing hover:scale-105 transition-all"
+              title="Click logo to open task details · Drag to move anywhere"
+            >
+              {/* Floating Logo Badge */}
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-cyan-500 text-white flex items-center justify-center shadow-2xl ring-4 ring-white border border-indigo-200/80">
+                <CheckSquare className="w-7 h-7 stroke-[2.5]" />
+              </div>
+
+              {/* Live Pending Counter Badge */}
+              {pendingTasks.length > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse">
+                  {pendingTasks.length}
+                </span>
+              )}
+
+              {/* Drag Grip Indicator Dots */}
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[8px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xs">
+                Drag or Tap
+              </div>
+            </div>
+          ) : (
+            /* =======================================================
+               B. EXPANDED FULL DETAILS MODE
+               ======================================================= */
+            <div className="w-[320px] sm:w-[370px] bg-white/95 backdrop-blur-xl border border-indigo-200/90 shadow-2xl rounded-3xl overflow-hidden flex flex-col max-h-[490px] ring-4 ring-indigo-500/10 animate-in zoom-in-95 duration-150">
+              {/* Draggable Header */}
+              <div
+                onMouseDown={handleMouseDown}
+                onTouchStart={handleTouchStart}
+                className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing border-b border-white/10"
+              >
+                <div className="flex items-center gap-2">
+                  <GripHorizontal className="w-4 h-4 text-cyan-200 shrink-0" />
+                  <div className="flex items-center gap-1.5">
+                    <CheckSquare className="w-4 h-4 stroke-[2.5]" />
+                    <span className="text-xs font-black tracking-tight font-['Outfit']">TaskToggle</span>
+                    <span className="text-[9px] font-black px-1.5 py-0.2 bg-white/20 rounded-md">
+                      {orgSettings.orgName}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {/* PiP Button (Float over all other apps on Windows) */}
+                  <button
+                    type="button"
+                    onClick={() => openPiP(true)}
+                    className="px-2 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all"
+                    title="Float logo over all other open desktop apps (Word, Excel, etc.)"
+                  >
+                    <MonitorUp className="w-3 h-3 text-cyan-200" />
+                    <span>Float Over Apps</span>
+                  </button>
+
+                  {/* Shrink to Logo Size Only button */}
+                  <button
+                    type="button"
+                    onClick={() => setInBrowserMode('logo')}
+                    className="w-6 h-6 rounded-lg bg-white/15 hover:bg-white/30 flex items-center justify-center text-white cursor-pointer transition-all"
+                    title="Minimize to Logo Size only"
+                  >
+                    <Minimize2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Close button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsVisible(false)}
+                    className="w-6 h-6 rounded-lg bg-white/15 hover:bg-rose-500 flex items-center justify-center text-white cursor-pointer transition-all"
+                    title="Hide widget"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Fast Task Creator */}
+              {renderQuickCreate()}
+
+              {/* Filter Pills & Click-to-Strike Guidance */}
+              <div className="px-3 pt-2 pb-1.5 flex items-center justify-between border-b border-slate-100 bg-white">
+                <div className="flex items-center gap-1">
+                  {(['pending', 'done', 'all'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setFilter(tab)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black capitalize transition-all cursor-pointer ${
+                        filter === tab
+                          ? 'bg-indigo-600 text-white shadow-2xs'
+                          : 'text-slate-500 hover:bg-slate-100'
+                      }`}
+                    >
+                      {tab === 'pending'
+                        ? `Pending (${pendingTasks.length})`
+                        : tab === 'done'
+                        ? `Done (${completedTasks.length})`
+                        : `All (${relevantTasks.length})`}
+                    </button>
+                  ))}
+                </div>
+
+                <span className="text-[10px] text-slate-400 font-bold italic">
+                  Tap task to strike
+                </span>
+              </div>
+
+              {/* Scrollable Tasks List */}
+              {renderTasksList()}
+
+              {/* Quick Footer Navigation */}
+              <div className="p-2.5 bg-slate-50/90 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>
+                  {completedTasks.length}/{relevantTasks.length} Finished
+                </span>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setInBrowserMode('logo')}
+                    className="text-slate-600 hover:text-slate-900 font-bold cursor-pointer text-[10px]"
+                  >
+                    Shrink to Logo
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currentUser.role === 'admin') {
+                        setCurrentPage('monitor');
+                      } else {
+                        setCurrentPage('mytodo');
+                      }
+                    }}
+                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer font-black"
+                  >
+                    <span>Full Page</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Floating launcher if closed */}
+      {!isVisible && !pipWindow && (
+        <button
+          onClick={() => {
+            setIsVisible(true);
+            setInBrowserMode('logo');
+          }}
+          className="fixed bottom-20 right-4 z-50 w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-500 text-white shadow-xl shadow-indigo-300/60 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-all border-2 border-white/80"
+          title="Open TaskToggle Floating Logo"
+        >
+          <CheckSquare className="w-6 h-6 stroke-[2.5]" />
+          {pendingTasks.length > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center shadow-xs ring-2 ring-white">
+              {pendingTasks.length}
+            </span>
+          )}
+        </button>
+      )}
+    </>
   );
 };

@@ -11,6 +11,7 @@ import {
   Database,
   Sparkles,
   Zap,
+  MonitorUp,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -101,15 +102,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           />
         </div>
 
-        {/* Quick Floating Widget Trigger Button */}
+        {/* Float Over All Apps Button (Chrome PiP Always-on-top) */}
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent('toggle-floating-widget'))}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-50 to-cyan-50 hover:from-indigo-100 hover:to-cyan-100 border border-indigo-200/90 text-indigo-950 text-xs font-black shadow-2xs cursor-pointer active:scale-95 transition-all"
-          title="Open TaskToggle Draggable Mini Popup"
+          onClick={() => window.dispatchEvent(new CustomEvent('open-pip-window'))}
+          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-xs font-black shadow-md shadow-indigo-300/40 cursor-pointer active:scale-95 transition-all"
+          title="Float TaskToggle Logo over Word, Excel, and all other open apps"
         >
-          <Zap className="w-3.5 h-3.5 text-cyan-600 fill-cyan-500" />
-          <span>Quick Mini</span>
+          <MonitorUp className="w-3.5 h-3.5 text-cyan-200" />
+          <span>Float Over Apps</span>
         </button>
 
         {/* Office Hours Chip - Cyan / Indigo Tint */}
