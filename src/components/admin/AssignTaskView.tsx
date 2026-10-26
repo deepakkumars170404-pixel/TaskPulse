@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTaskPulse } from '../../context/TaskPulseContext';
 import { TaskPriority } from '../../types';
-import { Check, ShieldAlert, Sparkles, Calendar } from 'lucide-react';
+import { Check, ShieldAlert, Sparkles, Calendar, CalendarDays } from 'lucide-react';
+import { MiniCalendar } from '../common/MiniCalendar';
 
 export const AssignTaskView: React.FC = () => {
   const { users, assignAdminTask, tasks, setCurrentPage } = useTaskPulse();
@@ -15,11 +16,32 @@ export const AssignTaskView: React.FC = () => {
   const [dueTime, setDueTime] = useState('2:30 PM');
   const [priority, setPriority] = useState<TaskPriority>('Medium');
   const [successToast, setSuccessToast] = useState(false);
+  const [showCalendarPopover, setShowCalendarPopover] = useState(false);
 
-  // Quick Date presets for easy assignment (Now, Tomorrow, Upcoming Days)
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Close calendar popover on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
+        setShowCalendarPopover(false);
+      }
+    };
+    if (showCalendarPopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCalendarPopover]);
+
+  // Extract dates that already have tasks assigned for workload dots
+  const existingTaskDates = tasks.map((t) => t.dueDate);
+
+  // Quick Date presets
   const datePresets = [
-    { label: 'Today', value: '24 Oct 2026' },
-    { label: 'Tomorrow', value: '25 Oct 2026' },
+    { label: 'Today (24 Oct)', value: '24 Oct 2026' },
+    { label: 'Tomorrow (25 Oct)', value: '25 Oct 2026' },
     { label: 'Upcoming (26 Oct)', value: '26 Oct 2026' },
     { label: 'Next Week (02 Nov)', value: '02 Nov 2026' },
   ];
@@ -65,7 +87,7 @@ export const AssignTaskView: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Assign Task</h1>
         <p className="text-sm text-slate-500">
-          Give work to staff for today or assign tasks in advance for upcoming dates
+          Give work to staff with mini calendar date selection for easy scheduling
         </p>
       </div>
 
@@ -138,21 +160,32 @@ export const AssignTaskView: React.FC = () => {
               </div>
             </div>
 
-            {/* Due date selection (Now to Upcoming Days) */}
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                Select Date (Current or Upcoming)
-              </label>
-              {/* Presets */}
-              <div className="flex flex-wrap gap-1.5 mb-2">
+            {/* Due Date & Time with Mini Calendar */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Due date & mini calendar
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowCalendarPopover(!showCalendarPopover)}
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  <span>{showCalendarPopover ? 'Hide Calendar' : 'Open Mini Calendar'}</span>
+                </button>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex flex-wrap gap-1.5">
                 {datePresets.map((preset) => (
                   <button
                     type="button"
                     key={preset.value}
                     onClick={() => setDueDate(preset.value)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       dueDate === preset.value
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-indigo-600 text-white shadow-2xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
@@ -161,25 +194,44 @@ export const AssignTaskView: React.FC = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative">
+                {/* Due Date Input with Mini Calendar Trigger */}
                 <div className="relative">
-                  <input
-                    type="text"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    placeholder="e.g. 26 Oct 2026"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900"
-                  />
-                  <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <div
+                    onClick={() => setShowCalendarPopover(!showCalendarPopover)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-400 text-sm font-semibold text-slate-900 flex items-center justify-between cursor-pointer transition-all shadow-2xs"
+                  >
+                    <span>{dueDate}</span>
+                    <Calendar className="w-4 h-4 text-indigo-600" />
+                  </div>
+
+                  {/* Mini Calendar Popover */}
+                  {showCalendarPopover && (
+                    <div
+                      ref={calendarRef}
+                      className="absolute left-0 top-12 z-50 animate-in fade-in zoom-in-95 duration-150"
+                    >
+                      <MiniCalendar
+                        selectedDate={dueDate}
+                        onSelectDate={(newDate) => {
+                          setDueDate(newDate);
+                          setShowCalendarPopover(false);
+                        }}
+                        taskDates={existingTaskDates}
+                        onClose={() => setShowCalendarPopover(false)}
+                      />
+                    </div>
+                  )}
                 </div>
 
+                {/* Due Time Input */}
                 <div>
                   <input
                     type="text"
                     value={dueTime}
                     onChange={(e) => setDueTime(e.target.value)}
                     placeholder="2:30 PM"
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900"
                   />
                 </div>
               </div>
@@ -234,8 +286,26 @@ export const AssignTaskView: React.FC = () => {
           </form>
         </div>
 
-        {/* Sidebar Info & Recently Assigned (1 col) */}
+        {/* Sidebar Mini Calendar & Recently Assigned (1 col) */}
         <div className="space-y-6">
+          {/* Embedded Mini Calendar Card right in sidebar for easy glance */}
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col items-center">
+            <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+                <CalendarDays className="w-4 h-4 text-indigo-600" />
+                <span>Mini Calendar</span>
+              </div>
+              <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                Active
+              </span>
+            </div>
+            <MiniCalendar
+              selectedDate={dueDate}
+              onSelectDate={(d) => setDueDate(d)}
+              taskDates={existingTaskDates}
+            />
+          </div>
+
           {/* Compulsory work card */}
           <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-5">
             <div className="flex items-start gap-3">
