@@ -16,16 +16,16 @@ export const TaskRequestsView: React.FC = () => {
   );
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="w-full p-6 sm:p-8 space-y-6">
       {/* Header */}
-      <div className="mb-6">
+      <div>
         <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Task Requests</h1>
         <p className="text-sm text-slate-500">Tasks other staff members created for you</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
         {/* Waiting for your acceptance (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="xl:col-span-2 space-y-4">
           <div className="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
             <div className="mb-5">
               <h2 className="text-base font-bold text-slate-900">Waiting for your acceptance</h2>

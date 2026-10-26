@@ -55,7 +55,7 @@ export const MyToDoView: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-6">
+    <div className="w-full p-6 sm:p-8 space-y-6">
       {/* Toast Notification */}
       {reasonToast && (
         <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-3 animate-in fade-in">
@@ -96,9 +96,9 @@ export const MyToDoView: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
         {/* Main List (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="xl:col-span-2 space-y-4">
           <div className="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
             {/* List Header with Show Completed toggle */}
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">

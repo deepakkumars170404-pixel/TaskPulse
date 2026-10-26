@@ -42,15 +42,15 @@ export const CreateToDoView: React.FC = () => {
     .slice(0, 5);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="w-full p-6 sm:p-8 space-y-6">
       {/* Header */}
-      <div className="mb-6">
+      <div>
         <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Create To-Do</h1>
         <p className="text-sm text-slate-500">Add a task for yourself or for another staff member</p>
       </div>
 
       {successToast && (
-        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
           <Sparkles className="w-5 h-5 text-emerald-600" />
           <span className="text-sm font-semibold">
             {targetUserId === currentUser.id
@@ -60,9 +60,9 @@ export const CreateToDoView: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
         {/* Main Form */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task title */}
             <div>

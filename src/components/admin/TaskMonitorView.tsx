@@ -42,7 +42,7 @@ export const TaskMonitorView: React.FC = () => {
   const blockedCount = tasks.filter((t) => t.status !== 'done' && t.pendingReason).length;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-6">
+    <div className="w-full p-6 sm:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

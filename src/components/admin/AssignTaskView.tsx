@@ -79,20 +79,20 @@ export const AssignTaskView: React.FC = () => {
   // Recently assigned admin tasks
   const recentlyAssigned = tasks
     .filter((t) => t.type === 'admin')
-    .slice(0, 4);
+    .slice(0, 6);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="w-full p-6 sm:p-8 space-y-6">
       {/* Page Header */}
-      <div className="mb-6">
+      <div>
         <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Assign Task</h1>
         <p className="text-sm text-slate-500">
-          Give work to staff with mini calendar date selection for easy scheduling
+          Give work to staff with 1-click date picking for easy scheduling
         </p>
       </div>
 
       {successToast && (
-        <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3 animate-in fade-in">
           <Sparkles className="w-5 h-5 text-emerald-600" />
           <span className="text-sm font-semibold">
             Task assigned for {dueDate}! It has been dispatched to selected staff members.
@@ -100,9 +100,10 @@ export const AssignTaskView: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Assignment Form (2 cols) */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
+      {/* Full-width Responsive Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
+        {/* Main Assignment Form (2 cols on xl) */}
+        <div className="xl:col-span-2 bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task title */}
             <div>
@@ -160,11 +161,11 @@ export const AssignTaskView: React.FC = () => {
               </div>
             </div>
 
-            {/* Due Date & Time with Mini Calendar */}
+            {/* Due Date & Time with Mini Calendar Popover */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  Due date & mini calendar
+                  Due date
                 </label>
                 <button
                   type="button"
@@ -172,7 +173,7 @@ export const AssignTaskView: React.FC = () => {
                   className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 cursor-pointer"
                 >
                   <CalendarDays className="w-3.5 h-3.5" />
-                  <span>{showCalendarPopover ? 'Hide Calendar' : 'Open Mini Calendar'}</span>
+                  <span>{showCalendarPopover ? 'Close Mini Calendar' : 'Open Mini Calendar'}</span>
                 </button>
               </div>
 
@@ -286,28 +287,10 @@ export const AssignTaskView: React.FC = () => {
           </form>
         </div>
 
-        {/* Sidebar Mini Calendar & Recently Assigned (1 col) */}
+        {/* Sidebar Cards (1 col on xl) */}
         <div className="space-y-6">
-          {/* Embedded Mini Calendar Card right in sidebar for easy glance */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col items-center">
-            <div className="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
-                <CalendarDays className="w-4 h-4 text-indigo-600" />
-                <span>Mini Calendar</span>
-              </div>
-              <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                Active
-              </span>
-            </div>
-            <MiniCalendar
-              selectedDate={dueDate}
-              onSelectDate={(d) => setDueDate(d)}
-              taskDates={existingTaskDates}
-            />
-          </div>
-
           {/* Compulsory work card */}
-          <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-5">
+          <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-6">
             <div className="flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
               <div>

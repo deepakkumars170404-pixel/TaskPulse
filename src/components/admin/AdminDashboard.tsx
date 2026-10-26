@@ -32,7 +32,7 @@ export const AdminDashboard: React.FC = () => {
   const displayTasks = filteredTasks.slice(0, 10);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-7">
+    <div className="w-full p-6 sm:p-8 space-y-7">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -131,9 +131,9 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Content Grid: Tasks Table (2 cols) & Widgets (1 col) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full">
         {/* Tasks Table */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-base font-bold text-slate-900">
               {dateFilter === 'today'

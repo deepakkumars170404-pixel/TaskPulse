@@ -177,3 +177,4 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
     </div>
   );
 };
+
