@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useTaskPulse } from '../../context/TaskPulseContext';
-import { Info, Search } from 'lucide-react';
+import { Info, Search, AlertTriangle } from 'lucide-react';
 
 export const TaskMonitorView: React.FC = () => {
   const { tasks } = useTaskPulse();
-  const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'staff'>('all');
+  const [filter, setFilter] = useState<'all' | 'completed' | 'pending' | 'staff' | 'blocked'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter tasks based on selected tab and search
@@ -13,6 +13,7 @@ export const TaskMonitorView: React.FC = () => {
     if (filter === 'completed' && t.status !== 'done') return false;
     if (filter === 'pending' && t.status === 'done') return false;
     if (filter === 'staff' && t.type !== 'staff') return false;
+    if (filter === 'blocked' && (!t.pendingReason || t.status === 'done')) return false;
 
     // Search filter
     if (searchQuery.trim()) {
@@ -20,11 +21,14 @@ export const TaskMonitorView: React.FC = () => {
       return (
         t.title.toLowerCase().includes(q) ||
         t.assignedToName.toLowerCase().includes(q) ||
-        t.createdByName.toLowerCase().includes(q)
+        t.createdByName.toLowerCase().includes(q) ||
+        (t.pendingReason && t.pendingReason.toLowerCase().includes(q))
       );
     }
     return true;
   });
+
+  const blockedCount = tasks.filter((t) => t.status !== 'done' && t.pendingReason).length;
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
@@ -33,7 +37,7 @@ export const TaskMonitorView: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold font-['Outfit'] text-slate-900">Task Monitor</h1>
           <p className="text-sm text-slate-500">
-            See what staff have completed and what is still pending
+            See what staff have completed, what is pending, and reported issues
           </p>
         </div>
 
@@ -44,14 +48,14 @@ export const TaskMonitorView: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tasks or staff..."
+            placeholder="Search tasks, staff or issues..."
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
           />
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {(
           [
             { id: 'all', label: 'All' },
@@ -63,7 +67,7 @@ export const TaskMonitorView: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setFilter(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               filter === tab.id
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
@@ -72,6 +76,28 @@ export const TaskMonitorView: React.FC = () => {
             {tab.label}
           </button>
         ))}
+
+        {/* Dedicated "Issues Reported" tab */}
+        <button
+          onClick={() => setFilter('blocked')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            filter === 'blocked'
+              ? 'bg-amber-600 text-white shadow-xs'
+              : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+          }`}
+        >
+          <AlertTriangle className="w-3.5 h-3.5" />
+          <span>Issues Reported</span>
+          {blockedCount > 0 && (
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                filter === 'blocked' ? 'bg-white text-amber-800' : 'bg-amber-200 text-amber-950'
+              }`}
+            >
+              {blockedCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Tasks Table */}
@@ -102,8 +128,17 @@ export const TaskMonitorView: React.FC = () => {
 
                   return (
                     <tr key={task.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="py-4 px-6 font-bold text-slate-800 max-w-[260px]">
-                        {task.title}
+                      <td className="py-4 px-6 max-w-[280px]">
+                        <div className="font-bold text-slate-800">{task.title}</div>
+                        {/* If task has reported pending reason, display here clearly */}
+                        {!isDone && task.pendingReason && (
+                          <div className="mt-1.5 inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200/90 text-amber-900 px-2.5 py-1 rounded-lg text-[11px] font-medium">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>
+                              <strong>Pending Reason:</strong> "{task.pendingReason}"
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2">

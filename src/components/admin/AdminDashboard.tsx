@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTaskPulse } from '../../context/TaskPulseContext';
-import { Plus, CheckCircle, Clock, Users, ArrowUpRight, Calendar } from 'lucide-react';
+import { Plus, CheckCircle, Clock, Users, ArrowUpRight, Calendar, AlertTriangle } from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const { tasks, users, setCurrentPage, eventTiming } = useTaskPulse();
@@ -85,7 +85,7 @@ export const AdminDashboard: React.FC = () => {
             <h2 className="text-base font-bold text-slate-900">Today's tasks</h2>
             <button
               onClick={() => setCurrentPage('monitor')}
-              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+              className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
             >
               <span>View full monitor</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -106,8 +106,14 @@ export const AdminDashboard: React.FC = () => {
               <tbody className="divide-y divide-slate-100">
                 {recentTasks.map((task) => (
                   <tr key={task.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3.5 pr-3 font-bold text-slate-800 max-w-[220px] truncate">
-                      {task.title}
+                    <td className="py-3.5 pr-3 max-w-[220px]">
+                      <div className="font-bold text-slate-800 truncate">{task.title}</div>
+                      {task.status !== 'done' && task.pendingReason && (
+                        <div className="text-[10px] text-amber-700 font-semibold flex items-center gap-1 mt-0.5 truncate">
+                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                          <span>Issue: "{task.pendingReason}"</span>
+                        </div>
+                      )}
                     </td>
                     <td className="py-3.5 pr-3">
                       <div className="flex items-center gap-2">
@@ -174,7 +180,7 @@ export const AdminDashboard: React.FC = () => {
             </p>
           </div>
 
-          {/* Upcoming event card (Read-only view as requested) */}
+          {/* Upcoming event card */}
           {eventTiming && (
             <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-6">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-900 mb-1">
@@ -187,7 +193,7 @@ export const AdminDashboard: React.FC = () => {
               </p>
               <div className="mt-3 pt-3 border-t border-amber-200/60 flex items-center justify-between text-xs text-amber-900 font-semibold">
                 <span>Staff allotted:</span>
-                <span className="px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-950">
+                <span className="px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-950 font-bold">
                   {eventTiming.allottedStaffIds.length}
                 </span>
               </div>

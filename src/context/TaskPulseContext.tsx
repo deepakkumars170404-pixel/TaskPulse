@@ -39,6 +39,9 @@ interface TaskPulseContextType {
   }) => void;
   toggleTaskStatus: (taskId: string) => void;
   acceptTaskRequest: (taskId: string) => void;
+  reportPendingReason: (taskId: string, reason: string) => void;
+  updateOfficeTiming: (timing: OfficeTiming) => void;
+  updateEventTiming: (event: EventTiming) => void;
   updateOrgSettings: (settings: Partial<OrgSettings>) => void;
 }
 
@@ -59,7 +62,6 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const found = INITIAL_USERS.find((u) => u.id === savedId);
       if (found) return found;
     }
-    // Default to admin
     return INITIAL_USERS[0];
   });
 
@@ -68,12 +70,12 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return saved ? JSON.parse(saved) : INITIAL_TASKS;
   });
 
-  const [officeTiming] = useState<OfficeTiming>(() => {
+  const [officeTiming, setOfficeTiming] = useState<OfficeTiming>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}office_timing`);
     return saved ? JSON.parse(saved) : INITIAL_OFFICE_TIMING;
   });
 
-  const [eventTiming] = useState<EventTiming | null>(() => {
+  const [eventTiming, setEventTiming] = useState<EventTiming | null>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}event_timing`);
     return saved ? JSON.parse(saved) : INITIAL_EVENT_TIMING;
   });
@@ -89,10 +91,18 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const [showCompleted, setShowCompleted] = useState<boolean>(true);
 
-  // Sync tasks to localStorage
+  // Sync state to localStorage
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY_PREFIX}tasks`, JSON.stringify(tasks));
   }, [tasks]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}office_timing`, JSON.stringify(officeTiming));
+  }, [officeTiming]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}event_timing`, JSON.stringify(eventTiming));
+  }, [eventTiming]);
 
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, currentUser.id);
@@ -115,7 +125,8 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const login = (email: string, role: Role) => {
-    const user = users.find((u) => u.role === role && (u.email.toLowerCase() === email.toLowerCase() || !email)) ||
+    const user =
+      users.find((u) => u.role === role && (u.email.toLowerCase() === email.toLowerCase() || !email)) ||
       users.find((u) => u.role === role);
     if (user) {
       setCurrentUser(user);
@@ -181,7 +192,7 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       priority: 'Medium',
       dueDate: data.dueDate,
       dueTime: data.dueTime,
-      status: isSelf ? 'pending' : 'pending', // Stays pending awaiting accept if for colleague
+      status: 'pending',
       createdAt: new Date().toISOString(),
     };
 
@@ -197,7 +208,13 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           const isDone = t.status === 'done';
           return {
             ...t,
-            status: isDone ? (t.type === 'staff' && !t.acceptedAt ? 'pending' : t.type === 'staff' ? 'accepted' : 'pending') : 'done',
+            status: isDone
+              ? t.type === 'staff' && !t.acceptedAt
+                ? 'pending'
+                : t.type === 'staff'
+                ? 'accepted'
+                : 'pending'
+              : 'done',
             completedAt: isDone ? undefined : nowTimeStr,
           };
         }
@@ -221,6 +238,33 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return t;
       })
     );
+  };
+
+  // Rule 5: Staff reports reason / issue for pending task
+  const reportPendingReason = (taskId: string, reason: string) => {
+    const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          return {
+            ...t,
+            pendingReason: reason.trim(),
+            pendingReasonUpdatedAt: nowTimeStr,
+          };
+        }
+        return t;
+      })
+    );
+  };
+
+  // Rule 6: Admin updates office timing (Owner access)
+  const updateOfficeTiming = (newTiming: OfficeTiming) => {
+    setOfficeTiming(newTiming);
+  };
+
+  // Rule 7: Admin updates event timing & staff allotment (Owner access)
+  const updateEventTiming = (newEvent: EventTiming) => {
+    setEventTiming(newEvent);
   };
 
   const updateOrgSettings = (settings: Partial<OrgSettings>) => {
@@ -247,6 +291,9 @@ export const TaskPulseProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         createStaffTask,
         toggleTaskStatus,
         acceptTaskRequest,
+        reportPendingReason,
+        updateOfficeTiming,
+        updateEventTiming,
         updateOrgSettings,
       }}
     >

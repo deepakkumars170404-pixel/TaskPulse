@@ -31,6 +31,8 @@ export interface Task {
   acceptedAt?: string;
   completedAt?: string;
   createdAt: string;
+  pendingReason?: string; // Reason submitted by staff if task is pending/blocked
+  pendingReasonUpdatedAt?: string;
 }
 
 export interface OfficeTiming {
