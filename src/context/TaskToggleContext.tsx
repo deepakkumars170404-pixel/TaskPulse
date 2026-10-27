@@ -389,6 +389,17 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [activeDueReminder, setActiveDueReminder] = useState<{ task: Task; minutesRemaining: number } | null>(null);
   const notifiedRemindersRef = React.useRef<Set<string>>(new Set());
 
+  // Cross-Tab & Cross-Window Instant Real-Time Sync Channel
+  const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
+
+  const broadcastEvent = useCallback((eventData: any) => {
+    try {
+      if (broadcastChannelRef.current) {
+        broadcastChannelRef.current.postMessage(eventData);
+      }
+    } catch (e) {}
+  }, []);
+
   const dismissDueReminder = useCallback(() => {
     setActiveDueReminder(null);
   }, []);
@@ -466,7 +477,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     refreshData();
   }, [refreshData]);
 
-  // Real-time synchronization subscription
+  // Real-time synchronization subscription (Cloud WebSockets via Supabase)
   useEffect(() => {
     const unsubscribe = backendApi.subscribeToTasks((payload) => {
       if (payload.eventType === 'INSERT') {
@@ -475,11 +486,28 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           if (prev.some((t) => t.id === newTask.id)) return prev;
           return [newTask, ...prev];
         });
+
+        // Trigger sound & notification if allotted to the currently logged in user
+        if (newTask.assignedTo === currentUser.id) {
+          playAssignmentAlertSound();
+          sendTaskAssignmentNotification(
+            `New Task from ${newTask.createdByName || 'Admin'}`,
+            `${newTask.title} · Due: ${newTask.dueDate} ${newTask.dueTime}`
+          );
+        }
       } else if (payload.eventType === 'UPDATE') {
         const updatedTask = mapDbTaskToFrontend(payload.new);
         setTasks((prev) =>
           prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
         );
+
+        if (updatedTask.status === 'rejected' && updatedTask.createdBy === currentUser.id) {
+          playAssignmentAlertSound();
+          sendTaskAssignmentNotification(
+            `Task Declined by ${updatedTask.assignedToName}`,
+            `"${updatedTask.rejectReason || 'Declined'}"`
+          );
+        }
       } else if (payload.eventType === 'DELETE') {
         const deletedId = payload.old.id;
         setTasks((prev) => prev.filter((t) => t.id !== deletedId));
@@ -489,7 +517,63 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, []);
+  }, [currentUser, sendTaskAssignmentNotification]);
+
+  // Cross-Tab Instant Synchronization (BroadcastChannel + LocalStorage Event)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let channel: BroadcastChannel | null = null;
+    if ('BroadcastChannel' in window) {
+      channel = new BroadcastChannel('tasktoggle_realtime_sync');
+      broadcastChannelRef.current = channel;
+
+      channel.onmessage = (event) => {
+        const data = event.data;
+        if (!data) return;
+
+        if (data.type === 'TASKS_UPDATE' && Array.isArray(data.tasks)) {
+          setTasks(data.tasks);
+
+          // If a new task was assigned to the currently logged-in user in this tab
+          const isTargeted =
+            data.assignedTo === currentUser.id ||
+            (Array.isArray(data.staffIds) && data.staffIds.includes(currentUser.id));
+
+          if (data.action === 'ASSIGN' && isTargeted) {
+            playAssignmentAlertSound();
+            sendTaskAssignmentNotification(
+              `New Task from ${data.senderName || 'Admin'}`,
+              `${data.taskTitle || 'Assigned Work'} · Due: ${data.dueDate || ''} ${data.dueTime || ''}`
+            );
+          } else if (data.action === 'DECLINE' && data.taskCreatorId === currentUser.id) {
+            playAssignmentAlertSound();
+            sendTaskAssignmentNotification(
+              `Task Declined by ${data.declinedBy || 'Colleague'}`,
+              `"${data.reason || 'Declined'}"`
+            );
+          }
+        }
+      };
+    }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === `${STORAGE_KEY_PREFIX}tasks` && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setTasks(parsed);
+          }
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      if (channel) channel.close();
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [currentUser, sendTaskAssignmentNotification]);
 
   // Sync role and view from URL if embedded from ConnectX
   useEffect(() => {
@@ -539,8 +623,11 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           return;
         }
 
-        // Only alert for tasks assigned to the current user (or all if admin)
-        if (currentUser.role === 'staff' && task.assignedTo !== currentUser.id) {
+        // STRICT USER REQUIREMENT:
+        // Only alert the person who is personally assigned to execute this task!
+        // Admin only receives due reminders for Admin's personal tasks; Staff only receives due reminders for their own tasks.
+        // Admin will NEVER receive due reminder popups for staff target tasks.
+        if (task.assignedTo !== currentUser.id) {
           return;
         }
 
@@ -671,6 +758,19 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     newTasks.forEach((t) => {
       backendApi.createTask(t).catch((err) => console.warn('[Backend] assign error:', err));
     });
+
+    // Cross-tab / cross-window instant broadcast
+    broadcastEvent({
+      type: 'TASKS_UPDATE',
+      action: 'ASSIGN',
+      tasks: [...newTasks, ...tasks],
+      staffIds: data.staffIds,
+      assignedTo: data.staffIds[0],
+      taskTitle: data.title,
+      dueDate: data.dueDate,
+      dueTime: data.dueTime,
+      senderName: 'Admin',
+    });
   };
 
   // Rule 1b: Admin assigns daily task to themselves (Personal Daily Agenda)
@@ -741,6 +841,18 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // Backend database persistence
     backendApi.createTask(newTask).catch((err) => console.warn('[Backend] create error:', err));
+
+    // Cross-tab / cross-window instant broadcast
+    broadcastEvent({
+      type: 'TASKS_UPDATE',
+      action: 'ASSIGN',
+      tasks: [newTask, ...tasks],
+      assignedTo: data.createForUserId,
+      taskTitle: data.title,
+      dueDate: data.dueDate,
+      dueTime: data.dueTime,
+      senderName: currentUser.name,
+    });
   };
 
   // Rule 3: Toggle task completed / pending with audio reward chime
@@ -791,6 +903,20 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       status: updatedStatus,
       completedAt: updatedCompletedAt,
     }).catch((err) => console.warn('[Backend] toggle error:', err));
+
+    // Cross-tab / cross-window instant broadcast
+    broadcastEvent({
+      type: 'TASKS_UPDATE',
+      action: 'TOGGLE',
+      tasks: tasks.map((t) =>
+        t.id === taskId
+          ? { ...t, status: updatedStatus, completedAt: updatedCompletedAt }
+          : t
+      ),
+      taskId,
+      status: updatedStatus,
+      completedBy: currentUser.name,
+    });
   };
 
   const deleteTask = (taskId: string) => {
@@ -915,6 +1041,27 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       rejectReason: trimmedReason,
       rejectedAt: nowTimeStr,
     }).catch((err) => console.warn('[Backend] reject error:', err));
+
+    // Cross-tab / cross-window instant broadcast
+    broadcastEvent({
+      type: 'TASKS_UPDATE',
+      action: 'DECLINE',
+      tasks: tasks.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              status: 'rejected' as const,
+              rejectReason: trimmedReason,
+              rejectedAt: nowTimeStr,
+              pendingReason: `[DECLINED]: ${trimmedReason}`,
+              pendingReasonUpdatedAt: nowTimeStr,
+            }
+          : t
+      ),
+      taskCreatorId: target?.createdBy,
+      declinedBy: currentUser.name,
+      reason: trimmedReason,
+    });
   };
 
   // Move a declined/delegated task to the current user's own to-do list
