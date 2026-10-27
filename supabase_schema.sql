@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   priority TEXT NOT NULL DEFAULT 'Medium' CHECK (priority IN ('Low', 'Medium', 'High')),
   due_date TEXT NOT NULL,
   due_time TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'done')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'done', 'rejected')),
+  reject_reason TEXT,
+  rejected_at TEXT,
   pending_reason TEXT,
   pending_reason_updated_at TEXT,
   accepted_at TEXT,
@@ -36,6 +38,19 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Ensure existing database has columns & status check constraint updated
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'tasks' AND column_name = 'reject_reason') THEN
+    ALTER TABLE public.tasks ADD COLUMN reject_reason TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'tasks' AND column_name = 'rejected_at') THEN
+    ALTER TABLE public.tasks ADD COLUMN rejected_at TEXT;
+  END IF;
+  ALTER TABLE public.tasks DROP CONSTRAINT IF EXISTS tasks_status_check;
+  ALTER TABLE public.tasks ADD CONSTRAINT tasks_status_check CHECK (status IN ('pending', 'accepted', 'done', 'rejected'));
+END $$;
 
 -- 3. Create OFFICE_TIMING table
 CREATE TABLE IF NOT EXISTS public.office_timing (

@@ -2,21 +2,39 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Task } from '../types';
 
 const env = (import.meta as any).env || {};
-const supabaseUrl = env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || '';
+
+// Read credentials from build environment variables or custom localStorage override
+export const getSupabaseConfig = (): { url: string; key: string } => {
+  let url = env.VITE_SUPABASE_URL || '';
+  let key = env.VITE_SUPABASE_ANON_KEY || '';
+
+  if (typeof window !== 'undefined') {
+    const customUrl = localStorage.getItem('tasktoggle_supabase_url');
+    const customKey = localStorage.getItem('tasktoggle_supabase_anon_key');
+    if (customUrl && customKey) {
+      url = customUrl.trim();
+      key = customKey.trim();
+    }
+  }
+
+  return { url, key };
+};
 
 export const isSupabaseConfigured = (): boolean => {
+  const { url, key } = getSupabaseConfig();
   return Boolean(
-    supabaseUrl &&
-    supabaseAnonKey &&
-    typeof supabaseUrl === 'string' &&
-    supabaseUrl.startsWith('https://') &&
-    supabaseAnonKey.length > 10
+    url &&
+    key &&
+    typeof url === 'string' &&
+    url.startsWith('https://') &&
+    key.length > 10
   );
 };
 
+const { url: activeUrl, key: activeKey } = getSupabaseConfig();
+
 export const supabase: SupabaseClient | null = isSupabaseConfigured()
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(activeUrl, activeKey)
   : null;
 
 // Helper: Convert Database row (snake_case) to Frontend Task (camelCase)
@@ -46,13 +64,17 @@ export const mapDbTaskToFrontend = (row: any): Task => {
 
 // Helper: Convert Frontend Task (camelCase) to Database row (snake_case)
 export const mapFrontendTaskToDb = (task: Task): any => {
+  // Gracefully map legacy admin_1 to admin_deepak to avoid foreign key errors with public.users
+  const createdBy = task.createdBy === 'admin_1' ? 'admin_deepak' : task.createdBy;
+  const assignedTo = task.assignedTo === 'admin_1' ? 'admin_deepak' : task.assignedTo;
+
   return {
     id: task.id,
     title: task.title,
     description: task.description || '',
-    created_by: task.createdBy,
+    created_by: createdBy,
     created_by_name: task.createdByName,
-    assigned_to: task.assignedTo,
+    assigned_to: assignedTo,
     assigned_to_name: task.assignedToName,
     type: task.type,
     priority: task.priority,

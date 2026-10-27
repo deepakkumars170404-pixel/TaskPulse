@@ -332,17 +332,30 @@ export const sendTaskAssignmentNotification = (title: string, body: string) => {
 export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isBackendConnected] = useState<boolean>(backendApi.isConnected());
 
-  // Users state
+  // Users state (dynamically refreshed to match Supabase database)
   const [users, setUsers] = useState<User[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}users`);
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // If saved users still have the old 'Arun Kumar' or legacy 'admin_1', refresh to INITIAL_USERS with 'Arun Patel'
+        if (parsed.some((u: User) => u.name === 'Arun Kumar' || u.id === 'admin_1')) {
+          localStorage.setItem(`${STORAGE_KEY_PREFIX}users`, JSON.stringify(INITIAL_USERS));
+          return INITIAL_USERS;
+        }
+        return parsed;
+      } catch (e) {}
+    }
+    return INITIAL_USERS;
   });
 
   // Current active user
   const [currentUser, setCurrentUser] = useState<User>(() => {
     const savedId = localStorage.getItem(`${STORAGE_KEY_PREFIX}current_user_id`);
     if (savedId) {
-      const found = INITIAL_USERS.find((u) => u.id === savedId);
+      // Map legacy 'admin_1' to 'admin_deepak'
+      const targetId = savedId === 'admin_1' ? 'admin_deepak' : savedId;
+      const found = INITIAL_USERS.find((u) => u.id === targetId);
       if (found) return found;
     }
     return INITIAL_USERS[0];
@@ -460,7 +473,14 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         backendApi.getOrgSettings(),
       ]);
 
-      if (fetchedUsers && fetchedUsers.length > 0) setUsers(fetchedUsers);
+      if (fetchedUsers && fetchedUsers.length > 0) {
+        setUsers(fetchedUsers);
+        // Ensure active currentUser profile name stays updated with Supabase
+        setCurrentUser((curr) => {
+          const match = fetchedUsers.find((u) => u.id === curr.id || (curr.role === 'admin' && u.role === 'admin'));
+          return match || curr;
+        });
+      }
       if (fetchedTasks) setTasks(fetchedTasks);
       if (fetchedOffice) setOfficeTiming(fetchedOffice);
       if (fetchedEvent) setEventTiming(fetchedEvent);
@@ -472,9 +492,14 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, []);
 
-  // Fetch initial data on mount
+  // Fetch initial data on mount + periodic cloud sync poll (every 6 seconds)
+  // Guarantees cross-device sync even if mobile browser suspends WebSockets
   useEffect(() => {
     refreshData();
+    const pollInterval = setInterval(() => {
+      refreshData();
+    }, 6000);
+    return () => clearInterval(pollInterval);
   }, [refreshData]);
 
   // Real-time synchronization subscription (Cloud WebSockets via Supabase)
