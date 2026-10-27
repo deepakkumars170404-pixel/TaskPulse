@@ -79,7 +79,7 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
-const STORAGE_CLEAN_VERSION = 'v6_admin_personal_separation';
+const STORAGE_CLEAN_VERSION = 'v7_disable_auto_due_popup';
 
 if (typeof window !== 'undefined') {
   if (localStorage.getItem('tasktoggle_data_version') !== STORAGE_CLEAN_VERSION) {
@@ -648,16 +648,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
             const minsLeft = Math.max(1, Math.round(diffMinutes));
 
-            // 1. Play dedicated 30-minute alert reminder sound
+            // 1. Play dedicated 30-minute alert reminder sound (audible tone)
             playThirtyMinReminderSound();
 
-            // 2. Set active in-app reminder card
-            setActiveDueReminder({
-              task,
-              minutesRemaining: minsLeft,
-            });
-
-            // 3. Desktop Native OS Notification (pops up over other apps)
+            // 2. Desktop Native OS Notification (pops up over other apps without injecting an in-app card)
             if (typeof window !== 'undefined' && 'Notification' in window) {
               const notifTitle = `⏰ 30-Min Due Reminder: "${task.title}"`;
               const notifBody = `Due in ${minsLeft} minutes (at ${task.dueTime})! Please complete or strike it.`;

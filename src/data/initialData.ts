@@ -165,7 +165,8 @@ export const INITIAL_TASKS: Task[] = [
     priority: 'Medium',
     dueDate: '27 Oct 2026',
     dueTime: '6:30 PM',
-    status: 'pending',
+    status: 'done',
+    completedAt: '05:45 PM',
     createdAt: '2026-10-27T08:30:00Z',
   },
 
