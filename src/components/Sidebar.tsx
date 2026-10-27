@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   UserCheck,
   CalendarDays,
+  Download,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -220,6 +221,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
 
       {/* Bottom Section: Office hours info + Logout */}
       <div className="pt-4 border-t border-slate-200 space-y-3">
+        {/* PWA Install Button */}
+        <button
+          type="button"
+          onClick={() => {
+            if (onCloseMobile) onCloseMobile();
+            window.dispatchEvent(new CustomEvent('open-pwa-install'));
+          }}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200/80 transition-all cursor-pointer shadow-2xs active:scale-95"
+          title="Install TaskToggle on desktop or mobile home screen"
+        >
+          <div className="flex items-center gap-2">
+            <Download className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Install App</span>
+          </div>
+          <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-white text-indigo-700 rounded shadow-2xs">
+            PWA
+          </span>
+        </button>
+
         <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 text-[11px] text-slate-500 shadow-2xs">
           <div className="flex items-center gap-1.5 font-bold text-slate-800 mb-0.5">
             <Clock className="w-3.5 h-3.5 text-indigo-600" />
