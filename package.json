@@ -8,8 +8,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "electron:start": "electron .",
-    "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:5173 && electron .\""
+    "electron:start": "node electron/launcher.cjs",
+    "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:5173 && node electron/launcher.cjs\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
