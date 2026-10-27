@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { TaskToggleProvider, useTaskToggle } from './context/TaskToggleContext';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -12,6 +12,7 @@ import { MyToDoView } from './components/staff/MyToDoView';
 import { CreateToDoView } from './components/staff/CreateToDoView';
 import { TaskRequestsView } from './components/staff/TaskRequestsView';
 import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
+import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubble';
 
 const MainLayout: React.FC = () => {
   const { currentPage, currentUser } = useTaskToggle();
@@ -69,9 +70,29 @@ const MainLayout: React.FC = () => {
 };
 
 export function App() {
+  // Detect if this instance is running as the dedicated Electron OS-level floating bubble
+  const isFloatingMode = useMemo(() => {
+    return (
+      new URLSearchParams(window.location.search).get('mode') === 'floating-bubble' ||
+      window.location.hash.includes('floating-bubble')
+    );
+  }, []);
+
+  useEffect(() => {
+    if (isFloatingMode) {
+      document.documentElement.style.backgroundColor = 'transparent';
+      document.body.style.backgroundColor = 'transparent';
+      document.body.className = 'bg-transparent text-slate-900 antialiased font-[\'Open_Sans\',sans-serif] overflow-hidden';
+    }
+  }, [isFloatingMode]);
+
   return (
     <TaskToggleProvider>
-      <MainLayout />
+      {isFloatingMode ? (
+        <ElectronFloatingBubble />
+      ) : (
+        <MainLayout />
+      )}
     </TaskToggleProvider>
   );
 }

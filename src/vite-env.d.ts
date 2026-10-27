@@ -27,6 +27,17 @@ interface DocumentPictureInPicture {
   removeEventListener(type: string, listener: (ev: any) => any): void;
 }
 
+interface ElectronAPI {
+  isElectron: boolean;
+  resizeFloating: (mode: 'logo' | 'expanded') => void;
+  openMainWindow: () => void;
+  closeFloating: () => void;
+  quitApp: () => void;
+  setIgnoreMouseEvents?: (ignore: boolean, forward?: boolean) => void;
+  onToggleFloating?: (callback: () => void) => () => void;
+}
+
 interface Window {
   documentPictureInPicture?: DocumentPictureInPicture;
+  electronAPI?: ElectronAPI;
 }
