@@ -133,7 +133,7 @@ export const TaskMonitorView: React.FC = () => {
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Bending / Pending Tasks</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending Tasks</div>
             <div className="text-2xl font-black text-amber-700 font-['Outfit'] mt-0.5">{pendingCount}</div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
@@ -241,9 +241,9 @@ export const TaskMonitorView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Right: Bending / Pending Count Badge & Progress */}
+                  {/* Right: Pending Count Badge & Progress */}
                   <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5 self-start md:self-auto">
-                    {/* BENDING / PENDING COUNT BADGE (Prominently displayed) */}
+                    {/* PENDING COUNT BADGE (Prominently displayed) */}
                     <div
                       className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 shadow-2xs ${
                         staffPending.length > 0
@@ -254,7 +254,7 @@ export const TaskMonitorView: React.FC = () => {
                       {staffPending.length > 0 ? (
                         <>
                           <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                          <span>{staffPending.length} Bending / Pending</span>
+                          <span>{staffPending.length} Pending</span>
                         </>
                       ) : (
                         <>
