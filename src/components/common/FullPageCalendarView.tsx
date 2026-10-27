@@ -206,10 +206,10 @@ export const FullPageCalendarView: React.FC = () => {
     return days;
   }, [currentYear, currentMonth]);
 
-  // Tasks visible to current user (Admin sees all company tasks, Staff sees assigned & delegated)
+  // Tasks visible to current user (Admin sees all company tasks, Staff sees assigned & delegated, excluding declined)
   const relevantTasks = useMemo(() => {
     if (currentUser.role === 'admin') return tasks;
-    return tasks.filter((t) => t.assignedTo === currentUser.id || t.createdBy === currentUser.id);
+    return tasks.filter((t) => (t.assignedTo === currentUser.id && t.status !== 'rejected') || t.createdBy === currentUser.id);
   }, [tasks, currentUser]);
 
   // Tasks & holiday for selected modal date
@@ -219,7 +219,7 @@ export const FullPageCalendarView: React.FC = () => {
     const formatted = formatTaskDate(date);
 
     const matchingTasks = relevantTasks.filter((t) => isSameCalendarDay(date, t.dueDate));
-    const pendingTasks = matchingTasks.filter((t) => t.status !== 'done');
+    const pendingTasks = matchingTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected');
     const adminTasks = matchingTasks.filter((t) => t.type === 'admin');
     const staffTasks = matchingTasks.filter((t) => t.type === 'staff' || t.type === 'self');
 
@@ -355,7 +355,7 @@ export const FullPageCalendarView: React.FC = () => {
 
             // Find tasks scheduled on this day using robust date comparison
             const dayTasks = relevantTasks.filter((t) => isSameCalendarDay(date, t.dueDate));
-            const pendingDayTasks = dayTasks.filter((t) => t.status !== 'done');
+            const pendingDayTasks = dayTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected');
             const hasTasks = dayTasks.length > 0;
             const allTasksDone = hasTasks && pendingDayTasks.length === 0;
 

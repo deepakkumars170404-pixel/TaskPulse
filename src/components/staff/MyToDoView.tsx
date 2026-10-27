@@ -117,9 +117,9 @@ export const MyToDoView: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<RoutineDay | 'all'>('all');
   const [viewScope, setViewScope] = useState<'routine' | 'month' | 'all'>('routine');
 
-  // Directly display all tasks assigned to the current staff member
+  // Directly display all tasks assigned to the current staff member (excluding declined/rejected tasks)
   const myTasks = useMemo(() => {
-    return tasks.filter((t) => t.assignedTo === currentUser.id);
+    return tasks.filter((t) => t.assignedTo === currentUser.id && t.status !== 'rejected');
   }, [tasks, currentUser.id]);
 
   // Delegated tasks created by current user that were declined by colleagues

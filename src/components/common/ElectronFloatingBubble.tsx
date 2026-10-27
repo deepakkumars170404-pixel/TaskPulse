@@ -159,10 +159,10 @@ export const ElectronFloatingBubble: React.FC = () => {
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Filter tasks based on current user and selected tab
+  // Filter tasks based on current user and selected tab (exclude declined tasks for staff)
   const relevantTasks = tasks.filter((t) => {
     if (currentUser.role === 'admin') return true;
-    return t.assignedTo === currentUser.id;
+    return t.assignedTo === currentUser.id && t.status !== 'rejected';
   });
 
   const pendingTasks = relevantTasks.filter((t) => t.status !== 'done');

@@ -17,6 +17,7 @@ import {
   Target,
   Send,
   Zap,
+  XCircle,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { Task, TaskPriority } from '../../types';
@@ -80,7 +81,8 @@ export const AdminDashboard: React.FC = () => {
   // 4. Staff Team Target Completion Rate (Strictly Calculated from Staff Tasks, Auto-Updated by Staff Strikes)
   const staffTotal = filteredStaffTasks.length;
   const staffCompleted = filteredStaffTasks.filter((t) => t.status === 'done').length;
-  const staffPending = filteredStaffTasks.filter((t) => t.status !== 'done').length;
+  const staffDeclined = filteredStaffTasks.filter((t) => t.status === 'rejected').length;
+  const staffPending = filteredStaffTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected').length;
   const staffTeamRate = staffTotal > 0 ? Math.round((staffCompleted / staffTotal) * 100) : 0;
   const staffCount = users.filter((u) => u.role === 'staff').length;
 
@@ -415,12 +417,13 @@ export const AdminDashboard: React.FC = () => {
                     ) : (
                       filteredStaffTasks.map((task) => {
                         const isDone = task.status === 'done';
+                        const isRejected = task.status === 'rejected';
 
                         return (
                           <tr
                             key={task.id}
                             className={`hover:bg-slate-50/80 transition-all ${
-                              isDone ? 'bg-slate-50/50' : ''
+                              isDone ? 'bg-slate-50/50' : isRejected ? 'bg-rose-50/20' : ''
                             }`}
                           >
                             {/* Task Title */}
@@ -430,17 +433,31 @@ export const AdminDashboard: React.FC = () => {
                                   className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 ${
                                     isDone
                                       ? 'bg-emerald-600 text-white shadow-2xs'
+                                      : isRejected
+                                      ? 'bg-rose-50 text-rose-600 border border-rose-300'
                                       : 'border-2 border-slate-300'
                                   }`}
-                                  title={isDone ? `Struck done by ${task.assignedToName}` : 'Awaiting staff action'}
+                                  title={
+                                    isDone
+                                      ? `Struck done by ${task.assignedToName}`
+                                      : isRejected
+                                      ? `Declined by ${task.assignedToName}`
+                                      : 'Awaiting staff action'
+                                  }
                                 >
-                                  {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                  {isDone ? (
+                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                  ) : isRejected ? (
+                                    <XCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                                  ) : null}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div
                                     className={`font-bold truncate text-[13px] transition-all ${
                                       isDone
                                         ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
+                                        : isRejected
+                                        ? 'line-through text-slate-400 font-medium decoration-rose-400'
                                         : 'text-slate-900'
                                     }`}
                                   >
@@ -505,11 +522,15 @@ export const AdminDashboard: React.FC = () => {
                                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
                                     isDone
                                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                      : isRejected
+                                      ? 'bg-rose-50 text-rose-800 border border-rose-200'
                                       : 'bg-amber-50 text-amber-800 border border-amber-200'
                                   }`}
                                   title={
                                     isDone
                                       ? `Auto-struck by ${task.assignedToName} in their login`
+                                      : isRejected
+                                      ? `Declined by ${task.assignedToName}`
                                       : 'Awaiting staff execution in their portal'
                                   }
                                 >
@@ -517,6 +538,11 @@ export const AdminDashboard: React.FC = () => {
                                     <>
                                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                                       <span>✓ Auto-Struck by {task.assignedToName.split(' ')[0]} {task.completedAt ? `(${task.completedAt})` : ''}</span>
+                                    </>
+                                  ) : isRejected ? (
+                                    <>
+                                      <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                      <span>❌ Declined by {task.assignedToName.split(' ')[0]}</span>
                                     </>
                                   ) : (
                                     <>
@@ -526,8 +552,18 @@ export const AdminDashboard: React.FC = () => {
                                   )}
                                 </div>
 
+                                {/* Rejection reason pill if declined */}
+                                {isRejected && (task.rejectReason || task.pendingReason) && (
+                                  <div
+                                    className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-900 border border-rose-200 text-[10px] font-semibold max-w-[200px] truncate"
+                                    title={task.rejectReason || task.pendingReason}
+                                  >
+                                    Reason: "{task.rejectReason || task.pendingReason?.replace('[DECLINED]: ', '')}"
+                                  </div>
+                                )}
+
                                 {/* Nearby Written Issue Button / Popup Trigger */}
-                                {!isDone && task.pendingReason && (
+                                {!isDone && !isRejected && task.pendingReason && (
                                   <button
                                     type="button"
                                     onClick={(e) => {

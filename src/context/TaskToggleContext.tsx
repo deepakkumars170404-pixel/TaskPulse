@@ -529,8 +529,8 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       tasks.forEach((task) => {
         // STRICT USER REQUIREMENT:
         // "if the staff completd the work no notification needs to create if its pending only give a notification sound"
-        if (task.status === 'done') {
-          // If the task is completed, absolutely NO notification or sound is created!
+        if (task.status === 'done' || task.status === 'rejected') {
+          // If the task is completed or rejected, absolutely NO notification or sound is created!
           return;
         }
 
@@ -744,6 +744,12 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const target = tasks.find((t) => t.id === taskId);
     if (!target) return;
 
+    // STRICT USER REQUIREMENT:
+    // If a task has been rejected/declined, it CANNOT be struck or completed!
+    if (target.status === 'rejected') {
+      return;
+    }
+
     const isDone = target.status === 'done';
     const updatedStatus: 'pending' | 'accepted' | 'done' = isDone
       ? target.type === 'staff' && !target.acceptedAt
@@ -794,7 +800,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setTasks((prev) =>
       prev.map((t) => {
         const isEligible = currentUser.role === 'admin' || t.assignedTo === currentUser.id;
-        if (isEligible && t.status !== 'done') {
+        if (isEligible && t.status !== 'done' && t.status !== 'rejected') {
           backendApi.updateTask(t.id, { status: 'done', completedAt: nowTimeStr }).catch(() => {});
           return {
             ...t,

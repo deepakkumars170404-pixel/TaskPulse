@@ -186,10 +186,10 @@ export const FloatingTaskWidget: React.FC = () => {
     }
   };
 
-  // Filter tasks based on role and active tab
+  // Filter tasks based on role and active tab (exclude declined tasks for staff)
   const relevantTasks = tasks.filter((t) => {
     if (currentUser.role === 'admin') return true;
-    return t.assignedTo === currentUser.id;
+    return t.assignedTo === currentUser.id && t.status !== 'rejected';
   });
 
   const pendingTasks = relevantTasks.filter((t) => t.status !== 'done');
