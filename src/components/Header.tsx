@@ -79,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         {/* Float Over All Apps Button (Works over all desktop apps & games) */}
         <button
           type="button"
-          onClick={async () => {
+          onClick={() => {
             if (window.electronAPI?.isElectron) {
               if (window.electronAPI.showFloating) {
                 window.electronAPI.showFloating();
@@ -89,19 +89,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               return;
             }
 
-            // Try opening native Electron frameless bubble first (Zero grey bar, Zero web name)
-            try {
-              const res = await fetch('http://127.0.0.1:38241/show-floating', {
-                method: 'POST',
-                mode: 'cors',
-              });
-              if (res.ok) {
-                return; // Native transparent Electron bubble opened!
-              }
-            } catch (err) {
-              // Electron desktop app is not running, fallback to Chrome PiP
-            }
-
+            // Immediately and synchronously trigger Document PiP to guarantee active user gesture
             window.dispatchEvent(new CustomEvent('open-pip-window'));
           }}
           className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"

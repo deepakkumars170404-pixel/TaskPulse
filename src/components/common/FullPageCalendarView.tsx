@@ -494,3 +494,4 @@ export const FullPageCalendarView: React.FC = () => {
     </div>
   );
 };
+

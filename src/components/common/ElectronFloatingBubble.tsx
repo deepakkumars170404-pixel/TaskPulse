@@ -131,8 +131,8 @@ export const ElectronFloatingBubble: React.FC = () => {
         );
         dragStartPosRef.current = null;
 
-        // If the user clicked without dragging more than 4px, expand to full task card!
-        if (dist < 5) {
+        // If the user clicked without dragging more than 8px, expand to full task card!
+        if (dist < 8) {
           handleSetMode('expanded');
         }
       }
@@ -222,20 +222,22 @@ export const ElectronFloatingBubble: React.FC = () => {
            ========================================================================= */
         <div
           onMouseDown={handleBubbleMouseDown}
-          className="w-20 h-20 flex items-center justify-center relative select-none cursor-grab active:cursor-grabbing hover:scale-105 transition-transform duration-100"
+          className="w-20 h-20 flex items-center justify-center select-none cursor-grab active:cursor-grabbing hover:scale-105 transition-transform duration-100"
           title="TaskToggle (Deepak) · Drag anywhere on PC screen · Click to open"
         >
-          {/* Solid Indigo Rounded Square matching user screenshot - Zero white background */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center shadow-2xl ring-3 ring-white pointer-events-none">
-            <CheckSquare className="w-8 h-8 stroke-[2.5]" />
-          </div>
+          <div className="relative">
+            {/* Solid Indigo Circular Logo - Zero white background */}
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center shadow-2xl ring-3 ring-white pointer-events-none">
+              <CheckSquare className="w-8 h-8 stroke-[2.5]" />
+            </div>
 
-          {/* Red Pending Task Badge */}
-          {pendingTasks.length > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[24px] h-[24px] px-1.5 rounded-full bg-rose-600 text-white text-xs font-black flex items-center justify-center shadow-lg ring-2 ring-white pointer-events-none">
-              {pendingTasks.length}
-            </span>
-          )}
+            {/* Red Pending Task Badge */}
+            {pendingTasks.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[24px] h-[24px] px-1.5 rounded-full bg-rose-600 text-white text-xs font-black flex items-center justify-center shadow-lg ring-2 ring-white pointer-events-none">
+                {pendingTasks.length}
+              </span>
+            )}
+          </div>
         </div>
       ) : (
         /* =========================================================================

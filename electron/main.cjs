@@ -113,9 +113,9 @@ function createFloatingBubbleWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
-  // Initial bubble dimensions (logo size)
-  const initialWidth = 80;
-  const initialHeight = 80;
+  // Initial bubble dimensions (logo size with badge padding)
+  const initialWidth = 90;
+  const initialHeight = 90;
   const initialX = Math.max(20, screenWidth - initialWidth - 24);
   const initialY = Math.max(40, screenHeight - initialHeight - 120);
 
@@ -293,8 +293,8 @@ ipcMain.on('floating-resize', (event, mode) => {
     floatingWindow.focus();
   } else {
     // Mode === 'logo'
-    const targetWidth = 80;
-    const targetHeight = 80;
+    const targetWidth = 90;
+    const targetHeight = 90;
 
     floatingWindow.setBounds({
       x: currentBounds.x,

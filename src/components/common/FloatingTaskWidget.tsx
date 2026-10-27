@@ -101,7 +101,8 @@ export const FloatingTaskWidget: React.FC = () => {
           margin: 0;
           padding: 0;
           font-family: 'Open Sans', sans-serif;
-          background: ${startInLogoMode ? "#EEF2FF" : "#FFFFFF"};
+          background-color: ${startInLogoMode ? "#EEF2FF" : "#FFFFFF"} !important;
+          background-image: none !important;
           width: 100%;
           height: 100%;
           overflow: hidden;
@@ -132,7 +133,8 @@ export const FloatingTaskWidget: React.FC = () => {
   const expandPiP = () => {
     setIsPipLogoOnly(false);
     if (pipWindow) {
-      pipWindow.document.body.style.background = "#FFFFFF";
+      pipWindow.document.body.style.backgroundColor = "#FFFFFF";
+      pipWindow.document.body.style.backgroundImage = "none";
       try {
         pipWindow.resizeTo(380, 540);
       } catch (e) {
@@ -144,9 +146,10 @@ export const FloatingTaskWidget: React.FC = () => {
   const shrinkPiPToLogo = () => {
     setIsPipLogoOnly(true);
     if (pipWindow) {
-      pipWindow.document.body.style.background = "#EEF2FF";
+      pipWindow.document.body.style.backgroundColor = "#EEF2FF";
+      pipWindow.document.body.style.backgroundImage = "none";
       try {
-        pipWindow.resizeTo(100, 100);
+        pipWindow.resizeTo(120, 120);
       } catch (e) {
         // Ignore if resizeTo restricted
       }
