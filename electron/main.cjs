@@ -4,6 +4,7 @@ const path = require('path');
 let mainWindow = null;
 let floatingWindow = null;
 let tray = null;
+let dragInterval = null;
 
 const isDev = process.env.ELECTRON_DEV === '1' || !app.isPackaged;
 const DEV_URL = 'http://localhost:5173';
@@ -16,7 +17,7 @@ function getAppUrl(params = '') {
   return `file://${indexPath}${params ? `?${params}` : ''}`;
 }
 
-// 1. Create Main Full Dashboard Window
+// 1. Create Main Full Dashboard Window (Clean Webpage with NO in-page popups)
 function createMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.show();
@@ -30,7 +31,7 @@ function createMainWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'TaskToggle - Deepak Organization Task Manager',
-    backgroundColor: '#F5F7FD',
+    backgroundColor: '#F8FAFC',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
@@ -45,7 +46,7 @@ function createMainWindow() {
   });
 }
 
-// 2. Create OS-Level Floating Bubble Window (Transparent & Always On Top)
+// 2. Create OS-Level Floating Bubble Window (Transparent & Always On Top, Floats over all apps)
 function createFloatingBubbleWindow() {
   if (floatingWindow && !floatingWindow.isDestroyed()) {
     floatingWindow.show();
@@ -70,7 +71,7 @@ function createFloatingBubbleWindow() {
     transparent: true,
     alwaysOnTop: true,
     hasShadow: false,
-    resizable: false,
+    resizable: true, // Allows smooth movement across Windows displays
     skipTaskbar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -87,12 +88,15 @@ function createFloatingBubbleWindow() {
 
   floatingWindow.on('closed', () => {
     floatingWindow = null;
+    if (dragInterval) {
+      clearInterval(dragInterval);
+      dragInterval = null;
+    }
   });
 }
 
 // 3. Create Windows System Tray Icon
 function createTray() {
-  // 16x16 icon SVG base64
   const svgIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <rect width="18" height="18" x="3" y="3" rx="4" fill="#4F46E5"/>
@@ -106,7 +110,6 @@ function createTray() {
   try {
     tray = new Tray(trayIcon);
   } catch (err) {
-    // Fallback if svg buffer isn't supported directly on older native image
     tray = new Tray(nativeImage.createEmpty());
   }
 
@@ -157,7 +160,41 @@ function createTray() {
   });
 }
 
-// IPC Handlers
+// Global Cursor Drag Engine (100% reliable mouse drag anywhere across PC screen)
+ipcMain.on('start-drag-floating', () => {
+  if (!floatingWindow || floatingWindow.isDestroyed()) return;
+
+  const initialMouse = screen.getCursorScreenPoint();
+  const initialWindowPos = floatingWindow.getPosition();
+
+  const offsetX = initialMouse.x - initialWindowPos[0];
+  const offsetY = initialMouse.y - initialWindowPos[1];
+
+  if (dragInterval) clearInterval(dragInterval);
+
+  dragInterval = setInterval(() => {
+    if (!floatingWindow || floatingWindow.isDestroyed()) {
+      clearInterval(dragInterval);
+      dragInterval = null;
+      return;
+    }
+
+    const currentMouse = screen.getCursorScreenPoint();
+    floatingWindow.setPosition(
+      Math.round(currentMouse.x - offsetX),
+      Math.round(currentMouse.y - offsetY)
+    );
+  }, 10); // 100fps silky smooth cursor tracking
+});
+
+ipcMain.on('stop-drag-floating', () => {
+  if (dragInterval) {
+    clearInterval(dragInterval);
+    dragInterval = null;
+  }
+});
+
+// IPC Window Resizer
 ipcMain.on('floating-resize', (event, mode) => {
   if (!floatingWindow || floatingWindow.isDestroyed()) return;
 
@@ -172,7 +209,6 @@ ipcMain.on('floating-resize', (event, mode) => {
     let targetX = currentBounds.x;
     let targetY = currentBounds.y;
 
-    // Reposition safely if expanded box overflows the screen edge
     if (targetX + targetWidth > workArea.x + workArea.width) {
       targetX = workArea.x + workArea.width - targetWidth - 16;
     }
@@ -247,7 +283,7 @@ if (!gotTheLock) {
     createFloatingBubbleWindow();
     createTray();
 
-    // Register Global Shortcut: Ctrl+Alt+T or Cmd+Alt+T anywhere in Windows
+    // Register Global Shortcut: Ctrl+Alt+T anywhere in Windows
     globalShortcut.register('CommandOrControl+Alt+T', () => {
       if (!floatingWindow || floatingWindow.isDestroyed()) {
         createFloatingBubbleWindow();
@@ -272,9 +308,7 @@ app.on('will-quit', () => {
 });
 
 app.on('window-all-closed', () => {
-  // Keep app active in system tray if user only closed main window
   if (process.platform !== 'darwin' && app.isQuitting) {
     app.quit();
   }
 });
-

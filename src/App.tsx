@@ -11,7 +11,6 @@ import { TimingSettingsView } from './components/admin/TimingSettingsView';
 import { MyToDoView } from './components/staff/MyToDoView';
 import { CreateToDoView } from './components/staff/CreateToDoView';
 import { TaskRequestsView } from './components/staff/TaskRequestsView';
-import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
 import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubble';
 
 const MainLayout: React.FC = () => {
@@ -28,7 +27,7 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${isEmbedded ? 'bg-transparent' : 'bg-gradient-to-br from-slate-50 via-[#F5F7FD] to-indigo-50/20'}`}>
+    <div className={`min-h-screen flex flex-col ${isEmbedded ? 'bg-transparent' : 'bg-slate-50'}`}>
       {/* Top Header */}
       {!isEmbedded && (
         <Header onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
@@ -63,8 +62,7 @@ const MainLayout: React.FC = () => {
       {/* Modern Bottom Navigation Bar for Mobile Phones */}
       {!isEmbedded && <BottomNav />}
 
-      {/* Floating Draggable Quick Task Widget (Picture-in-Picture Mini Popup) */}
-      <FloatingTaskWidget />
+      {/* NO in-page floating bubble inside the webpage - completely clean and unobstructed */}
     </div>
   );
 };

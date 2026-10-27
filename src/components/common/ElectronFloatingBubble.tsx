@@ -35,14 +35,6 @@ export const ElectronFloatingBubble: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  // Dragging state using HTML5 Pointer Capture (smoothly moves OS window anywhere across all monitors)
-  const [isDragging, setIsDragging] = useState(false);
-  const dragRef = useRef<{
-    startX: number;
-    startY: number;
-    moved: boolean;
-  } | null>(null);
-
   // Switch between compact 72x72 bubble and 380x560 expanded window
   const handleSetMode = (nextMode: 'logo' | 'expanded') => {
     setMode(nextMode);
@@ -113,97 +105,58 @@ export const ElectronFloatingBubble: React.FC = () => {
   };
 
   // =========================================================================
-  // UNIVERSAL POINTER DRAG HANDLERS: Move Window to ANY place on ANY screen
+  // GLOBAL OS CURSOR DRAG & DROP ENGINE (Smooth 100fps movement anywhere on PC)
   // =========================================================================
-  const handleBubblePointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {}
+  const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
-    dragRef.current = {
-      startX: e.screenX,
-      startY: e.screenY,
-      moved: false,
-    };
-    setIsDragging(true);
-  };
+  const handleBubbleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return; // Only left click
+    dragStartPosRef.current = { x: e.screenX, y: e.screenY };
 
-  const handleBubblePointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    const dx = e.screenX - dragRef.current.startX;
-    const dy = e.screenY - dragRef.current.startY;
-
-    if (!dragRef.current.moved && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) {
-      dragRef.current.moved = true;
+    if (window.electronAPI?.startDrag) {
+      window.electronAPI.startDrag();
     }
 
-    if (dragRef.current.moved) {
-      if (window.electronAPI?.moveFloatingBy) {
-        window.electronAPI.moveFloatingBy(dx, dy);
+    const handleMouseUp = (upEvent: MouseEvent) => {
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      if (window.electronAPI?.stopDrag) {
+        window.electronAPI.stopDrag();
       }
-      dragRef.current.startX = e.screenX;
-      dragRef.current.startY = e.screenY;
-    }
+
+      if (dragStartPosRef.current) {
+        const dist = Math.hypot(
+          upEvent.screenX - dragStartPosRef.current.x,
+          upEvent.screenY - dragStartPosRef.current.y
+        );
+        dragStartPosRef.current = null;
+
+        // If the user clicked without dragging more than 4px, expand to full task card!
+        if (dist < 5) {
+          handleSetMode('expanded');
+        }
+      }
+    };
+
+    window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleBubblePointerUp = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {}
-
-    const moved = dragRef.current.moved;
-    dragRef.current = null;
-    setIsDragging(false);
-
-    if (!moved) {
-      handleSetMode('expanded');
-    }
-  };
-
-  // Drag handler for expanded card's header bar
-  const handleHeaderPointerDown = (e: React.PointerEvent) => {
+  const handleHeaderMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).closest('button')) return;
 
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {}
-
-    dragRef.current = {
-      startX: e.screenX,
-      startY: e.screenY,
-      moved: false,
-    };
-    setIsDragging(true);
-  };
-
-  const handleHeaderPointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    const dx = e.screenX - dragRef.current.startX;
-    const dy = e.screenY - dragRef.current.startY;
-
-    if (!dragRef.current.moved && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) {
-      dragRef.current.moved = true;
+    if (window.electronAPI?.startDrag) {
+      window.electronAPI.startDrag();
     }
 
-    if (dragRef.current.moved) {
-      if (window.electronAPI?.moveFloatingBy) {
-        window.electronAPI.moveFloatingBy(dx, dy);
+    const handleMouseUp = () => {
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (window.electronAPI?.stopDrag) {
+        window.electronAPI.stopDrag();
       }
-      dragRef.current.startX = e.screenX;
-      dragRef.current.startY = e.screenY;
-    }
-  };
+    };
 
-  const handleHeaderPointerUp = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {}
-    dragRef.current = null;
-    setIsDragging(false);
+    window.addEventListener('mouseup', handleMouseUp);
   };
 
   // Filter tasks based on current user and selected tab
@@ -265,16 +218,12 @@ export const ElectronFloatingBubble: React.FC = () => {
       {mode === 'logo' ? (
         /* =========================================================================
            1. COMPACT LOGO-ONLY OS FLOATING BUBBLE (72x72)
-           Seamless pointer capture dragging across ANY screen, monitor, or app!
+           Drags smoothly anywhere on desktop · Click to open
            ========================================================================= */
         <div
-          onPointerDown={handleBubblePointerDown}
-          onPointerMove={handleBubblePointerMove}
-          onPointerUp={handleBubblePointerUp}
-          className={`w-[72px] h-[72px] flex items-center justify-center relative select-none transition-transform duration-100 ${
-            isDragging ? 'cursor-grabbing scale-105 opacity-90' : 'cursor-grab hover:scale-105'
-          }`}
-          title="TaskToggle (Deepak) · Drag anywhere all over your PC screen · Click to open"
+          onMouseDown={handleBubbleMouseDown}
+          className="w-[72px] h-[72px] flex items-center justify-center relative select-none cursor-grab active:cursor-grabbing hover:scale-105 transition-transform duration-100"
+          title="TaskToggle (Deepak) · Drag anywhere on PC screen · Click to open"
         >
           {/* Solid Indigo Circular Glass Bubble */}
           <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl ring-4 ring-white border border-slate-200 pointer-events-none">
@@ -288,9 +237,9 @@ export const ElectronFloatingBubble: React.FC = () => {
             </span>
           )}
 
-          {/* Quick Helper Pill */}
+          {/* Hover Prompt */}
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-slate-900/90 text-white text-[8px] font-bold opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap shadow-xs pointer-events-none">
-            Drag Anywhere
+            Drag · Click
           </div>
         </div>
       ) : (
@@ -300,12 +249,8 @@ export const ElectronFloatingBubble: React.FC = () => {
         <div className="w-[370px] bg-white border border-slate-200 shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[550px] animate-in zoom-in-95 duration-150">
           {/* Draggable Desktop Title Bar - Slate-900 */}
           <div
-            onPointerDown={handleHeaderPointerDown}
-            onPointerMove={handleHeaderPointerMove}
-            onPointerUp={handleHeaderPointerUp}
-            className={`bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 ${
-              isDragging ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
+            onMouseDown={handleHeaderMouseDown}
+            className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 cursor-grab active:cursor-grabbing"
             title="Drag header to move anywhere across screen"
           >
             <div className="flex items-center gap-2 pointer-events-none">
