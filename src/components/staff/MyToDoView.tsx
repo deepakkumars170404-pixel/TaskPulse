@@ -325,9 +325,11 @@ export const MyToDoView: React.FC = () => {
   };
 
   const handleSaveReason = (taskId: string) => {
+    const targetTask = tasks.find((t) => t.id === taskId);
     reportPendingReason(taskId, reasonInput);
     setEditingReasonTaskId(null);
-    setReasonToast('Reason reported directly to Admin');
+    const dest = targetTask?.type === 'admin' ? 'Admin' : targetTask?.createdByName || 'Colleague';
+    setReasonToast(`Reason reported directly to ${dest}`);
     setTimeout(() => setReasonToast(null), 3000);
   };
 
@@ -812,6 +814,7 @@ export const MyToDoView: React.FC = () => {
               <div className="space-y-3">
                 {filteredTasks.map((task) => {
                   const isDone = task.status === 'done';
+                  const isRejected = task.status === 'rejected';
                   const isCompulsory = task.type === 'admin';
                   const isEditingReason = editingReasonTaskId === task.id;
                   const senderUser = users.find((u) => u.id === task.createdBy);
@@ -819,19 +822,26 @@ export const MyToDoView: React.FC = () => {
                   return (
                     <div
                       key={task.id}
-                      onClick={() => toggleTaskStatus(task.id)}
-                      className={`relative rounded-xl border transition-all duration-150 cursor-pointer select-none group ${
-                        isDone
-                          ? 'bg-slate-50/60 border-slate-200 opacity-75'
+                      onClick={() => {
+                        if (isRejected) return;
+                        toggleTaskStatus(task.id);
+                      }}
+                      className={`relative rounded-xl border transition-all duration-150 select-none group ${
+                        isRejected
+                          ? 'bg-rose-50/40 border-rose-200 cursor-not-allowed opacity-80'
+                          : isDone
+                          ? 'bg-slate-50/60 border-slate-200 opacity-75 cursor-pointer'
                           : isCompulsory
-                          ? 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-indigo-400 shadow-xs'
-                          : 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-slate-300 shadow-xs'
+                          ? 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-indigo-400 shadow-xs cursor-pointer'
+                          : 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-slate-300 shadow-xs cursor-pointer'
                       }`}
                     >
                       {/* Left status indicator accent line */}
                       <div
                         className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
-                          isDone
+                          isRejected
+                            ? 'bg-rose-500'
+                            : isDone
                             ? 'bg-emerald-500'
                             : isCompulsory
                             ? 'bg-indigo-600'
@@ -845,18 +855,32 @@ export const MyToDoView: React.FC = () => {
                             {/* Checkbox toggle */}
                             <button
                               type="button"
+                              disabled={isRejected}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                if (isRejected) return;
                                 toggleTaskStatus(task.id);
                               }}
-                              className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 cursor-pointer ${
-                                isDone
-                                  ? 'bg-emerald-600 text-white'
-                                  : 'border-2 border-slate-300 hover:border-indigo-600 hover:bg-indigo-50/40 bg-white'
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                                isRejected
+                                  ? 'bg-rose-100 text-rose-600 border border-rose-300 cursor-not-allowed'
+                                  : isDone
+                                  ? 'bg-emerald-600 text-white cursor-pointer'
+                                  : 'border-2 border-slate-300 hover:border-indigo-600 hover:bg-indigo-50/40 bg-white cursor-pointer'
                               }`}
-                              aria-label={isDone ? 'Mark task as pending' : 'Mark task as done'}
+                              aria-label={
+                                isRejected
+                                  ? 'Declined task cannot be struck'
+                                  : isDone
+                                  ? 'Mark task as pending'
+                                  : 'Mark task as done'
+                              }
                             >
-                              {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                              {isRejected ? (
+                                <XCircle className="w-4 h-4 stroke-[2.5]" />
+                              ) : isDone ? (
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              ) : null}
                             </button>
 
                             {/* Title & Details */}
@@ -865,6 +889,8 @@ export const MyToDoView: React.FC = () => {
                                 className={`text-sm sm:text-base font-bold transition-all ${
                                   isDone
                                     ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
+                                    : isRejected
+                                    ? 'line-through text-slate-400 font-medium decoration-rose-400'
                                     : 'text-slate-900 group-hover:text-indigo-950'
                                 }`}
                               >
@@ -929,6 +955,13 @@ export const MyToDoView: React.FC = () => {
                                   </span>
                                 )}
 
+                                {isRejected && (
+                                  <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200">
+                                    <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                    <span>Declined {task.rejectedAt ? `(${task.rejectedAt})` : ''}</span>
+                                  </span>
+                                )}
+
                                 {isDone && task.completedAt && (
                                   <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -941,7 +974,7 @@ export const MyToDoView: React.FC = () => {
 
                           {/* Quick Snooze & Issue Reporting Actions */}
                           <div className="flex items-center gap-2 shrink-0 pl-10 sm:pl-0 flex-wrap">
-                            {!isDone && (
+                            {!isDone && !isRejected && (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -955,7 +988,7 @@ export const MyToDoView: React.FC = () => {
                               </button>
                             )}
 
-                            {!isDone && isCompulsory && (
+                            {!isDone && !isRejected && (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -975,31 +1008,47 @@ export const MyToDoView: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Reported Pending Reason Display */}
+                        {/* Reported Pending / Decline Reason Display */}
                         {task.pendingReason && !isEditingReason && (
-                          <div className="mt-3 p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 flex items-start justify-between gap-3">
+                          <div className={`mt-3 p-3 rounded-xl border text-xs flex items-start justify-between gap-3 ${
+                            isRejected
+                              ? 'bg-rose-50/70 border-rose-200 text-rose-950'
+                              : 'bg-amber-50/70 border-amber-200 text-amber-950'
+                          }`}>
                             <div className="flex items-start gap-2">
-                              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                              {isRejected ? (
+                                <XCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                              ) : (
+                                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                              )}
                               <div>
-                                <span className="font-bold">Pending Reason to Admin: </span>
-                                <span>{task.pendingReason}</span>
+                                <span className="font-bold">
+                                  {isRejected
+                                    ? `Decline Reason to ${senderUser?.name || task.createdByName || 'Colleague'}: `
+                                    : task.type === 'admin'
+                                    ? 'Pending Reason to Admin: '
+                                    : `Pending Reason to ${senderUser?.name || task.createdByName || 'Colleague'}: `}
+                                </span>
+                                <span>{task.pendingReason.replace(/^\[DECLINED\]:\s*/, '')}</span>
                                 {task.pendingReasonUpdatedAt && (
-                                  <span className="text-[10px] text-amber-700 ml-2 font-medium">
+                                  <span className={`text-[10px] ml-2 font-medium ${isRejected ? 'text-rose-700' : 'text-amber-700'}`}>
                                     ({task.pendingReasonUpdatedAt})
                                   </span>
                                 )}
                               </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenReasonBox(task.id, task.pendingReason);
-                              }}
-                              className="text-[11px] font-bold text-amber-900 underline hover:text-amber-950 shrink-0 cursor-pointer"
-                            >
-                              Edit
-                            </button>
+                            {!isRejected && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenReasonBox(task.id, task.pendingReason);
+                                }}
+                                className="text-[11px] font-bold text-amber-900 underline hover:text-amber-950 shrink-0 cursor-pointer"
+                              >
+                                Edit
+                              </button>
+                            )}
                           </div>
                         )}
 
@@ -1012,7 +1061,10 @@ export const MyToDoView: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                 <MessageSquare className="w-3.5 h-3.5 text-slate-600" />
-                                <span>Reason why this task is delayed (Visible to Admin):</span>
+                                <span>
+                                  Reason why this task is delayed (Visible to{' '}
+                                  {task.type === 'admin' ? 'Admin' : senderUser?.name || task.createdByName || 'Colleague'}):
+                                </span>
                               </span>
                               <button
                                 type="button"
@@ -1029,7 +1081,11 @@ export const MyToDoView: React.FC = () => {
                             <textarea
                               value={reasonInput}
                               onChange={(e) => setReasonInput(e.target.value)}
-                              placeholder="Write the exact issue or reason why it's pending (e.g. Waiting on client confirmation)..."
+                              placeholder={
+                                task.type === 'admin'
+                                  ? "Write the exact issue or reason why it's pending (e.g. Waiting on client confirmation)..."
+                                  : `Explain to ${senderUser?.name || task.createdByName || 'colleague'} why work is pending...`
+                              }
                               rows={2}
                               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                             />
@@ -1054,7 +1110,9 @@ export const MyToDoView: React.FC = () => {
                                 className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
                               >
                                 <Send className="w-3 h-3" />
-                                <span>Send to Admin</span>
+                                <span>
+                                  Send to {task.type === 'admin' ? 'Admin' : senderUser?.name || task.createdByName || 'Colleague'}
+                                </span>
                               </button>
                             </div>
                           </div>

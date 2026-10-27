@@ -76,7 +76,7 @@ export const IssueModal: React.FC<IssueModalProps> = ({ task, onClose }) => {
           {task.pendingReasonUpdatedAt && (
             <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>Reported to Admin at: {task.pendingReasonUpdatedAt}</span>
+              <span>Reported to {task.type === 'admin' ? 'Admin' : task.createdByName || 'Colleague'} at: {task.pendingReasonUpdatedAt}</span>
             </div>
           )}
         </div>

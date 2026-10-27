@@ -428,44 +428,20 @@ export const AdminDashboard: React.FC = () => {
                           >
                             {/* Task Title */}
                             <td className="py-3.5 px-4 sm:px-5">
-                              <div className="flex items-center gap-2.5">
+                              <div className="min-w-0 flex-1">
                                 <div
-                                  className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 ${
+                                  className={`font-bold truncate text-[13px] transition-all ${
                                     isDone
-                                      ? 'bg-emerald-600 text-white shadow-2xs'
+                                      ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
                                       : isRejected
-                                      ? 'bg-rose-50 text-rose-600 border border-rose-300'
-                                      : 'border-2 border-slate-300'
+                                      ? 'line-through text-slate-400 font-medium decoration-rose-400'
+                                      : 'text-slate-900'
                                   }`}
-                                  title={
-                                    isDone
-                                      ? `Struck done by ${task.assignedToName}`
-                                      : isRejected
-                                      ? `Declined by ${task.assignedToName}`
-                                      : 'Awaiting staff action'
-                                  }
                                 >
-                                  {isDone ? (
-                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                  ) : isRejected ? (
-                                    <XCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-                                  ) : null}
+                                  {task.title}
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                  <div
-                                    className={`font-bold truncate text-[13px] transition-all ${
-                                      isDone
-                                        ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
-                                        : isRejected
-                                        ? 'line-through text-slate-400 font-medium decoration-rose-400'
-                                        : 'text-slate-900'
-                                    }`}
-                                  >
-                                    {task.title}
-                                  </div>
-                                  <div className="text-[11px] text-slate-400 mt-0.5 capitalize flex items-center gap-1 font-medium">
-                                    <span>{task.type === 'admin' ? 'Admin Allotted' : `Staff: ${task.createdByName}`}</span>
-                                  </div>
+                                <div className="text-[11px] text-slate-400 mt-0.5 capitalize flex items-center gap-1 font-medium">
+                                  <span>{task.type === 'admin' ? 'Admin Allotted' : `Staff: ${task.createdByName}`}</span>
                                 </div>
                               </div>
                             </td>
@@ -515,7 +491,7 @@ export const AdminDashboard: React.FC = () => {
                               </div>
                             </td>
 
-                            {/* Status Column: Auto-Struck by Staff */}
+                            {/* Status Column: Staff Execution Status */}
                             <td className="py-3.5 px-4 sm:px-5 text-right">
                               <div className="flex flex-col items-end gap-1.5">
                                 <div
@@ -528,16 +504,16 @@ export const AdminDashboard: React.FC = () => {
                                   }`}
                                   title={
                                     isDone
-                                      ? `Auto-struck by ${task.assignedToName} in their login`
+                                      ? `Completed by ${task.assignedToName} in their staff portal`
                                       : isRejected
                                       ? `Declined by ${task.assignedToName}`
-                                      : 'Awaiting staff execution in their portal'
+                                      : `Awaiting execution by ${task.assignedToName}`
                                   }
                                 >
                                   {isDone ? (
                                     <>
                                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                      <span>✓ Auto-Struck by {task.assignedToName.split(' ')[0]} {task.completedAt ? `(${task.completedAt})` : ''}</span>
+                                      <span>✓ Completed by {task.assignedToName.split(' ')[0]} {task.completedAt ? `(${task.completedAt})` : ''}</span>
                                     </>
                                   ) : isRejected ? (
                                     <>
@@ -547,7 +523,7 @@ export const AdminDashboard: React.FC = () => {
                                   ) : (
                                     <>
                                       <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                                      <span>⏳ Pending Staff Action</span>
+                                      <span>⏳ Pending with {task.assignedToName.split(' ')[0]}</span>
                                     </>
                                   )}
                                 </div>
