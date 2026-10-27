@@ -231,11 +231,7 @@ export const FloatingTaskWidget: React.FC = () => {
     };
 
     const handleMouseUp = () => {
-      if (isDragging && inBrowserMode === 'logo' && position) {
-        // Messenger Chat Head Edge-Snapping!
-        return; // Free placement anywhere on screen without snapping
-        // no forced snap
-      }
+      // Free placement: toggle stays at whatever pixel you drop it without snapping
       setIsDragging(false);
       dragStartRef.current = null;
     };
@@ -476,6 +472,60 @@ export const FloatingTaskWidget: React.FC = () => {
     </div>
   );
 
+  // OS Picture-in-Picture window dragging support (drag bubble to move OS window)
+  const pipDragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
+
+  const handlePiPPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    pipDragRef.current = {
+      startX: e.screenX,
+      startY: e.screenY,
+      moved: false,
+    };
+  };
+
+  const handlePiPPointerMove = (e: React.PointerEvent) => {
+    if (!pipDragRef.current || !pipWindow) return;
+    const dx = e.screenX - pipDragRef.current.startX;
+    const dy = e.screenY - pipDragRef.current.startY;
+
+    if (!pipDragRef.current.moved && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) {
+      pipDragRef.current.moved = true;
+    }
+
+    if (pipDragRef.current.moved) {
+      try {
+        pipWindow.moveBy(dx, dy);
+      } catch (err) {}
+      pipDragRef.current.startX = e.screenX;
+      pipDragRef.current.startY = e.screenY;
+    }
+  };
+
+  const handlePiPPointerUp = (e: React.PointerEvent) => {
+    if (!pipDragRef.current) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    const wasMoved = pipDragRef.current.moved;
+    pipDragRef.current = null;
+
+    if (!wasMoved) {
+      expandPiP();
+    }
+  };
+
+  const handlePiPHeaderPointerUp = (e: React.PointerEvent) => {
+    if (!pipDragRef.current) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    pipDragRef.current = null;
+  };
+
   return (
     <>
       {/* =========================================================================
@@ -487,9 +537,11 @@ export const FloatingTaskWidget: React.FC = () => {
             {isPipLogoOnly ? (
               /* Logo-only display inside PiP: Clicking opens details */
               <div
-                onClick={expandPiP}
-                className="w-full h-full min-h-[170px] flex flex-col items-center justify-center p-3 cursor-pointer bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 text-white hover:brightness-105 transition-all group relative overflow-hidden"
-                title="Click logo to open task details"
+                onPointerDown={handlePiPPointerDown}
+                onPointerMove={handlePiPPointerMove}
+                onPointerUp={handlePiPPointerUp}
+                className="w-full h-full min-h-[170px] flex flex-col items-center justify-center p-3 cursor-grab active:cursor-grabbing bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 text-white hover:brightness-105 transition-all group relative overflow-hidden select-none"
+                title="Drag bubble to move anywhere on PC screen · Click to open details"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full blur-2xl pointer-events-none" />
 
@@ -521,7 +573,7 @@ export const FloatingTaskWidget: React.FC = () => {
               /* Expanded details inside PiP */
               <div className="w-full h-full flex flex-col overflow-hidden bg-white">
                 {/* Header with Shrink to Logo button */}
-                <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white px-3.5 py-2.5 flex items-center justify-between border-b border-white/10 shrink-0">
+                <div onPointerDown={handlePiPPointerDown} onPointerMove={handlePiPPointerMove} onPointerUp={handlePiPHeaderPointerUp} className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white px-3.5 py-2.5 flex items-center justify-between border-b border-white/10 shrink-0 cursor-grab active:cursor-grabbing select-none" title="Drag header to move window anywhere">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center">
                       <CheckSquare className="w-3.5 h-3.5 stroke-[2.5]" />
