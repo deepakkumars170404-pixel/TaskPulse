@@ -233,8 +233,8 @@ export const FloatingTaskWidget: React.FC = () => {
     const handleMouseUp = () => {
       if (isDragging && inBrowserMode === 'logo' && position) {
         // Messenger Chat Head Edge-Snapping!
-        const snapX = position.x < window.innerWidth / 2 ? 12 : window.innerWidth - 68;
-        setPosition((prev) => (prev ? { x: snapX, y: prev.y } : null));
+        return; // Free placement anywhere on screen without snapping
+        // no forced snap
       }
       setIsDragging(false);
       dragStartRef.current = null;
@@ -623,7 +623,7 @@ export const FloatingTaskWidget: React.FC = () => {
           style={{
             left: `${position.x}px`,
             top: `${position.y}px`,
-            transition: isDragging ? 'none' : 'left 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: isDragging ? 'none' : 'opacity 0.15s ease',
           }}
           className={`fixed z-50 select-none ${
             isDragging ? 'cursor-grabbing opacity-95 scale-[1.02]' : ''

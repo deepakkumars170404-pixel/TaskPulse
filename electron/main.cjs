@@ -202,6 +202,17 @@ ipcMain.on('floating-resize', (event, mode) => {
   }
 });
 
+ipcMain.on('floating-move-by', (event, { dx, dy }) => {
+  if (!floatingWindow || floatingWindow.isDestroyed()) return;
+  const [currentX, currentY] = floatingWindow.getPosition();
+  floatingWindow.setPosition(Math.round(currentX + dx), Math.round(currentY + dy));
+});
+
+ipcMain.on('floating-move-to', (event, { x, y }) => {
+  if (!floatingWindow || floatingWindow.isDestroyed()) return;
+  floatingWindow.setPosition(Math.round(x), Math.round(y));
+});
+
 ipcMain.on('open-main-window', () => {
   createMainWindow();
 });
@@ -266,3 +277,4 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+

@@ -30,6 +30,8 @@ interface DocumentPictureInPicture {
 interface ElectronAPI {
   isElectron: boolean;
   resizeFloating: (mode: 'logo' | 'expanded') => void;
+  moveFloatingBy?: (dx: number, dy: number) => void;
+  moveFloatingTo?: (x: number, y: number) => void;
   openMainWindow: () => void;
   closeFloating: () => void;
   quitApp: () => void;

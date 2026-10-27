@@ -13,7 +13,6 @@ import {
   Mic,
   MicOff,
   CheckCircle2,
-  RotateCcw,
   Sparkles,
 } from 'lucide-react';
 
@@ -35,6 +34,14 @@ export const ElectronFloatingBubble: React.FC = () => {
   const [filter, setFilter] = useState<'pending' | 'done' | 'all'>('pending');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+
+  // Dragging state using HTML5 Pointer Capture (smoothly moves OS window anywhere across all monitors)
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
 
   // Switch between compact 72x72 bubble and 380x560 expanded window
   const handleSetMode = (nextMode: 'logo' | 'expanded') => {
@@ -105,6 +112,103 @@ export const ElectronFloatingBubble: React.FC = () => {
     }
   };
 
+  // =========================================================================
+  // UNIVERSAL POINTER DRAG HANDLERS: Move Window to ANY place on ANY screen
+  // =========================================================================
+  const handleBubblePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return; // Only left-click
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+
+    dragRef.current = {
+      startX: e.screenX,
+      startY: e.screenY,
+      moved: false,
+    };
+    setIsDragging(true);
+  };
+
+  const handleBubblePointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dx = e.screenX - dragRef.current.startX;
+    const dy = e.screenY - dragRef.current.startY;
+
+    // Movement threshold to distinguish tap from drag
+    if (!dragRef.current.moved && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) {
+      dragRef.current.moved = true;
+    }
+
+    if (dragRef.current.moved) {
+      if (window.electronAPI?.moveFloatingBy) {
+        window.electronAPI.moveFloatingBy(dx, dy);
+      }
+      dragRef.current.startX = e.screenX;
+      dragRef.current.startY = e.screenY;
+    }
+  };
+
+  const handleBubblePointerUp = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+
+    const moved = dragRef.current.moved;
+    dragRef.current = null;
+    setIsDragging(false);
+
+    // If tapped without dragging -> expand to full task details!
+    if (!moved) {
+      handleSetMode('expanded');
+    }
+  };
+
+  // Drag handler for expanded card's header bar
+  const handleHeaderPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    // Do not initiate drag if user clicked a control button in header
+    if ((e.target as HTMLElement).closest('button')) return;
+
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+
+    dragRef.current = {
+      startX: e.screenX,
+      startY: e.screenY,
+      moved: false,
+    };
+    setIsDragging(true);
+  };
+
+  const handleHeaderPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dx = e.screenX - dragRef.current.startX;
+    const dy = e.screenY - dragRef.current.startY;
+
+    if (!dragRef.current.moved && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) {
+      dragRef.current.moved = true;
+    }
+
+    if (dragRef.current.moved) {
+      if (window.electronAPI?.moveFloatingBy) {
+        window.electronAPI.moveFloatingBy(dx, dy);
+      }
+      dragRef.current.startX = e.screenX;
+      dragRef.current.startY = e.screenY;
+    }
+  };
+
+  const handleHeaderPointerUp = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    dragRef.current = null;
+    setIsDragging(false);
+  };
+
   // Filter tasks based on current user and selected tab
   const relevantTasks = tasks.filter((t) => {
     if (currentUser.role === 'admin') return true;
@@ -164,35 +268,32 @@ export const ElectronFloatingBubble: React.FC = () => {
       {mode === 'logo' ? (
         /* =========================================================================
            1. COMPACT LOGO-ONLY OS FLOATING BUBBLE (72x72)
-           Drags natively across the entire Windows desktop over Word, Excel, etc.
+           Seamless pointer capture dragging across ANY screen, monitor, or app!
            ========================================================================= */
         <div
-          style={{ WebkitAppRegion: 'drag' } as any}
-          onClick={() => handleSetMode('expanded')}
-          className="w-[72px] h-[72px] flex items-center justify-center relative group cursor-grab active:cursor-grabbing hover:scale-105 transition-all select-none"
-          title="TaskToggle (Deepak) · Drag anywhere across Windows · Click to open"
+          onPointerDown={handleBubblePointerDown}
+          onPointerMove={handleBubblePointerMove}
+          onPointerUp={handleBubblePointerUp}
+          className={`w-[72px] h-[72px] flex items-center justify-center relative select-none transition-transform duration-100 ${
+            isDragging ? 'cursor-grabbing scale-105 opacity-90' : 'cursor-grab hover:scale-105'
+          }`}
+          title="TaskToggle (Deepak) · Drag anywhere all over your PC screen · Click to open"
         >
           {/* Circular Glass Bubble */}
-          <div
-            style={{ WebkitAppRegion: 'no-drag' } as any}
-            className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-cyan-500 text-white flex items-center justify-center shadow-2xl ring-4 ring-white border border-indigo-200/80 cursor-pointer hover:shadow-indigo-400/50"
-          >
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-cyan-500 text-white flex items-center justify-center shadow-2xl ring-4 ring-white border border-indigo-200/80 pointer-events-none">
             <CheckSquare className="w-7 h-7 stroke-[2.5]" />
           </div>
 
           {/* Pending Task Badge */}
           {pendingTasks.length > 0 && (
-            <span
-              style={{ WebkitAppRegion: 'no-drag' } as any}
-              className="absolute top-1 right-1 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse"
-            >
+            <span className="absolute top-1 right-1 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse pointer-events-none">
               {pendingTasks.length}
             </span>
           )}
 
-          {/* Hover Prompt */}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-slate-900/90 text-white text-[8px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xs pointer-events-none">
-            Drag · Tap
+          {/* Quick Helper Pill */}
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-slate-900/90 text-white text-[8px] font-bold opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap shadow-xs pointer-events-none">
+            Drag Anywhere
           </div>
         </div>
       ) : (
@@ -201,12 +302,17 @@ export const ElectronFloatingBubble: React.FC = () => {
            Full interactive task strike, voice dictation, snooze, and templates.
            ========================================================================= */
         <div className="w-[370px] bg-white/95 backdrop-blur-xl border border-indigo-200/90 shadow-2xl rounded-3xl overflow-hidden flex flex-col max-h-[550px] ring-4 ring-indigo-500/10 animate-in zoom-in-95 duration-150">
-          {/* Draggable Desktop Title Bar */}
+          {/* Draggable Desktop Title Bar - grab anywhere on the header to move across screen */}
           <div
-            style={{ WebkitAppRegion: 'drag' } as any}
-            className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing border-b border-white/10"
+            onPointerDown={handleHeaderPointerDown}
+            onPointerMove={handleHeaderPointerMove}
+            onPointerUp={handleHeaderPointerUp}
+            className={`bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white px-4 py-3 flex items-center justify-between border-b border-white/10 ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            title="Drag header to move anywhere across screen"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pointer-events-none">
               <GripHorizontal className="w-4 h-4 text-cyan-200 shrink-0" />
               <div className="flex items-center gap-1.5">
                 <CheckSquare className="w-4 h-4 stroke-[2.5]" />
@@ -218,7 +324,7 @@ export const ElectronFloatingBubble: React.FC = () => {
             </div>
 
             {/* Window Controls */}
-            <div style={{ WebkitAppRegion: 'no-drag' } as any} className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => window.electronAPI?.openMainWindow()}

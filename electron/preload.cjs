@@ -3,6 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   isElectron: true,
   resizeFloating: (mode) => ipcRenderer.send('floating-resize', mode),
+  moveFloatingBy: (dx, dy) => ipcRenderer.send('floating-move-by', { dx, dy }),
+  moveFloatingTo: (x, y) => ipcRenderer.send('floating-move-to', { x, y }),
   openMainWindow: () => ipcRenderer.send('open-main-window'),
   closeFloating: () => ipcRenderer.send('close-floating'),
   quitApp: () => ipcRenderer.send('quit-app'),
