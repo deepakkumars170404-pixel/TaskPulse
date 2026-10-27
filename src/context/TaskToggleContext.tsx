@@ -694,6 +694,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const switchUser = (userId: string) => {
     const user = users.find((u) => u.id === userId);
     if (user) {
+      setActiveDueReminder(null);
       setCurrentUser(user);
       if (user.role === 'admin') {
         setCurrentPage('dashboard');
@@ -708,12 +709,14 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       users.find((u) => u.role === role && (u.email.toLowerCase() === email.toLowerCase() || !email)) ||
       users.find((u) => u.role === role);
     if (user) {
+      setActiveDueReminder(null);
       setCurrentUser(user);
       setCurrentPage(user.role === 'admin' ? 'dashboard' : 'mytodo');
     }
   };
 
   const logout = () => {
+    setActiveDueReminder(null);
     setCurrentPage('login');
   };
 

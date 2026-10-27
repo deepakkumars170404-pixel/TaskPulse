@@ -1,18 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Clock, CheckCircle2, X } from 'lucide-react';
 
 export const DueReminderBanner: React.FC = () => {
   const {
+    currentUser,
     activeDueReminder,
     dismissDueReminder,
     toggleTaskStatus,
     snoozeTask,
   } = useTaskToggle();
 
+  // Auto-dismiss reminder banner after 8 seconds so it never permanently blocks the screen
+  useEffect(() => {
+    if (activeDueReminder) {
+      const timer = setTimeout(() => {
+        dismissDueReminder();
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeDueReminder, dismissDueReminder]);
+
   if (!activeDueReminder) return null;
 
   const { task, minutesRemaining } = activeDueReminder;
+
+  // STRICT REQUIREMENT: Only show the banner to the user who is actually assigned to do the task!
+  // Arun will never see Admin's reminders; Admin will never see staff reminders.
+  if (task.assignedTo !== currentUser.id) {
+    return null;
+  }
 
   return (
     <div className="fixed top-16 right-4 sm:right-6 z-50 max-w-sm w-[calc(100vw-32px)] bg-white border border-amber-300 rounded-2xl p-4 shadow-2xl animate-in slide-in-from-top-4 duration-200">
