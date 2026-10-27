@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { AddStaffModal } from './AddStaffModal';
-import { Task, User } from '../../types';
+import { Task, User, getTaskDeclineReason } from '../../types';
 
 export const TaskMonitorView: React.FC = () => {
   const { tasks, users, orgSettings, deleteStaffUser } = useTaskToggle();
@@ -488,12 +488,12 @@ export const TaskMonitorView: React.FC = () => {
                                   </div>
 
                                   {/* Declined Reason Display (Visible to Admin & Work Giver) */}
-                                  {isRejected && task.rejectReason && (
+                                  {isRejected && (
                                     <div className="mt-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-950 flex items-start gap-2">
                                       <XCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                                       <div>
-                                        <span className="font-bold">Declined by Staff Reason: </span>
-                                        <span>"{task.rejectReason}"</span>
+                                        <span className="font-bold">Why {task.assignedToName} Declined: </span>
+                                        <span className="font-semibold italic">"{getTaskDeclineReason(task) || 'No message provided'}"</span>
                                         {task.rejectedAt && (
                                           <span className="text-[10px] text-rose-700 ml-2 font-medium">
                                             (Declined at {task.rejectedAt})

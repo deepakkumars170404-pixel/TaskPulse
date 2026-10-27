@@ -22,7 +22,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
-  const { currentUser, currentPage, setCurrentPage, logout, tasks, officeTiming, orgSettings } = useTaskToggle();
+  const { currentUser, currentPage, setCurrentPage, logout, tasks, officeTiming, orgSettings, setRequestViewTab } = useTaskToggle();
 
   // Calculate pending requests count for current staff member
   const pendingRequestsCount = tasks.filter(
@@ -31,10 +31,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
 
   // Calculate declined requests count for tasks created by current staff member
   const declinedRequestsCount = tasks.filter(
-    (t) => t.createdBy === currentUser.id && t.type === 'staff' && t.status === 'rejected'
+    (t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id && t.status === 'rejected'
   ).length;
 
   const handleNavClick = (page: any) => {
+    if (page === 'requests' && declinedRequestsCount > 0 && pendingRequestsCount === 0) {
+      setRequestViewTab('sent');
+    }
     setCurrentPage(page);
     if (onCloseMobile) onCloseMobile();
   };

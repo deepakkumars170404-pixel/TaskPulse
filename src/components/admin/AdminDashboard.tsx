@@ -20,7 +20,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
-import { Task, TaskPriority } from '../../types';
+import { Task, TaskPriority, getTaskDeclineReason } from '../../types';
 
 export const AdminDashboard: React.FC = () => {
   const {
@@ -553,12 +553,12 @@ export const AdminDashboard: React.FC = () => {
                                 </div>
 
                                 {/* Rejection reason pill if declined */}
-                                {isRejected && (task.rejectReason || task.pendingReason) && (
+                                {isRejected && (
                                   <div
-                                    className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-900 border border-rose-200 text-[10px] font-semibold max-w-[200px] truncate"
-                                    title={task.rejectReason || task.pendingReason}
+                                    className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-900 border border-rose-200 text-[10px] font-bold"
+                                    title={getTaskDeclineReason(task) || 'No message provided'}
                                   >
-                                    Reason: "{task.rejectReason || task.pendingReason?.replace('[DECLINED]: ', '')}"
+                                    Why {task.assignedToName} Declined: "{getTaskDeclineReason(task) || 'No message provided'}"
                                   </div>
                                 )}
 

@@ -58,6 +58,9 @@ interface TaskToggleContextType {
   acceptTaskRequest: (taskId: string) => void;
   rejectTaskRequest: (taskId: string, reason: string) => void;
   moveToMyOwnToDo: (taskId: string) => void;
+  reassignTask: (taskId: string, newAssignedToId: string) => void;
+  requestViewTab: 'incoming' | 'sent';
+  setRequestViewTab: (tab: 'incoming' | 'sent') => void;
   sendTaskCompletedNotification: (taskTitle: string, staffName: string) => void;
   reportPendingReason: (taskId: string, reason: string) => void;
   activeDueReminder: { task: Task; minutesRemaining: number } | null;
@@ -377,6 +380,8 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [currentPage, setCurrentPage] = useState<string>(() => {
     return currentUser.role === 'admin' ? 'dashboard' : 'mytodo';
   });
+
+  const [requestViewTab, setRequestViewTab] = useState<'incoming' | 'sent'>('incoming');
 
   const [showCompleted, setShowCompleted] = useState<boolean>(true);
 
@@ -933,8 +938,54 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       })
     );
     backendApi.updateTask(taskId, {
+      assignedTo: currentUser.id,
+      assignedToName: currentUser.name,
+      type: 'self',
       status: 'pending',
       pendingReason: undefined,
+      rejectReason: undefined,
+      rejectedAt: undefined,
+    }).catch(() => {});
+  };
+
+  // Reassign a declined/delegated task to another colleague
+  const reassignTask = (taskId: string, newAssignedToId: string) => {
+    const targetUser = users.find((u) => u.id === newAssignedToId);
+    if (!targetUser) return;
+    const isSelf = newAssignedToId === currentUser.id;
+
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          return {
+            ...t,
+            assignedTo: newAssignedToId,
+            assignedToName: targetUser.name,
+            type: isSelf ? ('self' as const) : ('staff' as const),
+            status: 'pending' as const,
+            rejectReason: undefined,
+            rejectedAt: undefined,
+            pendingReason: undefined,
+            pendingReasonUpdatedAt: undefined,
+          };
+        }
+        return t;
+      })
+    );
+
+    sendTaskAssignmentNotification(
+      `Task Delegated from ${currentUser.name}`,
+      `Task reassigned to ${targetUser.name}`
+    );
+
+    backendApi.updateTask(taskId, {
+      assignedTo: newAssignedToId,
+      assignedToName: targetUser.name,
+      type: isSelf ? 'self' : 'staff',
+      status: 'pending',
+      pendingReason: undefined,
+      rejectReason: undefined,
+      rejectedAt: undefined,
     }).catch(() => {});
   };
 
@@ -1058,6 +1109,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         acceptTaskRequest,
         rejectTaskRequest,
         moveToMyOwnToDo,
+        reassignTask,
+        requestViewTab,
+        setRequestViewTab,
         sendTaskCompletedNotification,
         reportPendingReason,
         updateOfficeTiming,

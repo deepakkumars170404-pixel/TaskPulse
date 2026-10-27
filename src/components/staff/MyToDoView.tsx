@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
+import { Task, getTaskDeclineReason } from '../../types';
 import {
   Check,
   Clock,
@@ -21,6 +22,11 @@ import {
   ArrowRight,
   Filter,
   CheckCheck,
+  XCircle,
+  RotateCcw,
+  Trash2,
+  Inbox,
+  AlertCircle,
 } from 'lucide-react';
 
 const MONTH_NAMES = [
@@ -105,12 +111,18 @@ export const MyToDoView: React.FC = () => {
     eventTiming,
     orgSettings,
     setCurrentPage,
+    moveToMyOwnToDo,
+    reassignTask,
+    deleteTask,
+    setRequestViewTab,
   } = useTaskToggle();
 
   const [showCompleted, setShowCompleted] = useState<boolean>(true);
   const [editingReasonTaskId, setEditingReasonTaskId] = useState<string | null>(null);
   const [reasonInput, setReasonInput] = useState<string>('');
   const [reasonToast, setReasonToast] = useState<string | null>(null);
+  const [reassigningTaskId, setReassigningTaskId] = useState<string | null>(null);
+  const [reassignTargetUserId, setReassignTargetUserId] = useState<string>('');
 
   // Routine Calendar Navigation State
   const [referenceDate, setReferenceDate] = useState<Date>(() => new Date());
@@ -122,13 +134,12 @@ export const MyToDoView: React.FC = () => {
     return tasks.filter((t) => t.assignedTo === currentUser.id && t.status !== 'rejected');
   }, [tasks, currentUser.id]);
 
-  // Delegated tasks created by current user that were declined by colleagues
+  // Delegated tasks created by current user that were declined by colleagues (any type)
   const declinedDelegations = useMemo(() => {
     return tasks.filter(
       (t) =>
         t.createdBy === currentUser.id &&
         t.assignedTo !== currentUser.id &&
-        t.type === 'staff' &&
         t.status === 'rejected'
     );
   }, [tasks, currentUser.id]);
@@ -364,29 +375,136 @@ export const MyToDoView: React.FC = () => {
         )}
       </div>
 
-      {/* Alert Banner for Tasks Declined by Colleagues */}
+      {/* =========================================================================
+          TASKS DECLINED BY COLLEAGUES (HIGH PRIORITY ACTION SECTION)
+          Shows work giver (e.g. Arun) that colleague (e.g. Priya) declined their task,
+          prominently showing the colleague's reason message with 1-click action buttons!
+          ========================================================================= */}
       {declinedDelegations.length > 0 && (
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50 border-2 border-rose-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-2xs font-bold text-xs">
-              !
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs sm:text-sm font-black text-rose-950 flex items-center gap-2">
-                <span>⚠️ {declinedDelegations.length === 1 ? '1 Task Request Declined by Colleague' : `${declinedDelegations.length} Tasks Declined by Colleagues`}</span>
+        <div className="bg-gradient-to-r from-rose-50 via-rose-50/80 to-amber-50/50 border-2 border-rose-300 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 animate-in fade-in">
+          <div className="flex items-center justify-between gap-3 border-b border-rose-200 pb-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+                <AlertCircle className="w-5 h-5" />
               </div>
-              <p className="text-xs text-rose-900 font-medium mt-0.5 truncate">
-                <strong>{declinedDelegations[0].assignedToName}</strong> declined "{declinedDelegations[0].title}": "{declinedDelegations[0].rejectReason || (declinedDelegations[0].pendingReason?.startsWith('[DECLINED]: ') ? declinedDelegations[0].pendingReason.replace('[DECLINED]: ', '') : declinedDelegations[0].pendingReason) || 'No message provided'}"
-              </p>
+              <div>
+                <h2 className="text-sm sm:text-base font-black text-rose-950 font-['Outfit'] flex items-center gap-2">
+                  <span>Tasks Declined by Colleagues</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-black bg-rose-200 text-rose-900 border border-rose-300">
+                    {declinedDelegations.length} {declinedDelegations.length === 1 ? 'Task' : 'Tasks'}
+                  </span>
+                </h2>
+                <p className="text-xs text-rose-800 font-medium">
+                  A colleague declined your task and explained why below. Take over or reassign.
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setRequestViewTab('sent');
+                setCurrentPage('requests');
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 text-xs font-bold shadow-2xs cursor-pointer transition-all shrink-0 flex items-center gap-1.5 active:scale-95"
+            >
+              <Inbox className="w-3.5 h-3.5" />
+              <span>Open in Task Requests</span>
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setCurrentPage('requests')}
-            className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all shrink-0 self-start sm:self-auto"
-          >
-            View Message & Reassign
-          </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {declinedDelegations.map((task) => {
+              const declineMsg = getTaskDeclineReason(task) || 'No message provided';
+              return (
+                <div
+                  key={task.id}
+                  className="bg-white rounded-xl p-4 border-2 border-rose-200 shadow-2xs space-y-3 flex flex-col justify-between hover:border-rose-300 transition-all"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-sm font-black text-slate-900 leading-snug">
+                        {task.title}
+                      </h3>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 shrink-0">
+                        Declined
+                      </span>
+                    </div>
+
+                    {task.description && (
+                      <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
+                        {task.description}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-600 font-semibold flex-wrap">
+                      <span className="text-slate-800 font-bold">Assigned to: {task.assignedToName}</span>
+                      <span>•</span>
+                      <span className="text-slate-500">Due: {task.dueDate} · {task.dueTime}</span>
+                    </div>
+
+                    {/* Colleague's Why Reject Message Box */}
+                    <div className="mt-3 p-3 rounded-xl bg-rose-50/90 border border-rose-200 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-bold text-rose-900">
+                        <div className="flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          <span>Why {task.assignedToName} Declined:</span>
+                        </div>
+                        {task.rejectedAt && (
+                          <span className="text-[10px] text-rose-600 font-medium">
+                            at {task.rejectedAt}
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-white border border-rose-100 text-xs text-rose-950 font-bold leading-relaxed shadow-2xs">
+                        "{declineMsg}"
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        moveToMyOwnToDo(task.id);
+                        setReasonToast('Task moved to your own daily routine schedule!');
+                        setTimeout(() => setReasonToast(null), 3500);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs"
+                      title="Add this task to your own daily to-do routine list"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Move to My Routine</span>
+                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setReassigningTaskId(task.id);
+                          const firstOther = users.find((u) => u.role === 'staff' && u.id !== currentUser.id && u.id !== task.assignedTo);
+                          setReassignTargetUserId(firstOther?.id || '');
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95"
+                        title="Reassign to another colleague"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Reassign</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteTask(task.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-700 hover:bg-rose-50 transition-all cursor-pointer"
+                        title="Dismiss task"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -1008,6 +1126,77 @@ export const MyToDoView: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Reassign Colleague Modal */}
+      {reassigningTaskId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-2xl max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-indigo-600">
+                <RotateCcw className="w-5 h-5" />
+                <h3 className="text-base font-bold text-slate-900 font-['Outfit']">
+                  Reassign Task to Colleague
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReassigningTaskId(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Select another colleague to reassign this task to. They will receive an instant notification.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">Choose Colleague:</label>
+              <select
+                value={reassignTargetUserId}
+                onChange={(e) => setReassignTargetUserId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-indigo-600 bg-white"
+              >
+                <option value="">-- Select a Colleague --</option>
+                {users
+                  .filter((u) => u.role === 'staff' && u.id !== currentUser.id)
+                  .map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.email})
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setReassigningTaskId(null)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!reassignTargetUserId}
+                onClick={() => {
+                  if (reassigningTaskId && reassignTargetUserId) {
+                    reassignTask(reassigningTaskId, reassignTargetUserId);
+                    const targetUser = users.find((u) => u.id === reassignTargetUserId);
+                    setReassigningTaskId(null);
+                    setReasonToast(`Task successfully reassigned to ${targetUser?.name || 'colleague'}!`);
+                    setTimeout(() => setReasonToast(null), 3500);
+                  }
+                }}
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+              >
+                Confirm Reassignment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

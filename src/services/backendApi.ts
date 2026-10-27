@@ -85,6 +85,9 @@ class BackendApiService {
       try {
         const dbUpdates: any = {};
         if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.assignedTo !== undefined) dbUpdates.assigned_to = updates.assignedTo;
+        if (updates.assignedToName !== undefined) dbUpdates.assigned_to_name = updates.assignedToName;
+        if (updates.type !== undefined) dbUpdates.type = updates.type;
         if (updates.rejectReason !== undefined) dbUpdates.reject_reason = updates.rejectReason;
         if (updates.rejectedAt !== undefined) dbUpdates.rejected_at = updates.rejectedAt;
         if (updates.pendingReason !== undefined) dbUpdates.pending_reason = updates.pendingReason;

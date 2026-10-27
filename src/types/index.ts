@@ -57,3 +57,21 @@ export interface OrgSettings {
   contactEmail?: string;
   accentColor?: string;
 }
+
+/**
+ * Universal helper to extract a task's decline/rejection reason message.
+ * Handles both dedicated rejectReason and pendingReason prefixed with [DECLINED]:
+ */
+export const getTaskDeclineReason = (task: Partial<Task>): string | null => {
+  if (task.rejectReason && task.rejectReason.trim()) {
+    return task.rejectReason.trim();
+  }
+  if (task.pendingReason && task.pendingReason.trim()) {
+    if (task.pendingReason.startsWith('[DECLINED]: ')) {
+      return task.pendingReason.replace('[DECLINED]: ', '').trim();
+    }
+    return task.pendingReason.trim();
+  }
+  return null;
+};
+

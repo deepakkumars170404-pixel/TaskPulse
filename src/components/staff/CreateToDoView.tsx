@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
+import { getTaskDeclineReason } from '../../types';
 import {
   HelpCircle,
   User,
@@ -303,11 +304,7 @@ export const CreateToDoView: React.FC = () => {
                   const isDone = task.status === 'done';
                   const isAccepted = task.status === 'accepted';
                   const isRejected = task.status === 'rejected';
-                  const rejectMsg =
-                    task.rejectReason ||
-                    (task.pendingReason?.startsWith('[DECLINED]: ')
-                      ? task.pendingReason.replace('[DECLINED]: ', '')
-                      : task.pendingReason);
+                  const rejectMsg = getTaskDeclineReason(task);
 
                   return (
                     <div
@@ -370,10 +367,10 @@ export const CreateToDoView: React.FC = () => {
                         <div className="mt-2.5 p-2.5 rounded-xl bg-white border border-rose-200 space-y-2">
                           <div className="flex items-center gap-1.5 text-xs font-bold text-rose-900">
                             <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                            <span>Colleague Message from {task.assignedToName}:</span>
+                            <span>Why {task.assignedToName} Declined:</span>
                           </div>
 
-                          <div className="p-2 rounded-lg bg-rose-50/70 border border-rose-100 text-xs text-rose-950 font-medium leading-relaxed italic">
+                          <div className="p-2.5 rounded-lg bg-rose-50/70 border border-rose-100 text-xs text-rose-950 font-bold leading-relaxed italic shadow-2xs">
                             "{rejectMsg || 'No message provided'}"
                           </div>
 

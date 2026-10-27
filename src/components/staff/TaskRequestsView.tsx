@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
+import { getTaskDeclineReason } from '../../types';
 import {
   Check,
   X,
@@ -20,21 +21,18 @@ import {
 export const TaskRequestsView: React.FC = () => {
   const {
     currentUser,
+    users,
     tasks,
     acceptTaskRequest,
     rejectTaskRequest,
     moveToMyOwnToDo,
+    reassignTask,
     deleteTask,
     setCurrentPage,
+    requestViewTab,
+    setRequestViewTab,
     orgSettings,
   } = useTaskToggle();
-
-  // Active Main Tab: 'incoming' (Requests Sent to Me) | 'sent' (Tasks I Delegated to Colleagues)
-  const [activeTab, setActiveTab] = useState<'incoming' | 'sent'>('incoming');
-
-  const [rejectingTaskId, setRejectingTaskId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 1. INCOMING REQUESTS (Tasks sent by colleagues to current user)
   const incomingPending = tasks.filter(
@@ -51,13 +49,32 @@ export const TaskRequestsView: React.FC = () => {
 
   // 2. OUTGOING / DELEGATED REQUESTS (Tasks created by current user for colleagues)
   const delegatedTasks = tasks.filter(
-    (t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id && t.type === 'staff'
+    (t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id
   );
 
   const delegatedDeclined = delegatedTasks.filter((t) => t.status === 'rejected');
   const delegatedPending = delegatedTasks.filter((t) => t.status === 'pending');
   const delegatedActive = delegatedTasks.filter((t) => t.status === 'accepted');
   const delegatedCompleted = delegatedTasks.filter((t) => t.status === 'done');
+
+  // Active Main Tab: 'incoming' (Requests Sent to Me) | 'sent' (Tasks I Delegated to Colleagues)
+  const [activeTab, setActiveTab] = useState<'incoming' | 'sent'>(() => {
+    if (requestViewTab) return requestViewTab;
+    if (delegatedDeclined.length > 0 && incomingPending.length === 0) return 'sent';
+    return 'incoming';
+  });
+
+  useEffect(() => {
+    if (requestViewTab) {
+      setActiveTab(requestViewTab);
+    }
+  }, [requestViewTab]);
+
+  const [rejectingTaskId, setRejectingTaskId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [reassignTaskId, setReassignTaskId] = useState<string | null>(null);
+  const [reassignTargetUserId, setReassignTargetUserId] = useState<string>('');
 
   const handleStartReject = (taskId: string) => {
     setRejectingTaskId(taskId);
@@ -422,24 +439,19 @@ export const TaskRequestsView: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {delegatedDeclined.map((task) => {
-                  const colleagueMsg =
-                    task.rejectReason ||
-                    (task.pendingReason?.startsWith('[DECLINED]: ')
-                      ? task.pendingReason.replace('[DECLINED]: ', '')
-                      : task.pendingReason) ||
-                    'No message provided';
+                  const colleagueMsg = getTaskDeclineReason(task) || 'No message provided';
 
                   return (
                     <div
                       key={task.id}
-                      className="bg-white rounded-xl p-4 border border-rose-200 shadow-2xs space-y-3 flex flex-col justify-between"
+                      className="bg-white rounded-xl p-4 border-2 border-rose-200 shadow-2xs space-y-3 flex flex-col justify-between"
                     >
                       <div>
                         {/* Task Header */}
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-sm font-bold text-slate-900">{task.title}</h3>
+                          <h3 className="text-sm font-black text-slate-900">{task.title}</h3>
                           <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 shrink-0">
-                            ❌ Declined
+                            ❌ Declined by {task.assignedToName}
                           </span>
                         </div>
 
@@ -456,19 +468,21 @@ export const TaskRequestsView: React.FC = () => {
                         </div>
 
                         {/* Colleague Rejection Message Box */}
-                        <div className="mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 space-y-1">
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-rose-900">
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                            <span>Colleague Message from {task.assignedToName}:</span>
+                        <div className="mt-3 p-3 rounded-xl bg-rose-50/90 border border-rose-200 space-y-1.5">
+                          <div className="flex items-center justify-between text-xs font-bold text-rose-900">
+                            <div className="flex items-center gap-1.5">
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                              <span>Why {task.assignedToName} Declined:</span>
+                            </div>
+                            {task.rejectedAt && (
+                              <span className="text-[10px] text-rose-700 font-medium">
+                                at {task.rejectedAt}
+                              </span>
+                            )}
                           </div>
-                          <p className="text-xs text-rose-950 font-semibold italic bg-white/90 p-2.5 rounded-lg border border-rose-100 leading-relaxed">
+                          <p className="text-xs text-rose-950 font-bold italic bg-white p-2.5 rounded-lg border border-rose-100 leading-relaxed shadow-2xs">
                             "{colleagueMsg}"
                           </p>
-                          {task.rejectedAt && (
-                            <div className="text-[10px] text-rose-700 font-semibold pt-0.5">
-                              Declined at {task.rejectedAt}
-                            </div>
-                          )}
                         </div>
                       </div>
 
@@ -488,10 +502,12 @@ export const TaskRequestsView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              setCurrentPage('create');
+                              setReassignTaskId(task.id);
+                              const firstOther = users.find((u) => u.role === 'staff' && u.id !== currentUser.id && u.id !== task.assignedTo);
+                              setReassignTargetUserId(firstOther?.id || '');
                             }}
                             className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95 shadow-xs"
-                            title="Open Create Task to delegate this to another colleague"
+                            title="Reassign to another colleague"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                             <span>Reassign</span>
@@ -590,6 +606,77 @@ export const TaskRequestsView: React.FC = () => {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Reassign Colleague Modal */}
+      {reassignTaskId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-2xl max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-indigo-600">
+                <RotateCcw className="w-5 h-5" />
+                <h3 className="text-base font-bold text-slate-900 font-['Outfit']">
+                  Reassign Task to Colleague
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReassignTaskId(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Select another colleague to reassign this task to. They will receive an instant notification.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">Choose Colleague:</label>
+              <select
+                value={reassignTargetUserId}
+                onChange={(e) => setReassignTargetUserId(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-indigo-600 bg-white"
+              >
+                <option value="">-- Select a Colleague --</option>
+                {users
+                  .filter((u) => u.role === 'staff' && u.id !== currentUser.id)
+                  .map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.email})
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setReassignTaskId(null)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!reassignTargetUserId}
+                onClick={() => {
+                  if (reassignTaskId && reassignTargetUserId) {
+                    reassignTask(reassignTaskId, reassignTargetUserId);
+                    const targetUser = users.find((u) => u.id === reassignTargetUserId);
+                    setReassignTaskId(null);
+                    setToastMessage(`Task successfully reassigned to ${targetUser?.name || 'colleague'}!`);
+                    setTimeout(() => setToastMessage(null), 3500);
+                  }
+                }}
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+              >
+                Confirm Reassignment
+              </button>
+            </div>
           </div>
         </div>
       )}

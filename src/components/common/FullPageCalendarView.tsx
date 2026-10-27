@@ -18,7 +18,7 @@ import {
   Flag,
   CalendarDays,
 } from 'lucide-react';
-import { Task } from '../../types';
+import { Task, getTaskDeclineReason } from '../../types';
 
 interface Holiday {
   dateStr: string; // 'YYYY-MM-DD'
@@ -723,6 +723,7 @@ export const FullPageCalendarView: React.FC = () => {
                 <div className="space-y-2.5">
                   {selectedDateDetails.displayedTasks.map((task) => {
                     const isDone = task.status === 'done';
+                    const isRejected = task.status === 'rejected';
                     const isAdmin = task.type === 'admin';
                     const isStaffAllot = task.type === 'staff';
 
@@ -732,6 +733,8 @@ export const FullPageCalendarView: React.FC = () => {
                         className={`p-3.5 rounded-2xl border transition-all ${
                           isDone
                             ? 'bg-emerald-50/20 border-emerald-200 opacity-90'
+                            : isRejected
+                            ? 'bg-rose-50/30 border-rose-300 shadow-2xs'
                             : isAdmin
                             ? 'bg-indigo-50/25 border-indigo-200 hover:border-indigo-300'
                             : 'bg-purple-50/25 border-purple-200 hover:border-purple-300'
@@ -774,17 +777,27 @@ export const FullPageCalendarView: React.FC = () => {
                             className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                               isDone
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : isRejected
+                                ? 'bg-rose-100 text-rose-800 border border-rose-300'
                                 : 'bg-amber-100 text-amber-900 border border-amber-300'
                             }`}
                           >
-                            {isDone ? '✓ Completed' : '⏰ Pending'}
+                            {isDone
+                              ? '✓ Completed'
+                              : isRejected
+                              ? `❌ Declined by ${task.assignedToName}`
+                              : '⏰ Pending'}
                           </span>
                         </div>
 
                         {/* Title & Description */}
                         <h4
                           className={`text-sm font-bold leading-snug ${
-                            isDone ? 'line-through text-slate-400 decoration-emerald-500' : 'text-slate-900'
+                            isDone
+                              ? 'line-through text-slate-400 decoration-emerald-500'
+                              : isRejected
+                              ? 'text-slate-900'
+                              : 'text-slate-900'
                           }`}
                         >
                           {task.title}
@@ -794,6 +807,19 @@ export const FullPageCalendarView: React.FC = () => {
                           <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
                             {task.description}
                           </p>
+                        )}
+
+                        {/* Colleague Rejection Message Box */}
+                        {isRejected && (
+                          <div className="mt-2.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+                            <div className="text-[11px] font-bold text-rose-900 flex items-center gap-1.5">
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                              <span>Why {task.assignedToName} Declined {task.rejectedAt ? `(${task.rejectedAt})` : ''}:</span>
+                            </div>
+                            <div className="text-xs text-rose-950 font-bold italic mt-1 bg-white p-2 rounded-lg border border-rose-100 shadow-2xs">
+                              "{getTaskDeclineReason(task) || 'No message provided'}"
+                            </div>
+                          </div>
                         )}
 
                         {/* Meta strip: Due Time, Allotted To, Created By */}

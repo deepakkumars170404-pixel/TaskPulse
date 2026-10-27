@@ -12,14 +12,14 @@ import {
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
-  const { currentUser, currentPage, setCurrentPage, tasks } = useTaskToggle();
+  const { currentUser, currentPage, setCurrentPage, tasks, setRequestViewTab } = useTaskToggle();
 
   const pendingRequestsCount = tasks.filter(
     (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'pending'
   ).length;
 
   const declinedRequestsCount = tasks.filter(
-    (t) => t.createdBy === currentUser.id && t.type === 'staff' && t.status === 'rejected'
+    (t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id && t.status === 'rejected'
   ).length;
 
   const totalRequestsBadge = pendingRequestsCount + declinedRequestsCount;
@@ -56,7 +56,12 @@ export const BottomNav: React.FC = () => {
           return (
             <button
               key={item.id}
-              onClick={() => setCurrentPage(item.id as any)}
+              onClick={() => {
+                if (item.id === 'requests' && declinedRequestsCount > 0 && pendingRequestsCount === 0) {
+                  setRequestViewTab('sent');
+                }
+                setCurrentPage(item.id as any);
+              }}
               className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer relative ${
                 isActive
                   ? 'text-slate-900 font-bold'
