@@ -82,7 +82,9 @@ export function App() {
     if (isFloatingMode) {
       document.documentElement.style.backgroundColor = 'transparent';
       document.body.style.backgroundColor = 'transparent';
-      document.body.className = 'bg-transparent text-slate-900 antialiased font-[\'Open_Sans\',sans-serif] overflow-hidden';
+      document.documentElement.classList.add('floating-mode');
+      document.body.classList.add('floating-mode');
+      document.body.className = 'floating-mode bg-transparent text-slate-900 antialiased font-[\'Open_Sans\',sans-serif] overflow-hidden';
     }
   }, [isFloatingMode]);
 

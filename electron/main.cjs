@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, screen, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 let mainWindow = null;
 let floatingWindow = null;
@@ -40,6 +41,10 @@ function createMainWindow() {
   });
 
   mainWindow.loadURL(getAppUrl());
+  mainWindow.webContents.on('did-fail-load', () => {
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    if (fs.existsSync(indexPath)) mainWindow.loadURL('file://' + indexPath);
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -88,6 +93,10 @@ function createFloatingBubbleWindow() {
   floatingWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
   floatingWindow.loadURL(getAppUrl('mode=floating-bubble'));
+  floatingWindow.webContents.on('did-fail-load', () => {
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    if (fs.existsSync(indexPath)) floatingWindow.loadURL('file://' + indexPath + '?mode=floating-bubble');
+  });
 
   floatingWindow.on('closed', () => {
     floatingWindow = null;

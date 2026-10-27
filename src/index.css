@@ -68,3 +68,5 @@
 .animate-pulse-subtle {
   animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+html.floating-mode, html.floating-mode body, body.floating-mode { background: transparent !important; background-color: transparent !important; background-image: none !important; }

@@ -214,7 +214,7 @@ export const ElectronFloatingBubble: React.FC = () => {
   ];
 
   return (
-    <div className="w-full h-full flex items-start justify-start select-none bg-transparent overflow-hidden">
+    <div className="w-full h-full flex items-center justify-center select-none bg-transparent overflow-hidden">
       {mode === 'logo' ? (
         /* =========================================================================
            1. COMPACT LOGO-ONLY OS FLOATING BUBBLE (72x72)
