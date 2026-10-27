@@ -43,7 +43,7 @@ export const CreateToDoView: React.FC = () => {
     .slice(0, 6);
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
+    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
       {/* Clean Corporate Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>

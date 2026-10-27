@@ -102,7 +102,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
+    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
@@ -424,7 +424,7 @@ export const AdminDashboard: React.FC = () => {
                             }`}
                           >
                             {/* Task Title */}
-                            <td className="py-3.5 px-4 sm:px-5 max-w-[220px]">
+                            <td className="py-3.5 px-4 sm:px-5">
                               <div className="flex items-center gap-2.5">
                                 <div
                                   className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 ${
@@ -463,7 +463,7 @@ export const AdminDashboard: React.FC = () => {
                                     .join('')
                                     .substring(0, 2)}
                                 </div>
-                                <span className="font-semibold text-slate-800 truncate max-w-[110px]">
+                                <span className="font-semibold text-slate-800 truncate max-w-[180px]">
                                   {task.assignedToName}
                                 </span>
                               </div>

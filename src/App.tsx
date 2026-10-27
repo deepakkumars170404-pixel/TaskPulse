@@ -44,8 +44,8 @@ const MainLayout: React.FC = () => {
           onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
-        {/* Main Content Area - padded at bottom on mobile to accommodate BottomNav */}
-        <main className={`flex-1 overflow-y-auto ${currentPage === 'calendar' ? 'pb-20 md:pb-0 flex flex-col p-0' : 'pb-24 md:pb-6'}`}>
+        {/* Main Content Area - Full width edge-to-edge with smooth scrolling */}
+        <main className={`flex-1 overflow-y-auto min-w-0 w-full ${currentPage === 'calendar' ? 'pb-20 md:pb-0 flex flex-col p-0' : 'pb-20 md:pb-4'}`}>
           {currentPage === 'calendar' && <FullPageCalendarView />}
           {currentUser.role === 'admin' ? (
             <>

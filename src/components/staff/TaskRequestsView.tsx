@@ -42,7 +42,7 @@ export const TaskRequestsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
+    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
       {/* Toast Feedback */}
       {toastMessage && (
         <div className="p-3.5 sm:p-4 rounded-xl bg-indigo-600 text-white flex items-center gap-3 animate-in fade-in shadow-md">
