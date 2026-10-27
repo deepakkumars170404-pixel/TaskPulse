@@ -222,22 +222,20 @@ export const ElectronFloatingBubble: React.FC = () => {
            ========================================================================= */
         <div
           onMouseDown={handleBubbleMouseDown}
-          className="w-[72px] h-[72px] flex items-center justify-center relative select-none cursor-grab active:cursor-grabbing hover:scale-105 transition-transform duration-100"
+          className="w-20 h-20 flex items-center justify-center relative select-none cursor-grab active:cursor-grabbing hover:scale-105 transition-transform duration-100"
           title="TaskToggle (Deepak) · Drag anywhere on PC screen · Click to open"
         >
-          {/* Solid Indigo Circular Glass Bubble */}
-          <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl ring-4 ring-white border border-slate-200 pointer-events-none">
-            <CheckSquare className="w-7 h-7 stroke-[2.5]" />
+          {/* Solid Indigo Rounded Square matching user screenshot - Zero white background */}
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center shadow-2xl ring-2 ring-white/70 pointer-events-none">
+            <CheckSquare className="w-8 h-8 stroke-[2.5]" />
           </div>
 
-          {/* Pending Task Badge */}
+          {/* Red Pending Task Badge */}
           {pendingTasks.length > 0 && (
-            <span className="absolute top-1 right-1 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center shadow-md ring-2 ring-white animate-pulse pointer-events-none">
+            <span className="absolute top-1 right-1 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse pointer-events-none">
               {pendingTasks.length}
             </span>
           )}
-
-
         </div>
       ) : (
         /* =========================================================================

@@ -75,8 +75,8 @@ export const FloatingTaskWidget: React.FC = () => {
     }
 
     try {
-      const initialWidth = startInLogoMode ? 120 : 380;
-      const initialHeight = startInLogoMode ? 120 : 540;
+      const initialWidth = startInLogoMode ? 100 : 380;
+      const initialHeight = startInLogoMode ? 100 : 540;
 
       const pipWin = await window.documentPictureInPicture.requestWindow({
         width: initialWidth,
@@ -96,7 +96,9 @@ export const FloatingTaskWidget: React.FC = () => {
           margin: 0;
           padding: 0;
           font-family: 'Open Sans', sans-serif;
-          background: #F8FAFC;
+          background: ${startInLogoMode ? "#4F46E5" : "#FFFFFF"};
+          width: 100%;
+          height: 100%;
           overflow: hidden;
           user-select: none;
         }
@@ -124,23 +126,28 @@ export const FloatingTaskWidget: React.FC = () => {
 
   const expandPiP = () => {
     setIsPipLogoOnly(false);
-    try {
-      pipWindow?.resizeTo(380, 540);
-    } catch (e) {
-      // Ignore if resizeTo restricted
+    if (pipWindow) {
+      pipWindow.document.body.style.background = "#FFFFFF";
+      try {
+        pipWindow.resizeTo(380, 540);
+      } catch (e) {
+        // Ignore if resizeTo restricted
+      }
     }
   };
 
   const shrinkPiPToLogo = () => {
     setIsPipLogoOnly(true);
-    try {
-      pipWindow?.resizeTo(120, 120);
-    } catch (e) {
-      // Ignore if resizeTo restricted
+    if (pipWindow) {
+      pipWindow.document.body.style.background = "#4F46E5";
+      try {
+        pipWindow.resizeTo(100, 100);
+      } catch (e) {
+        // Ignore if resizeTo restricted
+      }
     }
   };
 
-  // Voice Dictation (Speech-to-Task) using Web Speech API
   const startVoiceInput = () => {
     const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionClass) {
@@ -322,24 +329,22 @@ export const FloatingTaskWidget: React.FC = () => {
           ========================================================================= */}
       {pipWindow &&
         createPortal(
-          <div className="w-full h-screen flex flex-col bg-[#F8FAFC] select-none overflow-hidden font-['Open_Sans',sans-serif]">
+          <div className="w-full h-full flex flex-col select-none overflow-hidden font-['Open_Sans',sans-serif]">
             {isPipLogoOnly ? (
-              /* PURE LOGO ONLY - No outer text, no extra boxes */
+              /* PURE LOGO ONLY - 100% full bleed, solid indigo, zero outer white space */
               <div
                 onClick={expandPiP}
-                className="w-full h-full flex items-center justify-center p-2 cursor-pointer bg-indigo-50/60 hover:bg-indigo-100/50 transition-all select-none"
+                className="w-full h-full flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 transition-colors cursor-pointer relative select-none p-0 m-0"
                 title="TaskToggle · Click logo to open details"
               >
-                <div className="relative">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-md ring-4 ring-white hover:scale-105 transition-transform">
-                    <CheckSquare className="w-9 h-9 stroke-[2.5] text-white" />
-                  </div>
-                  {pendingTasks.length > 0 && (
-                    <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-bold shadow-md ring-2 ring-white animate-pulse">
-                      {pendingTasks.length}
-                    </span>
-                  )}
+                <div className="w-14 h-14 rounded-2xl bg-indigo-500/30 border border-white/30 flex items-center justify-center text-white shadow-inner">
+                  <CheckSquare className="w-8 h-8 stroke-[2.5]" />
                 </div>
+                {pendingTasks.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse">
+                    {pendingTasks.length}
+                  </span>
+                )}
               </div>
             ) : (
               /* Expanded details inside PiP */

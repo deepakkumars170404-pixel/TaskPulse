@@ -59,8 +59,8 @@ function createFloatingBubbleWindow() {
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
 
   // Initial bubble dimensions (logo size)
-  const initialWidth = 72;
-  const initialHeight = 72;
+  const initialWidth = 80;
+  const initialHeight = 80;
   const initialX = Math.max(20, screenWidth - initialWidth - 24);
   const initialY = Math.max(40, screenHeight - initialHeight - 120);
 
@@ -71,6 +71,7 @@ function createFloatingBubbleWindow() {
     y: initialY,
     frame: false,
     transparent: true,
+    backgroundColor: "#00000000",
     alwaysOnTop: true,
     hasShadow: false,
     resizable: true, // Allows smooth movement across Windows displays
@@ -233,8 +234,8 @@ ipcMain.on('floating-resize', (event, mode) => {
     floatingWindow.focus();
   } else {
     // Mode === 'logo'
-    const targetWidth = 72;
-    const targetHeight = 72;
+    const targetWidth = 80;
+    const targetHeight = 80;
 
     floatingWindow.setBounds({
       x: currentBounds.x,
