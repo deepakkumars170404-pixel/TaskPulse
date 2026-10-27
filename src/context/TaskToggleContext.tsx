@@ -53,6 +53,9 @@ interface TaskToggleContextType {
   activeDueReminder: { task: Task; minutesRemaining: number } | null;
   dismissDueReminder: () => void;
   playThirtyMinReminderSound: () => void;
+  addStaffUser: (name: string, email: string) => void;
+  deleteStaffUser: (userId: string) => void;
+  clearAllTasks: () => void;
   updateOfficeTiming: (timing: OfficeTiming) => void;
   updateEventTiming: (event: EventTiming) => void;
   updateOrgSettings: (settings: Partial<OrgSettings>) => void;
@@ -62,6 +65,16 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
+const STORAGE_CLEAN_VERSION = 'v4_clean_production';
+
+if (typeof window !== 'undefined') {
+  if (localStorage.getItem('tasktoggle_data_version') !== STORAGE_CLEAN_VERSION) {
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}tasks`);
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}users`);
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}current_user_id`);
+    localStorage.setItem('tasktoggle_data_version', STORAGE_CLEAN_VERSION);
+  }
+}
 
 // Browser-native Web Audio API synthesizer for positive completion feedback
 const playRewardChime = () => {
@@ -838,6 +851,50 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     backendApi.updateEventTiming(newEvent).catch((err) => console.warn('[Backend] event timing error:', err));
   };
 
+  const addStaffUser = (name: string, email: string) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+
+    const initials = trimmedName
+      .split(/\s+/)
+      .map((part) => part[0]?.toUpperCase() || '')
+      .slice(0, 2)
+      .join('');
+
+    const colors = [
+      'bg-indigo-600',
+      'bg-blue-600',
+      'bg-purple-600',
+      'bg-teal-600',
+      'bg-rose-600',
+      'bg-emerald-600',
+      'bg-fuchsia-600',
+      'bg-amber-600',
+    ];
+    const avatarBg = colors[Math.floor(Math.random() * colors.length)];
+
+    const newStaff: User = {
+      id: `staff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      name: trimmedName,
+      email: email.trim().toLowerCase() || `${trimmedName.toLowerCase().replace(/\s+/g, '.')}@company.com`,
+      role: 'staff',
+      initials: initials || 'ST',
+      avatarBg,
+    };
+
+    setUsers((prev) => [...prev, newStaff]);
+  };
+
+  const deleteStaffUser = (userId: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    setTasks((prev) => prev.filter((t) => t.assignedTo !== userId));
+  };
+
+  const clearAllTasks = () => {
+    setTasks([]);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}tasks`, JSON.stringify([]));
+  };
+
   const updateOrgSettings = (settings: Partial<OrgSettings>) => {
     setOrgSettings((prev) => {
       const updated = { ...prev, ...settings };
@@ -881,6 +938,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         activeDueReminder,
         dismissDueReminder,
         playThirtyMinReminderSound,
+        addStaffUser,
+        deleteStaffUser,
+        clearAllTasks,
         refreshData,
       }}
     >

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { TaskPriority } from '../../types';
-import { Check, ShieldAlert, Calendar, Clock, Send, Users, CheckCircle2 } from 'lucide-react';
+import { Check, ShieldAlert, Calendar, Clock, Send, Users, CheckCircle2, UserPlus } from 'lucide-react';
 import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
+import { AddStaffModal } from './AddStaffModal';
 
 export const AssignTaskView: React.FC = () => {
   const { users, assignAdminTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
@@ -16,6 +17,7 @@ export const AssignTaskView: React.FC = () => {
   const [dueTime, setDueTime] = useState('2:30 PM');
   const [priority, setPriority] = useState<TaskPriority>('Medium');
   const [successToast, setSuccessToast] = useState(false);
+  const [showAddStaffModal, setShowAddStaffModal] = useState(false);
 
   // Toggle staff selection
   const toggleStaff = (id: string) => {
@@ -128,42 +130,70 @@ export const AssignTaskView: React.FC = () => {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Assign To (Select one or more staff)
                 </label>
-                <button
-                  type="button"
-                  onClick={handleSelectAllStaff}
-                  className="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
-                >
-                  {selectedStaffIds.length === staffList.length ? 'Deselect All' : 'Select All Staff'}
-                </button>
+                {staffList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleSelectAllStaff}
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                  >
+                    {selectedStaffIds.length === staffList.length ? 'Deselect All' : 'Select All Staff'}
+                  </button>
+                )}
               </div>
 
-              <div className="flex flex-wrap gap-2.5">
-                {staffList.map((staff) => {
-                  const isSelected = selectedStaffIds.includes(staff.id);
-                  return (
-                    <button
-                      type="button"
-                      key={staff.id}
-                      onClick={() => toggleStaff(staff.id)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                          isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-700'
+              {staffList.length === 0 ? (
+                <div className="p-4 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">No staff members in your team yet</p>
+                    <p className="text-[11px] text-slate-500">Add your organization's staff members to begin assigning tasks</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddStaffModal(true)}
+                    className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>+ Add Staff</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2.5">
+                  {staffList.map((staff) => {
+                    const isSelected = selectedStaffIds.includes(staff.id);
+                    return (
+                      <button
+                        type="button"
+                        key={staff.id}
+                        onClick={() => toggleStaff(staff.id)}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                         }`}
                       >
-                        {staff.initials}
-                      </div>
-                      <span>{staff.name}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                    </button>
-                  );
-                })}
-              </div>
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                            isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-700'
+                          }`}
+                        >
+                          {staff.initials}
+                        </div>
+                        <span>{staff.name}</span>
+                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setShowAddStaffModal(true)}
+                    className="px-3.5 py-2 rounded-xl border border-dashed border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                    title="Add new staff member"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>+ Add Staff</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Target Deadline (Interactive Mini Calendar & Fast Clock Picker) */}
@@ -310,6 +340,12 @@ export const AssignTaskView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Staff Member Modal */}
+      <AddStaffModal
+        isOpen={showAddStaffModal}
+        onClose={() => setShowAddStaffModal(false)}
+      />
     </div>
   );
 };
