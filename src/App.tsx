@@ -15,6 +15,7 @@ import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
 import { FullPageCalendarView } from './components/common/FullPageCalendarView';
 import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubble';
 import { DueReminderBanner } from './components/common/DueReminderBanner';
+import { TaskAlertBanner } from './components/common/TaskAlertBanner';
 import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
 
 const MainLayout: React.FC = () => {
@@ -72,6 +73,9 @@ const MainLayout: React.FC = () => {
 
       {/* 30-Minute Task Due Reminder Banner for Staff */}
       <DueReminderBanner />
+
+      {/* Prominent Real-time In-App Visual Task Alert Banner */}
+      <TaskAlertBanner />
 
       {/* Progressive Web App (PWA) Automated Install Prompt */}
       <PwaInstallPrompt />

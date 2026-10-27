@@ -58,6 +58,18 @@ export interface OrgSettings {
   accentColor?: string;
 }
 
+export interface TaskAlert {
+  id: string;
+  title: string;
+  message: string;
+  taskTitle: string;
+  senderName: string;
+  dueDate?: string;
+  dueTime?: string;
+  priority?: string;
+  type?: 'admin' | 'staff' | 'decline';
+}
+
 /**
  * Universal helper to extract a task's decline/rejection reason message.
  * Handles both dedicated rejectReason and pendingReason prefixed with [DECLINED]:

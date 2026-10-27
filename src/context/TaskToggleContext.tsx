@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority } from '../types';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority, TaskAlert } from '../types';
 import {
   INITIAL_USERS,
   INITIAL_TASKS,
@@ -74,6 +74,9 @@ interface TaskToggleContextType {
   updateEventTiming: (event: EventTiming) => void;
   updateOrgSettings: (settings: Partial<OrgSettings>) => void;
   refreshData: () => Promise<void>;
+  activeTaskAlert: TaskAlert | null;
+  dismissTaskAlert: () => void;
+  triggerTaskAlert: (alert: TaskAlert) => void;
 }
 
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
@@ -402,6 +405,36 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [activeDueReminder, setActiveDueReminder] = useState<{ task: Task; minutesRemaining: number } | null>(null);
   const notifiedRemindersRef = React.useRef<Set<string>>(new Set());
 
+  // In-App Visual Task Alert Banner State (pops up on screen when a task is allotted)
+  const [activeTaskAlert, setActiveTaskAlert] = useState<TaskAlert | null>(null);
+
+  const dismissTaskAlert = useCallback(() => {
+    setActiveTaskAlert(null);
+  }, []);
+
+  const triggerTaskAlert = useCallback((alert: TaskAlert) => {
+    // 1. Play audible sound
+    playAssignmentAlertSound();
+
+    // 2. Display prominent in-app visual popup banner on screen
+    setActiveTaskAlert(alert);
+
+    // 3. Desktop OS Native Notification (if supported & allowed)
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification(alert.title, {
+            body: `${alert.taskTitle} · ${alert.message}`,
+            icon: '/favicon.ico',
+          });
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const initialTasksLoadedRef = useRef<boolean>(false);
+  const knownTaskIdsRef = useRef<Set<string>>(new Set());
+
   // Cross-Tab & Cross-Window Instant Real-Time Sync Channel
   const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
 
@@ -481,7 +514,37 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           return match || curr;
         });
       }
-      if (fetchedTasks) setTasks(fetchedTasks);
+      if (fetchedTasks) {
+        // Detect newly allotted tasks for the active user and trigger prominent visual popup
+        if (initialTasksLoadedRef.current) {
+          fetchedTasks.forEach((t) => {
+            if (
+              t.assignedTo === currentUser.id &&
+              t.status !== 'done' &&
+              t.status !== 'rejected' &&
+              !knownTaskIdsRef.current.has(t.id)
+            ) {
+              knownTaskIdsRef.current.add(t.id);
+              triggerTaskAlert({
+                id: t.id,
+                title: t.type === 'admin' ? 'New Task from Admin' : `Task from ${t.createdByName || 'Colleague'}`,
+                message: `Due: ${t.dueDate} ${t.dueTime}`,
+                taskTitle: t.title,
+                senderName: t.createdByName || (t.type === 'admin' ? 'Deepak (Admin)' : 'Colleague'),
+                dueDate: t.dueDate,
+                dueTime: t.dueTime,
+                priority: t.priority,
+                type: t.type === 'admin' ? 'admin' : 'staff',
+              });
+            }
+          });
+        } else {
+          fetchedTasks.forEach((t) => knownTaskIdsRef.current.add(t.id));
+          initialTasksLoadedRef.current = true;
+        }
+
+        setTasks(fetchedTasks);
+      }
       if (fetchedOffice) setOfficeTiming(fetchedOffice);
       if (fetchedEvent) setEventTiming(fetchedEvent);
       if (fetchedOrg && !new URLSearchParams(window.location.search).get('org')) {
@@ -490,7 +553,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } catch (err) {
       console.warn('[TaskToggleContext] Initial sync error:', err);
     }
-  }, []);
+  }, [currentUser, triggerTaskAlert]);
 
   // Fetch initial data on mount + periodic cloud sync poll (every 6 seconds)
   // Guarantees cross-device sync even if mobile browser suspends WebSockets
@@ -512,13 +575,20 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           return [newTask, ...prev];
         });
 
-        // Trigger sound & notification if allotted to the currently logged in user
+        // Trigger sound & prominent in-app visual popup card if allotted to current user
         if (newTask.assignedTo === currentUser.id) {
-          playAssignmentAlertSound();
-          sendTaskAssignmentNotification(
-            `New Task from ${newTask.createdByName || 'Admin'}`,
-            `${newTask.title} · Due: ${newTask.dueDate} ${newTask.dueTime}`
-          );
+          knownTaskIdsRef.current.add(newTask.id);
+          triggerTaskAlert({
+            id: newTask.id,
+            title: newTask.type === 'admin' ? 'New Task from Admin' : `Task from ${newTask.createdByName || 'Colleague'}`,
+            message: `Due: ${newTask.dueDate} ${newTask.dueTime}`,
+            taskTitle: newTask.title,
+            senderName: newTask.createdByName || (newTask.type === 'admin' ? 'Deepak (Admin)' : 'Colleague'),
+            dueDate: newTask.dueDate,
+            dueTime: newTask.dueTime,
+            priority: newTask.priority,
+            type: newTask.type === 'admin' ? 'admin' : 'staff',
+          });
         }
       } else if (payload.eventType === 'UPDATE') {
         const updatedTask = mapDbTaskToFrontend(payload.new);
@@ -527,11 +597,14 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         );
 
         if (updatedTask.status === 'rejected' && updatedTask.createdBy === currentUser.id) {
-          playAssignmentAlertSound();
-          sendTaskAssignmentNotification(
-            `Task Declined by ${updatedTask.assignedToName}`,
-            `"${updatedTask.rejectReason || 'Declined'}"`
-          );
+          triggerTaskAlert({
+            id: updatedTask.id,
+            title: `Task Declined by ${updatedTask.assignedToName}`,
+            message: `"${updatedTask.rejectReason || 'Declined'}"`,
+            taskTitle: updatedTask.title,
+            senderName: updatedTask.assignedToName,
+            type: 'decline',
+          });
         }
       } else if (payload.eventType === 'DELETE') {
         const deletedId = payload.old.id;
@@ -542,7 +615,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [currentUser, sendTaskAssignmentNotification]);
+  }, [currentUser, triggerTaskAlert]);
 
   // Cross-Tab Instant Synchronization (BroadcastChannel + LocalStorage Event)
   useEffect(() => {
@@ -566,17 +639,25 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             (Array.isArray(data.staffIds) && data.staffIds.includes(currentUser.id));
 
           if (data.action === 'ASSIGN' && isTargeted) {
-            playAssignmentAlertSound();
-            sendTaskAssignmentNotification(
-              `New Task from ${data.senderName || 'Admin'}`,
-              `${data.taskTitle || 'Assigned Work'} · Due: ${data.dueDate || ''} ${data.dueTime || ''}`
-            );
+            triggerTaskAlert({
+              id: `assign_${Date.now()}`,
+              title: `New Task from ${data.senderName || 'Admin'}`,
+              message: `Due: ${data.dueDate || ''} ${data.dueTime || ''}`,
+              taskTitle: data.taskTitle || 'Assigned Work',
+              senderName: data.senderName || 'Admin',
+              dueDate: data.dueDate,
+              dueTime: data.dueTime,
+              type: 'admin',
+            });
           } else if (data.action === 'DECLINE' && data.taskCreatorId === currentUser.id) {
-            playAssignmentAlertSound();
-            sendTaskAssignmentNotification(
-              `Task Declined by ${data.declinedBy || 'Colleague'}`,
-              `"${data.reason || 'Declined'}"`
-            );
+            triggerTaskAlert({
+              id: `decline_${Date.now()}`,
+              title: `Task Declined by ${data.declinedBy || 'Colleague'}`,
+              message: `"${data.reason || 'Declined'}"`,
+              taskTitle: data.taskTitle || 'Assigned Work',
+              senderName: data.declinedBy || 'Colleague',
+              type: 'decline',
+            });
           }
         }
       };
@@ -1294,6 +1375,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         deleteStaffUser,
         clearAllTasks,
         refreshData,
+        activeTaskAlert,
+        dismissTaskAlert,
+        triggerTaskAlert,
       }}
     >
       {children}

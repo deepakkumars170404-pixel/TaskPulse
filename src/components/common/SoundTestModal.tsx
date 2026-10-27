@@ -28,6 +28,7 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
     playCompletionSound,
     playCalendarClickSound,
     triggerDueReminderPreview,
+    triggerTaskAlert,
     sendTaskNotification,
     sendTaskCompletedNotification,
     assignAdminTask,
@@ -266,11 +267,18 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
                 <button
                   type="button"
                   onClick={() => {
-                    sendTaskNotification(
-                      '🔔 New Task Allotted: Client Brief Preparation',
-                      'You have been allotted a new high-priority assignment.'
-                    );
-                    showActionFeedback('🔔 Triggered Task Allotment chime + desktop push notification!');
+                    triggerTaskAlert({
+                      id: `test_${Date.now()}`,
+                      title: 'New Task from Admin',
+                      message: 'Due: 27 Oct at 6:30 PM',
+                      taskTitle: 'Client Brief & Deliverables Review',
+                      senderName: 'Deepak (Admin)',
+                      dueDate: '27 Oct 2026',
+                      dueTime: '6:30 PM',
+                      priority: 'High',
+                      type: 'admin',
+                    });
+                    showActionFeedback('🔔 Triggered Task Alert chime + visual text popup banner!');
                   }}
                   className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-xs"
                 >
