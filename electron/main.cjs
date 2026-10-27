@@ -1,5 +1,55 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, screen, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
+
+const http = require('http');
+
+let bridgeServer = null;
+
+function startBridgeServer() {
+  if (bridgeServer) return;
+  bridgeServer = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200);
+      res.end();
+      return;
+    }
+
+    if (req.url === '/ping') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ running: true }));
+      return;
+    }
+
+    if (req.url === '/show-floating') {
+      if (!floatingWindow || floatingWindow.isDestroyed()) {
+        createFloatingBubbleWindow();
+      } else {
+        floatingWindow.show();
+        floatingWindow.focus();
+        floatingWindow.setAlwaysOnTop(true, 'screen-saver');
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true }));
+      return;
+    }
+
+    res.writeHead(404);
+    res.end();
+  });
+
+  bridgeServer.on('error', (err) => {
+    console.warn('[BridgeServer] Error:', err.message);
+  });
+
+  bridgeServer.listen(38241, '127.0.0.1', () => {
+    console.log('[BridgeServer] Listening on http://127.0.0.1:38241 for Chrome web requests');
+  });
+}
+
 const fs = require('fs');
 
 let mainWindow = null;
@@ -325,6 +375,7 @@ if (!gotTheLock) {
     createMainWindow();
     createFloatingBubbleWindow();
     createTray();
+    startBridgeServer();
 
     // Register Global Shortcut: Ctrl+Alt+T anywhere in Windows
     globalShortcut.register('CommandOrControl+Alt+T', () => {

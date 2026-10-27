@@ -96,7 +96,7 @@ export const FloatingTaskWidget: React.FC = () => {
           margin: 0;
           padding: 0;
           font-family: 'Open Sans', sans-serif;
-          background: ${startInLogoMode ? "#4F46E5" : "#FFFFFF"};
+          background: ${startInLogoMode ? "#EEF2FF" : "#FFFFFF"};
           width: 100%;
           height: 100%;
           overflow: hidden;
@@ -139,7 +139,7 @@ export const FloatingTaskWidget: React.FC = () => {
   const shrinkPiPToLogo = () => {
     setIsPipLogoOnly(true);
     if (pipWindow) {
-      pipWindow.document.body.style.background = "#4F46E5";
+      pipWindow.document.body.style.background = "#EEF2FF";
       try {
         pipWindow.resizeTo(100, 100);
       } catch (e) {
@@ -331,20 +331,22 @@ export const FloatingTaskWidget: React.FC = () => {
         createPortal(
           <div className="w-full h-full flex flex-col select-none overflow-hidden font-['Open_Sans',sans-serif]">
             {isPipLogoOnly ? (
-              /* PURE LOGO ONLY - 100% full bleed, solid indigo, zero outer white space */
+              /* PURE LOGO ONLY - Compact, centered, perfectly attached badge */
               <div
                 onClick={expandPiP}
-                className="w-full h-full flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 transition-colors cursor-pointer relative select-none p-0 m-0"
+                className="w-full h-full flex items-center justify-center bg-indigo-50/80 hover:bg-indigo-100/80 transition-colors cursor-pointer select-none p-2"
                 title="TaskToggle · Click logo to open details"
               >
-                <div className="w-14 h-14 rounded-2xl bg-indigo-500/30 border border-white/30 flex items-center justify-center text-white shadow-inner">
-                  <CheckSquare className="w-8 h-8 stroke-[2.5]" />
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg ring-2 ring-white hover:scale-105 transition-transform">
+                    <CheckSquare className="w-8 h-8 stroke-[2.5]" />
+                  </div>
+                  {pendingTasks.length > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse">
+                      {pendingTasks.length}
+                    </span>
+                  )}
                 </div>
-                {pendingTasks.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse">
-                    {pendingTasks.length}
-                  </span>
-                )}
               </div>
             ) : (
               /* Expanded details inside PiP */
