@@ -105,3 +105,4 @@ export const AddStaffModal: React.FC<AddStaffModalProps> = ({ isOpen, onClose })
     </div>
   );
 };
+

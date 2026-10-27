@@ -9,7 +9,9 @@ import {
   FlaskConical,
   Menu,
   MonitorUp,
+  Volume2,
 } from 'lucide-react';
+import { SoundTestModal } from './common/SoundTestModal';
 
 interface HeaderProps {
   onOpenMobileMenu?: () => void;
@@ -18,6 +20,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const { currentUser, users, switchUser, officeTiming, orgSettings } = useTaskToggle();
   const [showSwitchDropdown, setShowSwitchDropdown] = useState(false);
+  const [showSoundTestModal, setShowSoundTestModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -107,6 +110,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             <strong className="font-bold text-slate-900">{officeTiming.openTime} – {officeTiming.closeTime}</strong>
           </span>
         </div>
+
+        {/* Sound & Notification Test Lab Button */}
+        <button
+          type="button"
+          onClick={() => setShowSoundTestModal(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 text-xs font-bold cursor-pointer active:scale-95 transition-all shadow-2xs"
+          title="Test all notification sounds and desktop alerts"
+        >
+          <Volume2 className="w-3.5 h-3.5 text-indigo-600" />
+          <span className="hidden md:inline">Test Sounds & Alerts</span>
+          <span className="md:hidden">Test Sounds</span>
+        </button>
 
         {/* Testing Character Switcher */}
         <div className="relative" ref={dropdownRef}>
@@ -207,6 +222,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           )}
         </div>
       </div>
+      <SoundTestModal
+        isOpen={showSoundTestModal}
+        onClose={() => setShowSoundTestModal(false)}
+      />
     </header>
   );
 };

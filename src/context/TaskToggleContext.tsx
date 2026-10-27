@@ -45,6 +45,7 @@ interface TaskToggleContextType {
   snoozeTask: (taskId: string, minutes: number) => void;
   playCompletionSound: () => void;
   playCalendarClickSound: () => void;
+  playAssignmentAlertSound: () => void;
   sendTaskNotification: (title: string, body: string) => void;
   acceptTaskRequest: (taskId: string) => void;
   rejectTaskRequest: (taskId: string, reason: string) => void;
@@ -52,6 +53,7 @@ interface TaskToggleContextType {
   reportPendingReason: (taskId: string, reason: string) => void;
   activeDueReminder: { task: Task; minutesRemaining: number } | null;
   dismissDueReminder: () => void;
+  triggerDueReminderPreview: (customTitle?: string, minutes?: number) => void;
   playThirtyMinReminderSound: () => void;
   addStaffUser: (name: string, email: string) => void;
   deleteStaffUser: (userId: string) => void;
@@ -376,6 +378,51 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const dismissDueReminder = useCallback(() => {
     setActiveDueReminder(null);
   }, []);
+
+  const triggerDueReminderPreview = useCallback(
+    (customTitle: string = 'Prepare Monthly Sales Review', minutes: number = 25) => {
+      playThirtyMinReminderSound();
+      const now = new Date();
+      const targetTime = new Date(now.getTime() + minutes * 60 * 1000);
+      const previewTask: Task = {
+        id: `test_due_${Date.now()}`,
+        title: customTitle,
+        createdBy: currentUser.id,
+        createdByName: currentUser.name,
+        assignedTo: currentUser.id,
+        assignedToName: currentUser.name,
+        type: 'admin',
+        status: 'pending',
+        priority: 'High',
+        dueDate: now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        dueTime: targetTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+        createdAt: now.toISOString(),
+      };
+      setActiveDueReminder({
+        task: previewTask,
+        minutesRemaining: minutes,
+      });
+
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const notifTitle = `⏰ 30-Min Due Reminder: "${previewTask.title}"`;
+        const notifBody = `Due in ${minutes} minutes (at ${previewTask.dueTime})! Please complete or strike it.`;
+        if (Notification.permission === 'granted') {
+          try {
+            new Notification(notifTitle, { body: notifBody, icon: '/favicon.ico' });
+          } catch (e) {}
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission().then((perm) => {
+            if (perm === 'granted') {
+              try {
+                new Notification(notifTitle, { body: notifBody, icon: '/favicon.ico' });
+              } catch (e) {}
+            }
+          });
+        }
+      }
+    },
+    [currentUser]
+  );
 
   // Function to pull latest data from backend / database
   const refreshData = useCallback(async () => {
@@ -927,6 +974,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         snoozeTask,
         playCompletionSound: playRewardChime,
         playCalendarClickSound,
+        playAssignmentAlertSound,
         sendTaskNotification: sendTaskAssignmentNotification,
         acceptTaskRequest,
         rejectTaskRequest,
@@ -937,6 +985,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updateOrgSettings,
         activeDueReminder,
         dismissDueReminder,
+        triggerDueReminderPreview,
         playThirtyMinReminderSound,
         addStaffUser,
         deleteStaffUser,
