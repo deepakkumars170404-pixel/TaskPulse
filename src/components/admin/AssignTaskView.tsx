@@ -6,10 +6,12 @@ import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
 import { AddStaffModal } from './AddStaffModal';
 
 export const AssignTaskView: React.FC = () => {
-  const { users, assignAdminTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
+  const { users, currentUser, assignAdminTask, assignAdminPersonalTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
 
   const staffList = users.filter((u) => u.role === 'staff');
 
+  const [assignmentTarget, setAssignmentTarget] = useState<'staff' | 'myself'>('staff');
+  const [recentTab, setRecentTab] = useState<'staff' | 'admin'>('staff');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
@@ -36,19 +38,33 @@ export const AssignTaskView: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || selectedStaffIds.length === 0) {
-      alert('Please enter a task title and select at least one staff member.');
+    if (!title.trim()) {
+      alert('Please enter a task title.');
       return;
     }
 
-    assignAdminTask({
-      title,
-      description,
-      staffIds: selectedStaffIds,
-      dueDate,
-      dueTime,
-      priority,
-    });
+    if (assignmentTarget === 'staff') {
+      if (selectedStaffIds.length === 0) {
+        alert('Please select at least one staff member.');
+        return;
+      }
+      assignAdminTask({
+        title,
+        description,
+        staffIds: selectedStaffIds,
+        dueDate,
+        dueTime,
+        priority,
+      });
+    } else {
+      assignAdminPersonalTask({
+        title,
+        description,
+        dueDate,
+        dueTime,
+        priority,
+      });
+    }
 
     setTitle('');
     setDescription('');
@@ -57,10 +73,14 @@ export const AssignTaskView: React.FC = () => {
     setTimeout(() => setSuccessToast(false), 3000);
   };
 
-  // Recently assigned admin tasks
-  const recentlyAssigned = tasks
-    .filter((t) => t.type === 'admin')
-    .slice(0, 6);
+  // Recently assigned staff tasks vs admin personal tasks
+  const recentStaffTasks = tasks
+    .filter((t) => t.assignedTo !== currentUser.id)
+    .slice(0, 8);
+
+  const recentAdminTasks = tasks
+    .filter((t) => t.assignedTo === currentUser.id)
+    .slice(0, 8);
 
   return (
     <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
@@ -95,6 +115,64 @@ export const AssignTaskView: React.FC = () => {
         {/* Main Assignment Form (2 cols on xl) */}
         <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Assignment Target Switcher (Staff Target Tasks vs Admin Personal Daily Task) */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                Assignment Target
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAssignmentTarget('staff')}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                    assignmentTarget === 'staff'
+                      ? 'border-indigo-600 bg-indigo-50/70 shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                        assignmentTarget === 'staff' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">👥 Staff Members</div>
+                      <div className="text-[11px] text-slate-500 font-medium">Allot to team; auto-struck on staff login</div>
+                    </div>
+                  </div>
+                  {assignmentTarget === 'staff' && <Check className="w-4 h-4 text-indigo-600 stroke-[3]" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAssignmentTarget('myself')}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                    assignmentTarget === 'myself'
+                      ? 'border-indigo-600 bg-indigo-50/70 shadow-xs'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                        assignmentTarget === 'myself' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">👑 Myself (Admin Daily Task)</div>
+                      <div className="text-[11px] text-slate-500 font-medium">Personal daily agenda & separate score</div>
+                    </div>
+                  </div>
+                  {assignmentTarget === 'myself' && <Check className="w-4 h-4 text-indigo-600 stroke-[3]" />}
+                </button>
+              </div>
+            </div>
+
             {/* Task title */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
@@ -104,7 +182,7 @@ export const AssignTaskView: React.FC = () => {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Update inventory sheet and audit stock"
+                placeholder={assignmentTarget === 'staff' ? "e.g. Update inventory sheet and audit stock" : "e.g. Review and sign Q4 budget allocations"}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
               />
@@ -118,83 +196,101 @@ export const AssignTaskView: React.FC = () => {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add all stock received this week and mark low-stock items for procurement."
+                placeholder={assignmentTarget === 'staff' ? "Add all stock received this week and mark low-stock items for procurement." : "Notes and specific action items for your personal agenda."}
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
               />
             </div>
 
-            {/* Staff multi-select pills */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Assign To (Select one or more staff)
-                </label>
-                {staffList.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleSelectAllStaff}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
-                  >
-                    {selectedStaffIds.length === staffList.length ? 'Deselect All' : 'Select All Staff'}
-                  </button>
-                )}
-              </div>
-
-              {staffList.length === 0 ? (
-                <div className="p-4 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-bold text-slate-800">No staff members in your team yet</p>
-                    <p className="text-[11px] text-slate-500">Add your organization's staff members to begin assigning tasks</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddStaffModal(true)}
-                    className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>+ Add Staff</span>
-                  </button>
+            {/* Target Specific Assignment Details */}
+            {assignmentTarget === 'staff' ? (
+              /* Staff multi-select pills */
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Assign To (Select one or more staff)
+                  </label>
+                  {staffList.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleSelectAllStaff}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                    >
+                      {selectedStaffIds.length === staffList.length ? 'Deselect All' : 'Select All Staff'}
+                    </button>
+                  )}
                 </div>
-              ) : (
-                <div className="flex flex-wrap gap-2.5">
-                  {staffList.map((staff) => {
-                    const isSelected = selectedStaffIds.includes(staff.id);
-                    return (
-                      <button
-                        type="button"
-                        key={staff.id}
-                        onClick={() => toggleStaff(staff.id)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white shadow-xs'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-                        }`}
-                      >
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                            isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-700'
+
+                {staffList.length === 0 ? (
+                  <div className="p-4 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">No staff members in your team yet</p>
+                      <p className="text-[11px] text-slate-500">Add your organization's staff members to begin assigning tasks</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddStaffModal(true)}
+                      className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>+ Add Staff</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2.5">
+                    {staffList.map((staff) => {
+                      const isSelected = selectedStaffIds.includes(staff.id);
+                      return (
+                        <button
+                          type="button"
+                          key={staff.id}
+                          onClick={() => toggleStaff(staff.id)}
+                          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                           }`}
                         >
-                          {staff.initials}
-                        </div>
-                        <span>{staff.name}</span>
-                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                      </button>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    onClick={() => setShowAddStaffModal(true)}
-                    className="px-3.5 py-2 rounded-xl border border-dashed border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-                    title="Add new staff member"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>+ Add Staff</span>
-                  </button>
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                              isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-700'
+                            }`}
+                          >
+                            {staff.initials}
+                          </div>
+                          <span>{staff.name}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => setShowAddStaffModal(true)}
+                      className="px-3.5 py-2 rounded-xl border border-dashed border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      title="Add new staff member"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>+ Add Staff</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Admin Self Assignment Notice */
+              <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 flex items-center gap-3.5 shadow-2xs">
+                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
+                  AD
                 </div>
-              )}
-            </div>
+                <div>
+                  <div className="text-xs font-bold text-indigo-950">
+                    👑 Assigning to Admin's Personal Daily Agenda
+                  </div>
+                  <div className="text-[11px] text-indigo-900 font-medium mt-0.5">
+                    This task is private to you and tracked under your <strong>Admin Personal Score</strong>, completely independent of the staff team target rate.
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Target Deadline (Interactive Mini Calendar & Fast Clock Picker) */}
             <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
@@ -271,8 +367,17 @@ export const AssignTaskView: React.FC = () => {
                 type="submit"
                 className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95"
               >
-                <Send className="w-4 h-4" />
-                <span>Dispatch Task to Staff</span>
+                {assignmentTarget === 'staff' ? (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Dispatch Task to Staff</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Add to Admin Daily Agenda</span>
+                  </>
+                )}
               </button>
               <button
                 type="button"
@@ -293,49 +398,112 @@ export const AssignTaskView: React.FC = () => {
               <ShieldAlert className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-1">
-                  Enforcement Rules
+                  {assignmentTarget === 'staff' ? 'Staff Work Delegation' : 'Admin Personal Task'}
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Tasks assigned by admin bypass request confirmation and land directly into staff's active daily queue.
+                  {assignmentTarget === 'staff'
+                    ? 'Staff tasks land in staff queues. When staff strike tasks, they automatically reflect on the Executive Dashboard without requiring manual Admin striking.'
+                    : 'Personal tasks are logged in your Admin Daily Checklist with a dedicated Admin Personal Score separate from team delivery rates.'}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Recently Assigned List */}
+          {/* Recently Assigned List - Fully Separated Staff vs Admin */}
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center justify-between">
-              <span>Recently Assigned</span>
+            <div className="flex items-center justify-between mb-3.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Recently Assigned
+              </h3>
               <Users className="w-4 h-4 text-indigo-600" />
-            </h3>
-            {recentlyAssigned.length === 0 ? (
-              <p className="text-xs text-slate-400 italic font-medium">No admin tasks assigned yet.</p>
+            </div>
+
+            {/* Sub-tabs to switch between Staff Target Tasks and Admin Personal Tasks */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl mb-4">
+              <button
+                type="button"
+                onClick={() => setRecentTab('staff')}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer truncate ${
+                  recentTab === 'staff'
+                    ? 'bg-white text-indigo-700 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                👥 Staff ({recentStaffTasks.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setRecentTab('admin')}
+                className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer truncate ${
+                  recentTab === 'admin'
+                    ? 'bg-white text-indigo-700 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                👑 Myself ({recentAdminTasks.length})
+              </button>
+            </div>
+
+            {recentTab === 'staff' ? (
+              recentStaffTasks.length === 0 ? (
+                <p className="text-xs text-slate-400 italic font-medium">No staff tasks assigned yet.</p>
+              ) : (
+                <div className="space-y-3.5">
+                  {recentStaffTasks.map((task) => (
+                    <div key={task.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-900 truncate">{task.title}</span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                            task.status === 'done'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          }`}
+                        >
+                          {task.status === 'done' ? 'Done' : 'Pending'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
+                        <span className="font-medium text-slate-600">Assigned: {task.assignedToName}</span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                          <Calendar className="w-3 h-3 text-slate-500" />
+                          <span>{task.dueDate} · {task.dueTime}</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="space-y-3.5">
-                {recentlyAssigned.map((task) => (
-                  <div key={task.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-900 truncate">{task.title}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                          task.status === 'done'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
-                      >
-                        {task.status === 'done' ? 'Done' : 'Pending'}
-                      </span>
+              recentAdminTasks.length === 0 ? (
+                <p className="text-xs text-slate-400 italic font-medium">No personal admin tasks logged yet.</p>
+              ) : (
+                <div className="space-y-3.5">
+                  {recentAdminTasks.map((task) => (
+                    <div key={task.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-900 truncate">{task.title}</span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                            task.status === 'done'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                          }`}
+                        >
+                          {task.status === 'done' ? 'Done' : 'Pending'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
+                        <span className="font-medium text-slate-600">👑 Admin Personal</span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                          <Calendar className="w-3 h-3 text-slate-500" />
+                          <span>{task.dueDate} · {task.dueTime}</span>
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
-                      <span className="font-medium text-slate-600">Assigned: {task.assignedToName}</span>
-                      <span className="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                        <Calendar className="w-3 h-3 text-slate-500" />
-                        <span>{task.dueDate} · {task.dueTime}</span>
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         </div>

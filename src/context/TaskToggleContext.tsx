@@ -33,6 +33,13 @@ interface TaskToggleContextType {
     dueTime: string;
     priority: TaskPriority;
   }) => void;
+  assignAdminPersonalTask: (data: {
+    title: string;
+    description?: string;
+    dueDate: string;
+    dueTime: string;
+    priority: TaskPriority;
+  }) => void;
   createStaffTask: (data: {
     title: string;
     details: string;
@@ -41,6 +48,7 @@ interface TaskToggleContextType {
     dueTime: string;
   }) => void;
   toggleTaskStatus: (taskId: string) => void;
+  deleteTask: (taskId: string) => void;
   completeAllTasks: () => void;
   snoozeTask: (taskId: string, minutes: number) => void;
   playCompletionSound: () => void;
@@ -67,7 +75,7 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
-const STORAGE_CLEAN_VERSION = 'v5_client_presentation';
+const STORAGE_CLEAN_VERSION = 'v6_admin_personal_separation';
 
 if (typeof window !== 'undefined') {
   if (localStorage.getItem('tasktoggle_data_version') !== STORAGE_CLEAN_VERSION) {
@@ -659,6 +667,35 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
+  // Rule 1b: Admin assigns daily task to themselves (Personal Daily Agenda)
+  const assignAdminPersonalTask = (data: {
+    title: string;
+    description?: string;
+    dueDate: string;
+    dueTime: string;
+    priority: TaskPriority;
+  }) => {
+    const newTask: Task = {
+      id: `task_admin_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      title: data.title,
+      description: data.description || '',
+      createdBy: currentUser.id,
+      createdByName: currentUser.name || 'Admin',
+      assignedTo: currentUser.id,
+      assignedToName: currentUser.name || 'Admin',
+      type: 'self',
+      priority: data.priority,
+      dueDate: data.dueDate,
+      dueTime: data.dueTime,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+
+    setTasks((prev) => [newTask, ...prev]);
+    playRewardChime();
+    backendApi.createTask(newTask).catch((err) => console.warn('[Backend] assignAdminPersonalTask error:', err));
+  };
+
   // Rule 2: Staff creates task for self or other staff
   const createStaffTask = (data: {
     title: string;
@@ -742,6 +779,11 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       status: updatedStatus,
       completedAt: updatedCompletedAt,
     }).catch((err) => console.warn('[Backend] toggle error:', err));
+  };
+
+  const deleteTask = (taskId: string) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    backendApi.deleteTask(taskId).catch((err) => console.warn('[Backend] deleteTask error:', err));
   };
 
   // Productivity Feature: 1-Click Strike All Finished
@@ -968,8 +1010,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         login,
         logout,
         assignAdminTask,
+        assignAdminPersonalTask,
         createStaffTask,
         toggleTaskStatus,
+        deleteTask,
         completeAllTasks,
         snoozeTask,
         playCompletionSound: playRewardChime,

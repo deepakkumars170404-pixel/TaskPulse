@@ -98,6 +98,16 @@ class BackendApiService {
     }
   }
 
+  async deleteTask(taskId: string): Promise<void> {
+    if (this.hasSupabase && supabase) {
+      try {
+        await supabase.from('tasks').delete().eq('id', taskId);
+      } catch (err) {
+        console.warn('[BackendAPI] Error deleting task from Supabase:', err);
+      }
+    }
+  }
+
   // --- TIMING ---
   async getOfficeTiming(): Promise<OfficeTiming> {
     if (this.hasSupabase && supabase) {
