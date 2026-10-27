@@ -43,7 +43,7 @@ const MainLayout: React.FC = () => {
         />
 
         {/* Main Content Area - padded at bottom on mobile to accommodate BottomNav */}
-        <main className="flex-1 overflow-y-auto pb-24 md:pb-6">
+        <main className={`flex-1 overflow-y-auto ${currentPage === 'calendar' ? 'pb-20 md:pb-0 flex flex-col p-0' : 'pb-24 md:pb-6'}`}>
           {currentPage === 'calendar' && <FullPageCalendarView />}
           {currentUser.role === 'admin' ? (
             <>
