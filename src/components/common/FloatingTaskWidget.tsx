@@ -74,6 +74,11 @@ export const FloatingTaskWidget: React.FC = () => {
       return;
     }
 
+    if (pipWindow && !pipWindow.closed) {
+      pipWindow.focus();
+      return;
+    }
+
     try {
       const initialWidth = startInLogoMode ? 100 : 380;
       const initialHeight = startInLogoMode ? 100 : 540;
