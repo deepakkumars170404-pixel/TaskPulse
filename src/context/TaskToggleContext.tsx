@@ -44,6 +44,7 @@ interface TaskToggleContextType {
   completeAllTasks: () => void;
   snoozeTask: (taskId: string, minutes: number) => void;
   playCompletionSound: () => void;
+  sendTaskNotification: (title: string, body: string) => void;
   acceptTaskRequest: (taskId: string) => void;
   reportPendingReason: (taskId: string, reason: string) => void;
   updateOfficeTiming: (timing: OfficeTiming) => void;
@@ -89,6 +90,69 @@ const playRewardChime = () => {
     osc2.stop(now + 0.42);
   } catch (e) {
     // Ignore if audio permissions not yet activated by user click
+  }
+};
+
+// Browser-native Web Audio alert chime for new task assignment
+const playAssignmentAlertSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
+
+    // First tone: 587.33 Hz (D5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(587.33, now);
+    gain1.gain.setValueAtTime(0.2, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.25);
+
+    // Second tone: 880 Hz (A5) clear chime
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880, now + 0.12);
+    gain2.gain.setValueAtTime(0.25, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.45);
+  } catch (e) {
+    // Ignore if audio permissions not yet activated
+  }
+};
+
+export const sendTaskAssignmentNotification = (title: string, body: string) => {
+  // 1. Play alert chime
+  playAssignmentAlertSound();
+
+  // 2. Native OS Desktop Notification (pops over Word, Excel, Desktop, all apps)
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    if (Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body,
+          icon: '/favicon.ico',
+        });
+      } catch (e) {
+        console.warn('Native notification error:', e);
+      }
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then((perm) => {
+        if (perm === 'granted') {
+          try {
+            new Notification(title, { body, icon: '/favicon.ico' });
+          } catch (e) {}
+        }
+      });
+    }
   }
 };
 
@@ -291,6 +355,12 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // Optimistic UI update
     setTasks((prev) => [...newTasks, ...prev]);
 
+    // Trigger notification sound and native desktop alert over all apps
+    sendTaskAssignmentNotification(
+      'New Task from Admin (Deepak)',
+      `${data.title} · Due: ${data.dueDate} ${data.dueTime}`
+    );
+
     // Backend database persistence
     newTasks.forEach((t) => {
       backendApi.createTask(t).catch((err) => console.warn('[Backend] assign error:', err));
@@ -326,6 +396,13 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // Optimistic UI update
     setTasks((prev) => [newTask, ...prev]);
+
+    if (!isSelf) {
+      sendTaskAssignmentNotification(
+        `New Task from ${currentUser.name}`,
+        `${data.title} · Due: ${data.dueTime}`
+      );
+    }
 
     // Backend database persistence
     backendApi.createTask(newTask).catch((err) => console.warn('[Backend] create error:', err));
@@ -505,6 +582,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         completeAllTasks,
         snoozeTask,
         playCompletionSound: playRewardChime,
+        sendTaskNotification: sendTaskAssignmentNotification,
         acceptTaskRequest,
         reportPendingReason,
         updateOfficeTiming,
