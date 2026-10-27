@@ -41,6 +41,9 @@ interface TaskToggleContextType {
     dueTime: string;
   }) => void;
   toggleTaskStatus: (taskId: string) => void;
+  completeAllTasks: () => void;
+  snoozeTask: (taskId: string, minutes: number) => void;
+  playCompletionSound: () => void;
   acceptTaskRequest: (taskId: string) => void;
   reportPendingReason: (taskId: string, reason: string) => void;
   updateOfficeTiming: (timing: OfficeTiming) => void;
@@ -52,6 +55,42 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
+
+// Browser-native Web Audio API synthesizer for positive completion feedback
+const playRewardChime = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
+
+    // Note 1: 523.25 Hz (C5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(523.25, now);
+    gain1.gain.setValueAtTime(0.12, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.22);
+
+    // Note 2: 1046.5 Hz (C6) high pleasant chime
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1046.5, now + 0.08);
+    gain2.gain.setValueAtTime(0.15, now + 0.08);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.08);
+    osc2.stop(now + 0.42);
+  } catch (e) {
+    // Ignore if audio permissions not yet activated by user click
+  }
+};
 
 export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isBackendConnected] = useState<boolean>(backendApi.isConnected());
@@ -292,41 +331,86 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     backendApi.createTask(newTask).catch((err) => console.warn('[Backend] create error:', err));
   };
 
-  // Rule 3: Toggle task completed / pending
+  // Rule 3: Toggle task completed / pending with audio reward chime
   const toggleTaskStatus = (taskId: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const target = tasks.find((t) => t.id === taskId);
+    if (!target) return;
 
-    let updatedStatus: 'pending' | 'accepted' | 'done' = 'pending';
-    let updatedCompletedAt: string | undefined = undefined;
+    const isDone = target.status === 'done';
+    const updatedStatus: 'pending' | 'accepted' | 'done' = isDone
+      ? target.type === 'staff' && !target.acceptedAt
+        ? 'pending'
+        : target.type === 'staff'
+        ? 'accepted'
+        : 'pending'
+      : 'done';
+    const updatedCompletedAt = isDone ? undefined : nowTimeStr;
 
     setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          const isDone = t.status === 'done';
-          updatedStatus = isDone
-            ? t.type === 'staff' && !t.acceptedAt
-              ? 'pending'
-              : t.type === 'staff'
-              ? 'accepted'
-              : 'pending'
-            : 'done';
-          updatedCompletedAt = isDone ? undefined : nowTimeStr;
-
-          return {
-            ...t,
-            status: updatedStatus,
-            completedAt: updatedCompletedAt,
-          };
-        }
-        return t;
-      })
+      prev.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              status: updatedStatus,
+              completedAt: updatedCompletedAt,
+            }
+          : t
+      )
     );
+
+    // Play pleasant dopamine chime when task is marked done
+    if (updatedStatus === 'done') {
+      playRewardChime();
+    }
 
     // Backend database update
     backendApi.updateTask(taskId, {
       status: updatedStatus,
       completedAt: updatedCompletedAt,
     }).catch((err) => console.warn('[Backend] toggle error:', err));
+  };
+
+  // Productivity Feature: 1-Click Strike All Finished
+  const completeAllTasks = () => {
+    const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    setTasks((prev) =>
+      prev.map((t) => {
+        const isEligible = currentUser.role === 'admin' || t.assignedTo === currentUser.id;
+        if (isEligible && t.status !== 'done') {
+          backendApi.updateTask(t.id, { status: 'done', completedAt: nowTimeStr }).catch(() => {});
+          return {
+            ...t,
+            status: 'done',
+            completedAt: nowTimeStr,
+          };
+        }
+        return t;
+      })
+    );
+
+    playRewardChime();
+  };
+
+  // Productivity Feature: Quick 1-Tap Snooze / Reschedule
+  const snoozeTask = (taskId: string, minutes: number) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          const now = new Date();
+          now.setMinutes(now.getMinutes() + minutes);
+          const newDueTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          backendApi.updateTask(taskId, { dueTime: newDueTime }).catch(() => {});
+          return {
+            ...t,
+            dueTime: newDueTime,
+          };
+        }
+        return t;
+      })
+    );
   };
 
   // Rule 4: Accept incoming staff-to-staff task request
@@ -418,6 +502,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         assignAdminTask,
         createStaffTask,
         toggleTaskStatus,
+        completeAllTasks,
+        snoozeTask,
+        playCompletionSound: playRewardChime,
         acceptTaskRequest,
         reportPendingReason,
         updateOfficeTiming,
