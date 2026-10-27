@@ -1,8 +1,16 @@
 // Vercel Serverless Function: /api/timing
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const DEFAULT_SUPABASE_URL = 'https://otgnvfuiveknbhavuntq.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90Z252ZnVpdmVrbmJoYXZ1bnRxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzAxMjg2MiwiZXhwIjoyMTA4NTg4ODYyfQ.RML_mcdUKa0tOhsRTXM1xdLmidf_184ZpYOfzv8tTkw';
+
+let supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_KEY;
+
+if (!supabaseUrl || supabaseUrl.includes('giuftrigtoackyrfbacw')) {
+  supabaseUrl = DEFAULT_SUPABASE_URL;
+  supabaseKey = DEFAULT_SUPABASE_KEY;
+}
 
 const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 

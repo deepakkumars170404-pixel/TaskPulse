@@ -88,15 +88,20 @@ class BackendApiService {
         if (updates.assignedTo !== undefined) dbUpdates.assigned_to = updates.assignedTo;
         if (updates.assignedToName !== undefined) dbUpdates.assigned_to_name = updates.assignedToName;
         if (updates.type !== undefined) dbUpdates.type = updates.type;
-        if (updates.rejectReason !== undefined) dbUpdates.reject_reason = updates.rejectReason;
-        if (updates.rejectedAt !== undefined) dbUpdates.rejected_at = updates.rejectedAt;
         if (updates.pendingReason !== undefined) dbUpdates.pending_reason = updates.pendingReason;
         if (updates.pendingReasonUpdatedAt !== undefined)
           dbUpdates.pending_reason_updated_at = updates.pendingReasonUpdatedAt;
         if (updates.acceptedAt !== undefined) dbUpdates.accepted_at = updates.acceptedAt;
         if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
 
-        await supabase.from('tasks').update(dbUpdates).eq('id', taskId);
+        const { error } = await supabase.from('tasks').update(dbUpdates).eq('id', taskId);
+        if (error && updates.status === 'rejected') {
+          // If the DB constraint hasn't been altered to accept 'rejected', fallback to pending with [DECLINED]: reason
+          await supabase.from('tasks').update({
+            ...dbUpdates,
+            status: 'pending',
+          }).eq('id', taskId);
+        }
       } catch (err) {
         console.warn('[BackendAPI] Error updating task in Supabase:', err);
       }

@@ -9,8 +9,10 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
 
+  const DEFAULT_SUPABASE_URL = 'https://otgnvfuiveknbhavuntq.supabase.co';
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
   const isSupabaseConfigured = Boolean(
-    process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+    supabaseUrl && !supabaseUrl.includes('giuftrigtoackyrfbacw')
   );
 
   return res.status(200).json({

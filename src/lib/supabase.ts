@@ -3,6 +3,9 @@ import { Task } from '../types';
 
 const env = (import.meta as any).env || {};
 
+const DEFAULT_SUPABASE_URL = 'https://otgnvfuiveknbhavuntq.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90Z252ZnVpdmVrbmJoYXZ1bnRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMTI4NjIsImV4cCI6MjEwODU4ODg2Mn0.4nsa8cfxlSsCtJCqIs9_VIIxorbM43QdjPdrntcxCYs';
+
 // Read credentials from build environment variables or custom localStorage override
 export const getSupabaseConfig = (): { url: string; key: string } => {
   let url = env.VITE_SUPABASE_URL || '';
@@ -15,6 +18,12 @@ export const getSupabaseConfig = (): { url: string; key: string } => {
       url = customUrl.trim();
       key = customKey.trim();
     }
+  }
+
+  // If missing or pointing to the old uninitialized project, use the active Deepak project
+  if (!url || url.includes('giuftrigtoackyrfbacw')) {
+    url = DEFAULT_SUPABASE_URL;
+    key = DEFAULT_SUPABASE_ANON_KEY;
   }
 
   return { url, key };
