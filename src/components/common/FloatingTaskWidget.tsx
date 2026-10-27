@@ -41,14 +41,14 @@ export const FloatingTaskWidget: React.FC = () => {
 
   // Document Picture-in-Picture state (OS-level floating window over all other apps)
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
-  const [isPipLogoOnly, setIsPipLogoOnly] = useState(true);
+  const [isPipLogoOnly, setIsPipLogoOnly] = useState(false);
 
   const isPiPSupported = typeof window !== 'undefined' && 'documentPictureInPicture' in window;
 
   // Listen to open-pip-window custom event from the Header button
   useEffect(() => {
     const handleOpenPipCustom = () => {
-      openPiP(true);
+      openPiP(false);
     };
 
     window.addEventListener('open-pip-window', handleOpenPipCustom);
@@ -59,7 +59,7 @@ export const FloatingTaskWidget: React.FC = () => {
   }, [pipWindow]);
 
   // Open Document Picture-in-Picture window (Floats over all other desktop apps!)
-  const openPiP = async (startInLogoMode = true) => {
+  const openPiP = async (startInLogoMode = false) => {
     if (window.electronAPI?.isElectron) {
       if (window.electronAPI.showFloating) {
         window.electronAPI.showFloating();
@@ -80,8 +80,9 @@ export const FloatingTaskWidget: React.FC = () => {
     }
 
     try {
-      const initialWidth = startInLogoMode ? 100 : 380;
-      const initialHeight = startInLogoMode ? 100 : 540;
+      // Consistent stable dimensions prevent Chrome Document PiP from jumping across screen
+      const initialWidth = 380;
+      const initialHeight = 540;
 
       const pipWin = await window.documentPictureInPicture.requestWindow({
         width: initialWidth,
@@ -101,7 +102,7 @@ export const FloatingTaskWidget: React.FC = () => {
           margin: 0;
           padding: 0;
           font-family: 'Open Sans', sans-serif;
-          background-color: ${startInLogoMode ? "#EEF2FF" : "#FFFFFF"} !important;
+          background-color: #FFFFFF !important;
           background-image: none !important;
           width: 100%;
           height: 100%;
@@ -115,7 +116,7 @@ export const FloatingTaskWidget: React.FC = () => {
         setPipWindow(null);
       });
 
-      setIsPipLogoOnly(startInLogoMode);
+      setIsPipLogoOnly(false);
       setPipWindow(pipWin);
     } catch (err) {
       console.warn('PiP open error:', err);
@@ -144,16 +145,8 @@ export const FloatingTaskWidget: React.FC = () => {
   };
 
   const shrinkPiPToLogo = () => {
-    setIsPipLogoOnly(true);
-    if (pipWindow) {
-      pipWindow.document.body.style.backgroundColor = "#EEF2FF";
-      pipWindow.document.body.style.backgroundImage = "none";
-      try {
-        pipWindow.resizeTo(120, 120);
-      } catch (e) {
-        // Ignore if resizeTo restricted
-      }
-    }
+    // Closing PiP allows Chrome's native window manager to perfectly remember the user's screen coordinates
+    closePiP();
   };
 
   const startVoiceInput = () => {
@@ -374,20 +367,12 @@ export const FloatingTaskWidget: React.FC = () => {
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={shrinkPiPToLogo}
-                      className="px-2 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all"
-                      title="Shrink back to logo size"
-                    >
-                      <Minimize2 className="w-3 h-3" />
-                      <span>Logo</span>
-                    </button>
-                    <button
-                      type="button"
                       onClick={closePiP}
-                      className="w-6 h-6 rounded-lg bg-white/15 hover:bg-rose-600 text-white flex items-center justify-center cursor-pointer transition-all"
-                      title="Close window"
+                      className="px-2.5 py-1 rounded-lg bg-white/15 hover:bg-rose-600 text-white text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+                      title="Close floating window (Chrome remembers your screen position when reopened)"
                     >
                       <X className="w-3.5 h-3.5" />
+                      <span>Close</span>
                     </button>
                   </div>
                 </div>
@@ -489,10 +474,12 @@ export const FloatingTaskWidget: React.FC = () => {
                   )}
                   <button
                     type="button"
-                    onClick={shrinkPiPToLogo}
-                    className="text-indigo-600 font-bold cursor-pointer hover:underline"
+                    onClick={closePiP}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all"
+                    title="Close floating window (Chrome remembers your placed screen position)"
                   >
-                    Minimize to Logo
+                    <X className="w-3 h-3" />
+                    <span>Close Window</span>
                   </button>
                 </div>
               </div>

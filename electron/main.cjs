@@ -57,6 +57,11 @@ let floatingWindow = null;
 let tray = null;
 let dragInterval = null;
 
+// Position Memory Engine: Prevents floating window from jumping across screen
+let savedLogoPosition = null; // { x: number, y: number }
+let currentFloatingMode = 'logo'; // 'logo' | 'expanded'
+let userDraggedWhileExpanded = false;
+
 const isDev = process.env.ELECTRON_DEV === '1' || !app.isPackaged;
 const DEV_URL = 'http://localhost:5173';
 
@@ -118,6 +123,10 @@ function createFloatingBubbleWindow() {
   const initialHeight = 90;
   const initialX = Math.max(20, screenWidth - initialWidth - 24);
   const initialY = Math.max(40, screenHeight - initialHeight - 120);
+
+  if (!savedLogoPosition) {
+    savedLogoPosition = { x: initialX, y: initialY };
+  }
 
   floatingWindow = new BrowserWindow({
     width: initialWidth,
@@ -254,6 +263,14 @@ ipcMain.on('stop-drag-floating', () => {
     clearInterval(dragInterval);
     dragInterval = null;
   }
+  if (floatingWindow && !floatingWindow.isDestroyed()) {
+    const pos = floatingWindow.getPosition();
+    if (currentFloatingMode === 'logo') {
+      savedLogoPosition = { x: pos[0], y: pos[1] };
+    } else {
+      userDraggedWhileExpanded = true;
+    }
+  }
 });
 
 // IPC Window Resizer
@@ -268,6 +285,13 @@ ipcMain.on('floating-resize', (event, mode) => {
   const workArea = currentDisplay.workArea;
 
   if (mode === 'expanded') {
+    // Save current logo position before shifting to expanded mode
+    if (currentFloatingMode === 'logo') {
+      savedLogoPosition = { x: currentBounds.x, y: currentBounds.y };
+      userDraggedWhileExpanded = false;
+    }
+    currentFloatingMode = 'expanded';
+
     const targetWidth = 380;
     const targetHeight = 560;
 
@@ -296,9 +320,31 @@ ipcMain.on('floating-resize', (event, mode) => {
     const targetWidth = 90;
     const targetHeight = 90;
 
+    let targetX = currentBounds.x;
+    let targetY = currentBounds.y;
+
+    if (currentFloatingMode === 'expanded') {
+      if (!userDraggedWhileExpanded && savedLogoPosition) {
+        // Restore to exact user-placed position!
+        targetX = savedLogoPosition.x;
+        targetY = savedLogoPosition.y;
+      } else {
+        // If user dragged expanded window, anchor logo to bottom-right of dragged window
+        targetX = currentBounds.x + currentBounds.width - targetWidth;
+        targetY = currentBounds.y + currentBounds.height - targetHeight;
+      }
+    }
+
+    targetX = Math.min(Math.max(workArea.x + 10, targetX), workArea.x + workArea.width - targetWidth - 10);
+    targetY = Math.min(Math.max(workArea.y + 10, targetY), workArea.y + workArea.height - targetHeight - 10);
+
+    savedLogoPosition = { x: targetX, y: targetY };
+    currentFloatingMode = 'logo';
+    userDraggedWhileExpanded = false;
+
     floatingWindow.setBounds({
-      x: currentBounds.x,
-      y: currentBounds.y,
+      x: targetX,
+      y: targetY,
       width: targetWidth,
       height: targetHeight,
     });
