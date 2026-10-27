@@ -11,6 +11,8 @@ import {
   Sparkles,
   Users,
   ShieldAlert,
+  ShieldCheck,
+  UserCheck,
   User,
   X,
   Flag,
@@ -66,52 +68,48 @@ export const FullPageCalendarView: React.FC = () => {
   // Calendar active viewing month (default: current month)
   const [activeDate, setActiveDate] = useState<Date>(() => new Date(2026, 9, 27)); // Oct 2026
 
-  // In-place popover state: anchored to the clicked date cell
-  const [popoverAnchor, setPopoverAnchor] = useState<{ rect: DOMRect; date: Date } | null>(null);
+  // Centered date details modal state
+  const [selectedModalDate, setSelectedModalDate] = useState<Date | null>(null);
+  const [modalTaskFilter, setModalTaskFilter] = useState<'all' | 'admin' | 'staff'>('all');
 
   const currentYear = activeDate.getFullYear();
   const currentMonth = activeDate.getMonth();
 
-  // Close in-place popover on window resize, scroll or Escape key
+  // Close modal on Escape key
   useEffect(() => {
-    const handleClose = () => setPopoverAnchor(null);
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPopoverAnchor(null);
+      if (e.key === 'Escape') setSelectedModalDate(null);
     };
 
-    window.addEventListener('resize', handleClose);
     window.addEventListener('keydown', handleKeyDown);
-
     return () => {
-      window.removeEventListener('resize', handleClose);
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
   // Navigation handlers
   const handlePrevMonth = () => {
-    setPopoverAnchor(null);
+    setSelectedModalDate(null);
     setActiveDate(new Date(currentYear, currentMonth - 1, 1));
   };
 
   const handleNextMonth = () => {
-    setPopoverAnchor(null);
+    setSelectedModalDate(null);
     setActiveDate(new Date(currentYear, currentMonth + 1, 1));
   };
 
   const handleResetToToday = () => {
-    setPopoverAnchor(null);
+    setSelectedModalDate(null);
     setActiveDate(new Date());
   };
 
-  // Date click handler: opens the popover at the clicked cell with sound
-  const handleDateClick = (date: Date, e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
+  // Date click handler: opens the centered modal with sound
+  const handleDateClick = (date: Date) => {
     if (playCalendarClickSound) {
       playCalendarClickSound();
     }
-    const rect = e.currentTarget.getBoundingClientRect();
-    setPopoverAnchor({ rect, date });
+    setModalTaskFilter('all');
+    setSelectedModalDate(date);
   };
 
   // Helper: Format date to 'DD MMM YYYY' matching task.dueDate
@@ -214,14 +212,17 @@ export const FullPageCalendarView: React.FC = () => {
     return tasks.filter((t) => t.assignedTo === currentUser.id || t.createdBy === currentUser.id);
   }, [tasks, currentUser]);
 
-  // Tasks & holiday for selected popover date
+  // Tasks & holiday for selected modal date
   const selectedDateDetails = useMemo(() => {
-    if (!popoverAnchor) return null;
-    const { date } = popoverAnchor;
+    if (!selectedModalDate) return null;
+    const date = selectedModalDate;
     const formatted = formatTaskDate(date);
 
     const matchingTasks = relevantTasks.filter((t) => isSameCalendarDay(date, t.dueDate));
     const pendingTasks = matchingTasks.filter((t) => t.status !== 'done');
+    const adminTasks = matchingTasks.filter((t) => t.type === 'admin');
+    const staffTasks = matchingTasks.filter((t) => t.type === 'staff' || t.type === 'self');
+
     const hasOverdue = pendingTasks.some((t) => {
       if (!t.dueDate) return false;
       const dl = parseTaskDeadline(t.dueDate, t.dueTime || '11:59 PM');
@@ -234,47 +235,27 @@ export const FullPageCalendarView: React.FC = () => {
       (h) => h.month === date.getMonth() && h.day === date.getDate()
     );
 
+    const displayedTasks =
+      modalTaskFilter === 'admin'
+        ? adminTasks
+        : modalTaskFilter === 'staff'
+        ? staffTasks
+        : matchingTasks;
+
     return {
       date,
       formattedDate: formatted,
       longDate: formatLongDate(date),
       holiday: matchingHoliday,
-      tasks: matchingTasks,
+      allTasks: matchingTasks,
+      adminTasks,
+      staffTasks,
+      displayedTasks,
       hasOverdue,
       hasPending,
       allDone,
     };
-  }, [popoverAnchor, relevantTasks]);
-
-  // Compute fixed popover coordinates directly at the clicked cell
-  const popoverStyle = useMemo<React.CSSProperties>(() => {
-    if (!popoverAnchor) return {};
-    const { rect } = popoverAnchor;
-    const POPOVER_WIDTH = 340;
-    const POPOVER_ESTIMATED_HEIGHT = 280;
-    const PADDING = 10;
-
-    // Horizontal positioning: align with left of cell, or flip left if overflowing viewport
-    let left = rect.left;
-    if (left + POPOVER_WIDTH > window.innerWidth - PADDING) {
-      left = Math.max(PADDING, rect.right - POPOVER_WIDTH);
-    }
-    if (left < PADDING) left = PADDING;
-
-    // Vertical positioning: place directly below the cell, or flip above if overflowing bottom
-    let top = rect.bottom + 6;
-    if (top + POPOVER_ESTIMATED_HEIGHT > window.innerHeight - PADDING) {
-      top = Math.max(PADDING, rect.top - POPOVER_ESTIMATED_HEIGHT - 6);
-    }
-
-    return {
-      position: 'fixed',
-      top: `${top}px`,
-      left: `${left}px`,
-      width: `${Math.min(POPOVER_WIDTH, window.innerWidth - 2 * PADDING)}px`,
-      zIndex: 50,
-    };
-  }, [popoverAnchor]);
+  }, [selectedModalDate, relevantTasks, modalTaskFilter]);
 
   const today = new Date();
 
@@ -362,10 +343,10 @@ export const FullPageCalendarView: React.FC = () => {
               date.getDate() === today.getDate();
 
             const isSelected =
-              popoverAnchor &&
-              date.getFullYear() === popoverAnchor.date.getFullYear() &&
-              date.getMonth() === popoverAnchor.date.getMonth() &&
-              date.getDate() === popoverAnchor.date.getDate();
+              selectedModalDate &&
+              date.getFullYear() === selectedModalDate.getFullYear() &&
+              date.getMonth() === selectedModalDate.getMonth() &&
+              date.getDate() === selectedModalDate.getDate();
 
             // Find matching government holiday
             const holiday = GOVERNMENT_HOLIDAYS.find(
@@ -426,32 +407,62 @@ export const FullPageCalendarView: React.FC = () => {
             return (
               <div
                 key={idx}
-                onClick={(e) => handleDateClick(date, e)}
-                className={`min-h-[80px] p-1.5 sm:p-2 transition-all cursor-pointer flex flex-col justify-between group select-none relative ${cellBgClass} ${selectionRing}`}
-                title="Click to view details right here"
+                onClick={() => handleDateClick(date)}
+                className={`min-h-[58px] sm:min-h-[85px] p-1 sm:p-2 transition-all cursor-pointer flex flex-col justify-between group select-none relative overflow-hidden ${cellBgClass} ${selectionRing}`}
+                title="Click to view details"
               >
                 {/* Top Row: Date Number & Holiday Indicator */}
-                <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center justify-between gap-1 overflow-hidden">
                   <span
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold transition-all ${dateBadgeClass}`}
+                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-extrabold transition-all shrink-0 ${dateBadgeClass}`}
                   >
                     {date.getDate()}
                   </span>
 
                   {/* Holiday Flag Badge */}
                   {holiday && isCurrentMonth && (
-                    <span
-                      className="text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-900 border border-amber-300 truncate max-w-[70px] sm:max-w-[110px] flex items-center gap-0.5"
-                      title={`Government Holiday: ${holiday.name}`}
-                    >
-                      <Flag className="w-2.5 h-2.5 text-amber-600 shrink-0" />
-                      <span className="truncate">{holiday.name}</span>
-                    </span>
+                    <>
+                      {/* Mobile Holiday Icon */}
+                      <span className="sm:hidden text-amber-600 shrink-0" title={`Holiday: ${holiday.name}`}>
+                        <Flag className="w-2.5 h-2.5 fill-current" />
+                      </span>
+                      {/* Desktop Holiday Badge */}
+                      <span
+                        className="hidden sm:inline-flex text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-900 border border-amber-300 truncate max-w-[110px] items-center gap-0.5"
+                        title={`Government Holiday: ${holiday.name}`}
+                      >
+                        <Flag className="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                        <span className="truncate">{holiday.name}</span>
+                      </span>
+                    </>
                   )}
                 </div>
 
                 {/* Middle: Color-coded Task Chips */}
-                <div className="space-y-1 my-0.5 overflow-hidden">
+                {/* Mobile: Compact Dots */}
+                <div className="sm:hidden flex items-center gap-1 my-0.5 flex-wrap overflow-hidden">
+                  {dayTasks.slice(0, 3).map((task) => (
+                    <span
+                      key={task.id}
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        task.status === 'done'
+                          ? 'bg-emerald-500'
+                          : task.type === 'admin'
+                          ? 'bg-indigo-600'
+                          : 'bg-purple-600'
+                      }`}
+                      title={`${task.title} (${task.assignedToName})`}
+                    />
+                  ))}
+                  {dayTasks.length > 3 && (
+                    <span className="text-[7px] font-bold text-slate-500 leading-none">
+                      +{dayTasks.length - 3}
+                    </span>
+                  )}
+                </div>
+
+                {/* Desktop: Full Title Chips */}
+                <div className="hidden sm:block space-y-1 my-0.5 overflow-hidden">
                   {dayTasks.slice(0, 2).map((task) => {
                     const isDone = task.status === 'done';
                     const isAdmin = task.type === 'admin';
@@ -486,36 +497,59 @@ export const FullPageCalendarView: React.FC = () => {
 
                 {/* Bottom: Task Counter Badge */}
                 {dayTasks.length > 0 && isCurrentMonth && (
-                  <div className="text-[9px] font-bold flex items-center justify-between pt-1 flex-wrap gap-1">
-                    {hasOverdueTask ? (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
-                        <Clock className="w-2.5 h-2.5 text-amber-700 animate-pulse" />
-                        <span>Overdue ({pendingDayTasks.length})</span>
-                      </span>
-                    ) : hasPendingTask ? (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-rose-200 text-rose-900 border border-rose-300 flex items-center gap-1 shadow-2xs">
-                        <AlertCircle className="w-2.5 h-2.5 text-rose-700" />
-                        <span>Pending ({pendingDayTasks.length})</span>
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-200 text-emerald-900 border border-emerald-300 flex items-center gap-1 shadow-2xs">
-                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-700" />
-                        <span>Done ({dayTasks.length})</span>
-                      </span>
-                    )}
+                  <>
+                    {/* Mobile: Compact Pill */}
+                    <div className="sm:hidden flex items-center justify-center pt-0.5 overflow-hidden">
+                      {hasOverdueTask ? (
+                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-amber-200 text-amber-900 border border-amber-300 flex items-center gap-0.5 leading-tight truncate">
+                          <Clock className="w-2 h-2 text-amber-700 animate-pulse shrink-0" />
+                          <span>{pendingDayTasks.length}</span>
+                        </span>
+                      ) : hasPendingTask ? (
+                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-rose-200 text-rose-900 border border-rose-300 flex items-center gap-0.5 leading-tight truncate">
+                          <AlertCircle className="w-2 h-2 text-rose-700 shrink-0" />
+                          <span>{pendingDayTasks.length}</span>
+                        </span>
+                      ) : (
+                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-200 text-emerald-900 border border-emerald-300 flex items-center gap-0.5 leading-tight truncate">
+                          <CheckCircle2 className="w-2 h-2 text-emerald-700 shrink-0" />
+                          <span>{dayTasks.length}</span>
+                        </span>
+                      )}
+                    </div>
 
-                    <span
-                      className={`text-[9px] font-bold ${
-                        hasOverdueTask
-                          ? 'text-amber-800 font-extrabold'
-                          : hasPendingTask
-                          ? 'text-rose-800 font-extrabold'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
-                    </span>
-                  </div>
+                    {/* Desktop: Expanded Pill */}
+                    <div className="hidden sm:flex items-center justify-between pt-1 flex-wrap gap-1">
+                      {hasOverdueTask ? (
+                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                          <Clock className="w-2.5 h-2.5 text-amber-700 animate-pulse" />
+                          <span>Overdue ({pendingDayTasks.length})</span>
+                        </span>
+                      ) : hasPendingTask ? (
+                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-rose-200 text-rose-900 border border-rose-300 flex items-center gap-1 shadow-2xs">
+                          <AlertCircle className="w-2.5 h-2.5 text-rose-700" />
+                          <span>Pending ({pendingDayTasks.length})</span>
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-200 text-emerald-900 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                          <CheckCircle2 className="w-2.5 h-2.5 text-emerald-700" />
+                          <span>Done ({dayTasks.length})</span>
+                        </span>
+                      )}
+
+                      <span
+                        className={`text-[9px] font-bold ${
+                          hasOverdueTask
+                            ? 'text-amber-800 font-extrabold'
+                            : hasPendingTask
+                            ? 'text-rose-800 font-extrabold'
+                            : 'text-slate-500'
+                        }`}
+                      >
+                        {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+                      </span>
+                    </div>
+                  </>
                 )}
               </div>
             );
@@ -524,62 +558,108 @@ export const FullPageCalendarView: React.FC = () => {
       </div>
 
       {/* =========================================================================
-          3. IN-PLACE POPOVER: DISPLAYS DIRECTLY AT THE CLICKED CELL POSITION
-          Zero space taken below the table! Pops up right where you click!
+          3. CENTERED MODAL DIALOG: PERFECT ON DESKTOP & MOBILE
+          Displays directly in the CENTER OF THE SCREEN with clean backdrop
           ========================================================================= */}
       {selectedDateDetails && (
-        <>
-          {/* Subtle click-away backdrop to close when clicking outside */}
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+          onClick={() => setSelectedModalDate(null)}
+        >
           <div
-            className="fixed inset-0 z-40 bg-slate-900/10 backdrop-blur-[0.5px]"
-            onClick={() => setPopoverAnchor(null)}
-          />
-
-          {/* Floating Contextual Popover Card anchored to the clicked date */}
-          <div
-            style={popoverStyle}
-            className="bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[360px] animate-in zoom-in-95 duration-150"
+            className="relative bg-white w-full max-w-xl max-h-[85vh] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Popover Header with Date & Close Button */}
-            <div className="bg-slate-50 border-b border-slate-200 px-3.5 py-2.5 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <CalendarDays className="w-3.5 h-3.5" />
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border-b border-slate-200 px-4 sm:px-5 py-3.5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <CalendarDays className="w-4.5 h-4.5" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight truncate font-['Outfit']">
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate font-['Outfit']">
                     {selectedDateDetails.longDate}
-                  </h4>
-                  <span className="text-[10px] text-slate-400 font-semibold">
-                    {selectedDateDetails.tasks.length}{' '}
-                    {selectedDateDetails.tasks.length === 1 ? 'task scheduled' : 'tasks scheduled'}
-                  </span>
+                  </h3>
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500 font-semibold flex-wrap">
+                    <span>
+                      {selectedDateDetails.allTasks.length}{' '}
+                      {selectedDateDetails.allTasks.length === 1 ? 'task scheduled' : 'tasks scheduled'}
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-indigo-700 font-bold">
+                      {selectedDateDetails.adminTasks.length} Admin Allot
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-purple-700 font-bold">
+                      {selectedDateDetails.staffTasks.length} Staff Allot
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => setPopoverAnchor(null)}
-                className="w-6 h-6 rounded-lg bg-slate-200/60 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                onClick={() => setSelectedModalDate(null)}
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center cursor-pointer transition-colors"
                 title="Close"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4.5 h-4.5" />
+              </button>
+            </div>
+
+            {/* Filter Tabs: Admin Allot Work vs Staff Allot Work */}
+            <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center gap-1.5 flex-wrap shrink-0">
+              <button
+                type="button"
+                onClick={() => setModalTaskFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  modalTaskFilter === 'all'
+                    ? 'bg-white text-indigo-700 shadow-2xs border border-indigo-200'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                All Work ({selectedDateDetails.allTasks.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModalTaskFilter('admin')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  modalTaskFilter === 'admin'
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'text-indigo-700 hover:bg-indigo-100/60'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Admin Allot Work ({selectedDateDetails.adminTasks.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModalTaskFilter('staff')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  modalTaskFilter === 'staff'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-purple-700 hover:bg-purple-100/60'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Staff Allot Work ({selectedDateDetails.staffTasks.length})</span>
               </button>
             </div>
 
             {/* Scrollable Content Body */}
-            <div className="p-3 overflow-y-auto space-y-2.5 flex-1">
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1 max-h-[55vh]">
               {/* Government Public Holiday Banner if matched */}
               {selectedDateDetails.holiday && (
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-center gap-2 shadow-2xs">
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-center gap-2.5 shadow-2xs">
                   <Flag className="w-4 h-4 text-amber-600 shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-extrabold text-[11px] leading-tight text-amber-900">
+                    <p className="font-extrabold text-xs leading-tight text-amber-900">
                       🏛️ {selectedDateDetails.holiday.name}
                     </p>
-                    <p className="text-[10px] text-amber-700 font-medium mt-0.5">
-                      Government {selectedDateDetails.holiday.type} Holiday
+                    <p className="text-[11px] text-amber-800 font-medium mt-0.5">
+                      Government {selectedDateDetails.holiday.type} Public Holiday
                     </p>
                   </div>
                 </div>
@@ -590,10 +670,10 @@ export const FullPageCalendarView: React.FC = () => {
                 <div className="p-2.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-950 flex items-center gap-2 shadow-2xs">
                   <Clock className="w-4 h-4 text-amber-700 shrink-0 animate-pulse" />
                   <div className="min-w-0">
-                    <p className="font-extrabold text-[11px] leading-tight text-amber-900">
+                    <p className="font-extrabold text-xs leading-tight text-amber-900">
                       ⚠️ Overdue Tasks Notice (Yellow Date)
                     </p>
-                    <p className="text-[10px] text-amber-800 font-medium mt-0.5">
+                    <p className="text-[11px] text-amber-800 font-medium mt-0.5">
                       Staff did not complete task(s) over their due time.
                     </p>
                   </div>
@@ -604,11 +684,11 @@ export const FullPageCalendarView: React.FC = () => {
                 <div className="p-2.5 rounded-xl bg-rose-100 border border-rose-300 text-rose-950 flex items-center gap-2 shadow-2xs">
                   <AlertCircle className="w-4 h-4 text-rose-700 shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-extrabold text-[11px] leading-tight text-rose-900">
+                    <p className="font-extrabold text-xs leading-tight text-rose-900">
                       ⏳ Pending Tasks Scheduled (Red Date)
                     </p>
-                    <p className="text-[10px] text-rose-800 font-medium mt-0.5">
-                      Active pending work allotted for this date.
+                    <p className="text-[11px] text-rose-800 font-medium mt-0.5">
+                      Active pending assignments for this date.
                     </p>
                   </div>
                 </div>
@@ -618,83 +698,117 @@ export const FullPageCalendarView: React.FC = () => {
                 <div className="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-950 flex items-center gap-2 shadow-2xs">
                   <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-extrabold text-[11px] leading-tight text-emerald-900">
+                    <p className="font-extrabold text-xs leading-tight text-emerald-900">
                       ✅ All Tasks Completed (Green Date)
                     </p>
-                    <p className="text-[10px] text-emerald-800 font-medium mt-0.5">
-                      All scheduled tasks on this day were successfully completed!
+                    <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
+                      All assigned work for this date has been finished successfully!
                     </p>
                   </div>
                 </div>
               )}
 
               {/* Tasks List */}
-              {selectedDateDetails.tasks.length === 0 ? (
-                <div className="py-6 text-center text-slate-400 text-xs font-semibold italic bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
-                  🎉 No tasks scheduled for this day. Free day!
+              {selectedDateDetails.displayedTasks.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs font-semibold italic bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  No{' '}
+                  {modalTaskFilter === 'admin'
+                    ? 'Admin allotted'
+                    : modalTaskFilter === 'staff'
+                    ? 'Staff allotted'
+                    : ''}{' '}
+                  tasks found for this date.
                 </div>
               ) : (
-                <div className="space-y-1.5">
-                  {selectedDateDetails.tasks.map((task) => {
+                <div className="space-y-2.5">
+                  {selectedDateDetails.displayedTasks.map((task) => {
                     const isDone = task.status === 'done';
                     const isAdmin = task.type === 'admin';
+                    const isStaffAllot = task.type === 'staff';
 
                     return (
                       <div
                         key={task.id}
-                        className={`p-2.5 rounded-xl border transition-all select-none ${
+                        className={`p-3.5 rounded-2xl border transition-all ${
                           isDone
-                            ? 'bg-slate-50/80 border-slate-200 opacity-80'
+                            ? 'bg-emerald-50/20 border-emerald-200 opacity-90'
                             : isAdmin
-                            ? 'bg-indigo-50/40 border-indigo-200 shadow-2xs'
-                            : 'bg-purple-50/30 border-purple-200 shadow-2xs'
+                            ? 'bg-indigo-50/25 border-indigo-200 hover:border-indigo-300'
+                            : 'bg-purple-50/25 border-purple-200 hover:border-purple-300'
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-1.5">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span
-                                className={`text-xs font-bold truncate ${
-                                  isDone
-                                    ? 'line-through text-slate-400 decoration-emerald-500 decoration-2'
-                                    : 'text-slate-900'
-                                }`}
-                              >
-                                {task.title}
+                        {/* Top: Category Pill, Priority, Status */}
+                        <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {isAdmin ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 border border-indigo-200 shadow-2xs">
+                                <ShieldCheck className="w-3 h-3 text-indigo-600" />
+                                <span>Admin Allot Work</span>
                               </span>
-                              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-white border border-slate-200 text-slate-700 shrink-0">
-                                {task.priority}
+                            ) : isStaffAllot ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200 shadow-2xs">
+                                <UserCheck className="w-3 h-3 text-purple-600" />
+                                <span>Staff Allot Work</span>
                               </span>
-                            </div>
-
-                            {task.description && (
-                              <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
-                                {task.description}
-                              </p>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                                <User className="w-3 h-3 text-slate-500" />
+                                <span>Self To-Do</span>
+                              </span>
                             )}
 
-                            <div className="flex items-center gap-1.5 mt-1 text-[10px] font-semibold text-slate-500 flex-wrap">
-                              <span className="flex items-center gap-1 text-slate-600">
-                                <Clock className="w-3 h-3 text-slate-400" />
-                                <span>{task.dueTime}</span>
-                              </span>
-                              <span>•</span>
-                              <span>To: <strong>{task.assignedToName}</strong></span>
-                              <span>•</span>
-                              <span className="text-indigo-600 font-bold">
-                                {task.type === 'admin' ? 'Admin' : `By ${task.createdByName}`}
-                              </span>
-                            </div>
+                            <span
+                              className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded ${
+                                task.priority === 'High'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : task.priority === 'Medium'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-slate-100 text-slate-700'
+                              }`}
+                            >
+                              {task.priority} Priority
+                            </span>
                           </div>
 
                           <span
-                            className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shrink-0 ${
+                            className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                               isDone
-                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-800 border border-amber-200'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : 'bg-amber-100 text-amber-900 border border-amber-300'
                             }`}
                           >
-                            {isDone ? 'Completed' : 'Pending'}
+                            {isDone ? '✓ Completed' : '⏰ Pending'}
+                          </span>
+                        </div>
+
+                        {/* Title & Description */}
+                        <h4
+                          className={`text-sm font-bold leading-snug ${
+                            isDone ? 'line-through text-slate-400 decoration-emerald-500' : 'text-slate-900'
+                          }`}
+                        >
+                          {task.title}
+                        </h4>
+
+                        {task.description && (
+                          <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
+                            {task.description}
+                          </p>
+                        )}
+
+                        {/* Meta strip: Due Time, Allotted To, Created By */}
+                        <div className="flex items-center gap-2 mt-3 pt-2.5 border-t border-slate-100 text-[11px] font-semibold text-slate-500 flex-wrap">
+                          <span className="flex items-center gap-1 text-slate-700 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                            <Clock className="w-3 h-3 text-indigo-600" />
+                            <span>Due: {task.dueTime}</span>
+                          </span>
+
+                          <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-slate-700">
+                            Allotted To: <strong className="text-slate-900">{task.assignedToName}</strong>
+                          </span>
+
+                          <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-slate-700">
+                            By: <strong className="text-slate-900">{task.createdByName}</strong>
                           </span>
                         </div>
                       </div>
@@ -703,8 +817,23 @@ export const FullPageCalendarView: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Modal Footer */}
+            <div className="px-4 sm:px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <span className="text-[11px] text-slate-500 font-medium">
+                Showing {selectedDateDetails.displayedTasks.length} of{' '}
+                {selectedDateDetails.allTasks.length} tasks
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedModalDate(null)}
+                className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold cursor-pointer active:scale-95 transition-all"
+              >
+                Close
+              </button>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
