@@ -50,6 +50,9 @@ interface TaskToggleContextType {
   rejectTaskRequest: (taskId: string, reason: string) => void;
   sendTaskCompletedNotification: (taskTitle: string, staffName: string) => void;
   reportPendingReason: (taskId: string, reason: string) => void;
+  activeDueReminder: { task: Task; minutesRemaining: number } | null;
+  dismissDueReminder: () => void;
+  playThirtyMinReminderSound: () => void;
   updateOfficeTiming: (timing: OfficeTiming) => void;
   updateEventTiming: (event: EventTiming) => void;
   updateOrgSettings: (settings: Partial<OrgSettings>) => void;
@@ -149,6 +152,97 @@ export const playCalendarClickSound = () => {
     osc.stop(now + 0.15);
   } catch (e) {}
 };
+
+// Distinct, crisp alert chime for 30-minute task deadline reminder (audible & urgent)
+export const playThirtyMinReminderSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
+
+    // 2 ascending alert pulses: E5 (659Hz) -> A5 (880Hz) -> C#6 (1108Hz)
+    const burstTones = [
+      { freq: 659.25, time: now, dur: 0.10, vol: 0.35 },
+      { freq: 880.00, time: now + 0.07, dur: 0.12, vol: 0.40 },
+      { freq: 1108.73, time: now + 0.15, dur: 0.20, vol: 0.45 },
+      { freq: 659.25, time: now + 0.28, dur: 0.10, vol: 0.40 },
+      { freq: 880.00, time: now + 0.35, dur: 0.14, vol: 0.48 },
+      { freq: 1108.73, time: now + 0.44, dur: 0.35, vol: 0.55 },
+    ];
+
+    burstTones.forEach(({ freq, time, dur, vol }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(vol, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + dur);
+    });
+  } catch (e) {}
+};
+
+// Helper to parse dueDate and dueTime strings into a Date object
+export function parseTaskDeadline(dueDateStr?: string, dueTimeStr?: string): Date | null {
+  if (!dueDateStr) return null;
+  const now = new Date();
+  let targetYear = now.getFullYear();
+  let targetMonth = now.getMonth();
+  let targetDate = now.getDate();
+
+  const trimmedDate = dueDateStr.trim().toLowerCase();
+  if (trimmedDate === 'today') {
+    // Current date
+  } else if (trimmedDate === 'tomorrow') {
+    targetDate += 1;
+  } else {
+    const parts = dueDateStr.trim().split(/\s+/);
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const mIdx = months.findIndex((m) => parts[1].toLowerCase().startsWith(m));
+      const year = parseInt(parts[2], 10);
+      if (!isNaN(day) && mIdx !== -1 && !isNaN(year)) {
+        targetYear = year;
+        targetMonth = mIdx;
+        targetDate = day;
+      }
+    } else {
+      const parsed = new Date(dueDateStr);
+      if (!isNaN(parsed.getTime())) {
+        targetYear = parsed.getFullYear();
+        targetMonth = parsed.getMonth();
+        targetDate = parsed.getDate();
+      }
+    }
+  }
+
+  const deadline = new Date(targetYear, targetMonth, targetDate);
+
+  if (dueTimeStr) {
+    const timeMatch = dueTimeStr.trim().match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+    if (timeMatch) {
+      let hours = parseInt(timeMatch[1], 10);
+      const minutes = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+      const meridiem = timeMatch[3]?.toLowerCase();
+
+      if (meridiem === 'pm' && hours < 12) {
+        hours += 12;
+      } else if (meridiem === 'am' && hours === 12) {
+        hours = 0;
+      }
+      deadline.setHours(hours, minutes, 0, 0);
+      return deadline;
+    }
+  }
+
+  deadline.setHours(18, 0, 0, 0);
+  return deadline;
+}
 
 
 export const sendTaskCompletedNotification = (title: string, staffName: string) => {
@@ -262,6 +356,14 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const [showCompleted, setShowCompleted] = useState<boolean>(true);
 
+  // 30-Minute Pending Task Due Reminder State
+  const [activeDueReminder, setActiveDueReminder] = useState<{ task: Task; minutesRemaining: number } | null>(null);
+  const notifiedRemindersRef = React.useRef<Set<string>>(new Set());
+
+  const dismissDueReminder = useCallback(() => {
+    setActiveDueReminder(null);
+  }, []);
+
   // Function to pull latest data from backend / database
   const refreshData = useCallback(async () => {
     try {
@@ -349,6 +451,84 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY_PREFIX}org_settings`, JSON.stringify(orgSettings));
   }, [orgSettings]);
+
+  // 30-Minute Pending Task Due Reminder Engine
+  useEffect(() => {
+    const checkUpcomingDeadlines = () => {
+      const now = new Date();
+
+      tasks.forEach((task) => {
+        // STRICT USER REQUIREMENT:
+        // "if the staff completd the work no notification needs to create if its pending only give a notification sound"
+        if (task.status === 'done') {
+          // If the task is completed, absolutely NO notification or sound is created!
+          return;
+        }
+
+        // Only alert for tasks assigned to the current user (or all if admin)
+        if (currentUser.role === 'staff' && task.assignedTo !== currentUser.id) {
+          return;
+        }
+
+        if (!task.dueDate || !task.dueTime) return;
+
+        const deadline = parseTaskDeadline(task.dueDate, task.dueTime);
+        if (!deadline) return;
+
+        const diffMs = deadline.getTime() - now.getTime();
+        const diffMinutes = diffMs / (1000 * 60);
+
+        // Check if within the 30-minute window before due time (diffMinutes <= 30 and deadline hasn't expired by more than 2 mins)
+        if (diffMinutes >= -2 && diffMinutes <= 30) {
+          const reminderKey = `${task.id}_${task.dueTime}`;
+
+          if (!notifiedRemindersRef.current.has(reminderKey)) {
+            notifiedRemindersRef.current.add(reminderKey);
+
+            const minsLeft = Math.max(1, Math.round(diffMinutes));
+
+            // 1. Play dedicated 30-minute alert reminder sound
+            playThirtyMinReminderSound();
+
+            // 2. Set active in-app reminder card
+            setActiveDueReminder({
+              task,
+              minutesRemaining: minsLeft,
+            });
+
+            // 3. Desktop Native OS Notification (pops up over other apps)
+            if (typeof window !== 'undefined' && 'Notification' in window) {
+              const notifTitle = `⏰ 30-Min Due Reminder: "${task.title}"`;
+              const notifBody = `Due in ${minsLeft} minutes (at ${task.dueTime})! Please complete or strike it.`;
+
+              if (Notification.permission === 'granted') {
+                try {
+                  new Notification(notifTitle, {
+                    body: notifBody,
+                    icon: '/favicon.ico',
+                    tag: `reminder_${task.id}`,
+                  });
+                } catch (e) {}
+              } else if (Notification.permission === 'default') {
+                Notification.requestPermission().then((perm) => {
+                  if (perm === 'granted') {
+                    try {
+                      new Notification(notifTitle, { body: notifBody, icon: '/favicon.ico' });
+                    } catch (e) {}
+                  }
+                });
+              }
+            }
+          }
+        }
+      });
+    };
+
+    checkUpcomingDeadlines();
+    const interval = setInterval(checkUpcomingDeadlines, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [tasks, currentUser]);
 
   const switchUser = (userId: string) => {
     const user = users.find((u) => u.id === userId);
@@ -490,6 +670,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // Play pleasant dopamine chime when task is marked done
     if (updatedStatus === 'done') {
+      setActiveDueReminder((prev) => (prev?.task.id === taskId ? null : prev));
       const target = tasks.find((t) => t.id === taskId);
       const taskTitle = target?.title || 'Assigned Task';
       const staffName = target?.assignedToName || currentUser.name;
@@ -527,6 +708,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Productivity Feature: Quick 1-Tap Snooze / Reschedule
   const snoozeTask = (taskId: string, minutes: number) => {
+    setActiveDueReminder((prev) => (prev?.task.id === taskId ? null : prev));
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id === taskId) {
@@ -696,6 +878,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         updateOfficeTiming,
         updateEventTiming,
         updateOrgSettings,
+        activeDueReminder,
+        dismissDueReminder,
+        playThirtyMinReminderSound,
         refreshData,
       }}
     >

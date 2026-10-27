@@ -14,6 +14,7 @@ import { TaskRequestsView } from './components/staff/TaskRequestsView';
 import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
 import { FullPageCalendarView } from './components/common/FullPageCalendarView';
 import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubble';
+import { DueReminderBanner } from './components/common/DueReminderBanner';
 
 const MainLayout: React.FC = () => {
   const { currentPage, currentUser } = useTaskToggle();
@@ -67,6 +68,9 @@ const MainLayout: React.FC = () => {
 
       {/* Document Picture-in-Picture Handler (renders 0 DOM in page, handles PiP popup when clicked) */}
       <FloatingTaskWidget />
+
+      {/* 30-Minute Task Due Reminder Banner for Staff */}
+      <DueReminderBanner />
     </div>
   );
 };
