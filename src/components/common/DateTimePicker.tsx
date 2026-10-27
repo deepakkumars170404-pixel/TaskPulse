@@ -462,7 +462,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
           <button
             type="button"
             onClick={handleApply}
-            className="w-full mt-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            className="w-full mt-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Set Time ({selectedHour}:{String(selectedMinute).padStart(2, '0')} {selectedPeriod})</span>
@@ -499,3 +499,4 @@ function parseTimeString(str: string): { hour: number; minute: number; period: '
 
   return { hour: h, minute: isNaN(m) ? 0 : m, period: p };
 }
+

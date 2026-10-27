@@ -66,7 +66,7 @@ export const TaskMonitorView: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Central Task Monitor
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-900 text-white shadow-2xs">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-2xs">
               {orgSettings.orgName} Live Feed
             </span>
           </div>
@@ -154,7 +154,7 @@ export const TaskMonitorView: React.FC = () => {
               onClick={() => setDateTimeline(timeline.id)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 dateTimeline === timeline.id
-                  ? 'bg-slate-900 text-white shadow-xs'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
@@ -184,7 +184,7 @@ export const TaskMonitorView: React.FC = () => {
             onClick={() => setFilter(tab.id)}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-2 ${
               filter === tab.id
-                ? 'bg-slate-900 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs'
             }`}
           >
@@ -328,7 +328,7 @@ export const TaskMonitorView: React.FC = () => {
                       {/* Staff */}
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-slate-900 text-white text-[11px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                          <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
                             {task.assignedToName
                               .split(' ')
                               .map((n) => n[0])
@@ -441,7 +441,7 @@ export const TaskMonitorView: React.FC = () => {
 
       {/* Bottom callout note */}
       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-700 font-medium shadow-2xs">
-        <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0">
           <Info className="w-4 h-4" />
         </div>
         <span>

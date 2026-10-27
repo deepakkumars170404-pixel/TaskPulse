@@ -237,10 +237,7 @@ export const ElectronFloatingBubble: React.FC = () => {
             </span>
           )}
 
-          {/* Hover Prompt */}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full bg-slate-900/90 text-white text-[8px] font-bold opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap shadow-xs pointer-events-none">
-            Drag · Click
-          </div>
+
         </div>
       ) : (
         /* =========================================================================
@@ -250,7 +247,7 @@ export const ElectronFloatingBubble: React.FC = () => {
           {/* Draggable Desktop Title Bar - Slate-900 */}
           <div
             onMouseDown={handleHeaderMouseDown}
-            className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 cursor-grab active:cursor-grabbing"
+            className="bg-indigo-600 text-white px-4 py-3 flex items-center justify-between border-b border-indigo-700 cursor-grab active:cursor-grabbing"
             title="Drag header to move anywhere across screen"
           >
             <div className="flex items-center gap-2 pointer-events-none">
@@ -362,7 +359,7 @@ export const ElectronFloatingBubble: React.FC = () => {
                   onClick={() => setFilter(tab)}
                   className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all cursor-pointer ${
                     filter === tab
-                      ? 'bg-slate-900 text-white'
+                      ? 'bg-indigo-600 text-white'
                       : 'text-slate-500 hover:bg-slate-100'
                   }`}
                 >

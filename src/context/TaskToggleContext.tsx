@@ -46,6 +46,8 @@ interface TaskToggleContextType {
   playCompletionSound: () => void;
   sendTaskNotification: (title: string, body: string) => void;
   acceptTaskRequest: (taskId: string) => void;
+  rejectTaskRequest: (taskId: string, reason: string) => void;
+  sendTaskCompletedNotification: (taskTitle: string, staffName: string) => void;
   reportPendingReason: (taskId: string, reason: string) => void;
   updateOfficeTiming: (timing: OfficeTiming) => void;
   updateEventTiming: (event: EventTiming) => void;
@@ -126,6 +128,37 @@ const playAssignmentAlertSound = () => {
     osc2.stop(now + 0.45);
   } catch (e) {
     // Ignore if audio permissions not yet activated
+  }
+};
+
+
+export const sendTaskCompletedNotification = (title: string, staffName: string) => {
+  // 1. Play joyful completion chime
+  playRewardChime();
+
+  // 2. Native OS Desktop Notification (pops over Word, Excel, Desktop, all apps & games)
+  if (typeof window !== 'undefined' && 'Notification' in window) {
+    const notifTitle = `Task Completed: ${title}`;
+    const notifBody = `${staffName} has marked this task as finished!`;
+
+    if (Notification.permission === 'granted') {
+      try {
+        new Notification(notifTitle, {
+          body: notifBody,
+          icon: '/favicon.ico',
+        });
+      } catch (e) {
+        console.warn('Native notification error:', e);
+      }
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then((perm) => {
+        if (perm === 'granted') {
+          try {
+            new Notification(notifTitle, { body: notifBody, icon: '/favicon.ico' });
+          } catch (e) {}
+        }
+      });
+    }
   }
 };
 
@@ -438,7 +471,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // Play pleasant dopamine chime when task is marked done
     if (updatedStatus === 'done') {
-      playRewardChime();
+      const target = tasks.find((t) => t.id === taskId);
+      const taskTitle = target?.title || 'Assigned Task';
+      const staffName = target?.assignedToName || currentUser.name;
+      sendTaskCompletedNotification(taskTitle, staffName);
     }
 
     // Backend database update
@@ -467,7 +503,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       })
     );
 
-    playRewardChime();
+    sendTaskCompletedNotification('All Assigned Tasks Batch', currentUser.name);
   };
 
   // Productivity Feature: Quick 1-Tap Snooze / Reschedule
@@ -512,6 +548,33 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       status: 'accepted',
       acceptedAt: nowTimeStr,
     }).catch((err) => console.warn('[Backend] accept error:', err));
+  };
+
+
+  // Reject incoming staff-to-staff task request with reason
+  const rejectTaskRequest = (taskId: string, reason: string) => {
+    const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const trimmedReason = reason.trim();
+
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          return {
+            ...t,
+            status: 'rejected' as const,
+            rejectReason: trimmedReason,
+            rejectedAt: nowTimeStr,
+          };
+        }
+        return t;
+      })
+    );
+
+    // Backend database update
+    backendApi.updateTask(taskId, {
+      status: 'rejected',
+      pendingReason: `[DECLINED]: ${trimmedReason}`,
+    }).catch((err) => console.warn('[Backend] reject error:', err));
   };
 
   // Rule 5: Staff reports reason / issue for pending task
@@ -584,6 +647,8 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         playCompletionSound: playRewardChime,
         sendTaskNotification: sendTaskAssignmentNotification,
         acceptTaskRequest,
+        rejectTaskRequest,
+        sendTaskCompletedNotification,
         reportPendingReason,
         updateOfficeTiming,
         updateEventTiming,

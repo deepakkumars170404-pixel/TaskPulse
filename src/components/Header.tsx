@@ -64,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             </span>
 
             {/* Organization Badge (Deepak) */}
-            <span className="hidden xs:inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-900 text-white shadow-2xs">
+            <span className="hidden xs:inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-600 text-white shadow-2xs">
               {orgSettings.orgName}
             </span>
           </div>
@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               window.dispatchEvent(new CustomEvent('open-pip-window'));
             }
           }}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
           title="Float TaskToggle mini popup over all other apps and games"
         >
           <MonitorUp className="w-3.5 h-3.5 text-indigo-400" />
@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 <span
                   className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
                     currentUser.role === 'admin'
-                      ? 'bg-slate-900 text-white'
+                      ? 'bg-indigo-600 text-white'
                       : 'bg-indigo-50 text-indigo-700'
                   }`}
                 >

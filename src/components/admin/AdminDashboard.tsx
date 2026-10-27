@@ -51,7 +51,7 @@ export const AdminDashboard: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Executive Dashboard
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-900 text-white shadow-2xs">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-2xs">
               {orgSettings.orgName} Workspace
             </span>
           </div>
@@ -92,7 +92,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => setDateFilter(filter.id)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 dateFilter === filter.id
-                  ? 'bg-slate-900 text-white shadow-xs'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
@@ -280,7 +280,7 @@ export const AdminDashboard: React.FC = () => {
                         {/* Assigned Staff */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                            <div className="w-7 h-7 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
                               {task.assignedToName
                                 .split(' ')
                                 .map((n) => n[0])

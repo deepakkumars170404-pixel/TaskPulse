@@ -11,7 +11,7 @@ export const IssueModal: React.FC<IssueModalProps> = ({ task, onClose }) => {
   if (!task || !task.pendingReason) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-indigo-950/40 backdrop-blur-xs animate-in fade-in duration-150">
       <div
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden transform animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -85,7 +85,7 @@ export const IssueModal: React.FC<IssueModalProps> = ({ task, onClose }) => {
         <div className="bg-slate-50 border-t border-slate-200 px-5 sm:px-6 py-3.5 flex justify-end">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
           >
             Close
           </button>

@@ -4,7 +4,7 @@ export type TaskPriority = 'Low' | 'Medium' | 'High';
 
 export type TaskType = 'admin' | 'self' | 'staff';
 
-export type TaskStatus = 'pending' | 'accepted' | 'done';
+export type TaskStatus = 'pending' | 'accepted' | 'done' | 'rejected';
 
 export interface User {
   id: string;
@@ -30,6 +30,8 @@ export interface Task {
   status: TaskStatus;
   acceptedAt?: string;
   completedAt?: string;
+  rejectedAt?: string;
+  rejectReason?: string;
   createdAt: string;
   pendingReason?: string; // Reason submitted by staff if task is pending/blocked
   pendingReasonUpdatedAt?: string;
@@ -52,8 +54,6 @@ export interface EventTiming {
 
 export interface OrgSettings {
   orgName: string;
+  contactEmail?: string;
   accentColor?: string;
 }
-
-export type AdminPageView = 'dashboard' | 'assign' | 'monitor' | 'timing';
-export type StaffPageView = 'mytodo' | 'create' | 'requests';

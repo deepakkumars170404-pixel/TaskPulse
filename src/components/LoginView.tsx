@@ -27,7 +27,7 @@ export const LoginView: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-3.5 sm:p-6">
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-2">
         {/* Left Hero Panel */}
-        <div className="bg-slate-900 text-white p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-indigo-600 text-white p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden">
           {/* Logo & Org Badge */}
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2.5">
@@ -88,7 +88,7 @@ export const LoginView: React.FC = () => {
               onClick={() => handleRoleChange('admin')}
               className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 role === 'admin'
-                  ? 'bg-slate-900 text-white shadow-xs'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >

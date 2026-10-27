@@ -196,7 +196,7 @@ class BackendApiService {
       try {
         const { data, error } = await supabase.from('org_settings').select('*').limit(1).maybeSingle();
         if (!error && data && data.org_name) {
-          const org = { orgName: data.org_name };
+          const org: OrgSettings = { orgName: data.org_name, contactEmail: data.contact_email || 'deepak@organization.com', accentColor: '#4F46E5' };
           localStorage.setItem(`${STORAGE_PREFIX}org_settings`, JSON.stringify(org));
           return org;
         }

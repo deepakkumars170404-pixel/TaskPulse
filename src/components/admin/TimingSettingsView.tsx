@@ -70,7 +70,7 @@ export const TimingSettingsView: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Timing & Office Hours
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-900 text-white shadow-2xs">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-2xs">
               {orgSettings.orgName} Executive
             </span>
           </div>
@@ -157,7 +157,7 @@ export const TimingSettingsView: React.FC = () => {
                       onClick={() => toggleDay(day)}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-slate-900 text-white shadow-xs'
+                          ? 'bg-indigo-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
@@ -252,7 +252,7 @@ export const TimingSettingsView: React.FC = () => {
                         onClick={() => toggleStaffAllotment(staff.id)}
                         className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                           isAllotted
-                            ? 'bg-slate-900 text-white shadow-xs'
+                            ? 'bg-indigo-600 text-white shadow-xs'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
                         }`}
                       >
