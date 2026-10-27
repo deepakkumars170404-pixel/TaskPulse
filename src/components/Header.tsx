@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   FlaskConical,
   Menu,
-  Database,
   MonitorUp,
 } from 'lucide-react';
 
@@ -17,7 +16,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
-  const { currentUser, users, switchUser, officeTiming, orgSettings, isBackendConnected } = useTaskToggle();
+  const { currentUser, users, switchUser, officeTiming, orgSettings } = useTaskToggle();
   const [showSwitchDropdown, setShowSwitchDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -75,44 +74,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         </div>
       </div>
 
-      {/* Right controls: Backend Status, Float Over Apps, Office Hours & Character Switcher */}
+      {/* Right controls: Float Over Apps, Office Hours & User Switcher */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Backend Cloud Sync Chip */}
-        <div
-          className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-            isBackendConnected
-              ? 'bg-slate-50 text-slate-700 border-slate-200'
-              : 'bg-slate-50 text-slate-400 border-slate-200'
-          }`}
-          title={
-            isBackendConnected
-              ? 'Connected to live Supabase cloud database'
-              : 'Offline / local mode'
-          }
-        >
-          <Database className={`w-3.5 h-3.5 ${isBackendConnected ? 'text-indigo-600' : 'text-slate-400'}`} />
-          <span>{isBackendConnected ? 'Supabase Live' : 'Backend Ready'}</span>
-          <span
-            className={`w-2 h-2 rounded-full ${
-              isBackendConnected ? 'bg-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-300'
-            }`}
-          />
-        </div>
-
-        {/* Float Over All Apps Button */}
+        {/* Float Over All Apps Button (Works over all desktop apps & games) */}
         <button
           type="button"
           onClick={() => {
             if (window.electronAPI?.isElectron) {
-              window.electronAPI.resizeFloating('expanded');
+              if (window.electronAPI.showFloating) {
+                window.electronAPI.showFloating();
+              } else {
+                window.electronAPI.resizeFloating('expanded');
+              }
             } else {
               window.dispatchEvent(new CustomEvent('open-pip-window'));
             }
           }}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
-          title="Float TaskToggle over Word, Excel, and all other desktop apps"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+          title="Float TaskToggle mini popup over all other apps and games"
         >
-          <MonitorUp className="w-3.5 h-3.5" />
+          <MonitorUp className="w-3.5 h-3.5 text-indigo-400" />
           <span>Float Over Apps</span>
         </button>
 
@@ -158,20 +139,22 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
           </button>
 
-          {/* Switcher Dropdown */}
+          {/* User Switcher Dropdown */}
           {showSwitchDropdown && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-800">Switch Character</p>
-                  <p className="text-[10px] text-slate-400 font-medium">Test Admin vs Staff perspective</p>
-                </div>
-                <FlaskConical className="w-4 h-4 text-indigo-600" />
+            <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2 border-b border-slate-100">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <FlaskConical className="w-3 h-3 text-indigo-600" />
+                  Testing Persona Switcher
+                </p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Simulate different roles & observe task syncing in real-time.
+                </p>
               </div>
 
-              <div className="py-1">
+              <div className="py-1 space-y-1 max-h-64 overflow-y-auto">
                 {users.map((u) => {
-                  const isSelected = u.id === currentUser.id;
+                  const isCurrent = u.id === currentUser.id;
                   return (
                     <button
                       key={u.id}
@@ -180,29 +163,39 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                         switchUser(u.id);
                         setShowSwitchDropdown(false);
                       }}
-                      className={`w-full px-3.5 py-2.5 flex items-center justify-between text-left text-xs transition-colors cursor-pointer ${
-                        isSelected ? 'bg-indigo-50/70 font-bold' : 'hover:bg-slate-50'
+                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all cursor-pointer ${
+                        isCurrent
+                          ? 'bg-indigo-50/80 text-indigo-950 font-bold border border-indigo-200/60'
+                          : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                            u.avatarBg || 'bg-slate-700'
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${
+                            u.avatarBg || 'bg-indigo-600'
                           }`}
                         >
                           {u.initials}
                         </div>
-                        <div>
-                          <p className={`font-semibold ${isSelected ? 'text-indigo-900' : 'text-slate-800'}`}>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
                             {u.name}
+                            {u.role === 'admin' ? (
+                              <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
+                            ) : (
+                              <UserCheck className="w-3 h-3 text-slate-400 shrink-0" />
+                            )}
                           </p>
-                          <p className="text-[10px] text-slate-400 capitalize">
+                          <p className="text-[10px] text-slate-500 truncate">
                             {u.role} · {u.email}
                           </p>
                         </div>
                       </div>
-                      {isSelected && (
-                        <div className="w-2 h-2 rounded-full bg-indigo-600" />
+
+                      {isCurrent && (
+                        <span className="text-[10px] font-black text-indigo-600 px-1.5 py-0.5 rounded bg-white shadow-2xs shrink-0">
+                          Active
+                        </span>
                       )}
                     </button>
                   );

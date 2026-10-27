@@ -61,7 +61,11 @@ export const FloatingTaskWidget: React.FC = () => {
   // Open Document Picture-in-Picture window (Floats over all other desktop apps!)
   const openPiP = async (startInLogoMode = true) => {
     if (window.electronAPI?.isElectron) {
-      window.electronAPI.resizeFloating(startInLogoMode ? 'logo' : 'expanded');
+      if (window.electronAPI.showFloating) {
+        window.electronAPI.showFloating();
+      } else {
+        window.electronAPI.resizeFloating(startInLogoMode ? 'logo' : 'expanded');
+      }
       return;
     }
 

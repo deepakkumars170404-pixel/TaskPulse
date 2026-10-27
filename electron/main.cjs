@@ -46,10 +46,12 @@ function createMainWindow() {
   });
 }
 
-// 2. Create OS-Level Floating Bubble Window (Transparent & Always On Top, Floats over all apps)
+// 2. Create OS-Level Floating Bubble Window (Transparent & Always On Top, Floats over all apps & games)
 function createFloatingBubbleWindow() {
   if (floatingWindow && !floatingWindow.isDestroyed()) {
     floatingWindow.show();
+    floatingWindow.focus();
+    floatingWindow.setAlwaysOnTop(true, 'screen-saver');
     return;
   }
 
@@ -196,7 +198,10 @@ ipcMain.on('stop-drag-floating', () => {
 
 // IPC Window Resizer
 ipcMain.on('floating-resize', (event, mode) => {
-  if (!floatingWindow || floatingWindow.isDestroyed()) return;
+  if (!floatingWindow || floatingWindow.isDestroyed()) {
+    createFloatingBubbleWindow();
+    return;
+  }
 
   const currentBounds = floatingWindow.getBounds();
   const currentDisplay = screen.getDisplayMatching(currentBounds);
@@ -224,6 +229,8 @@ ipcMain.on('floating-resize', (event, mode) => {
       width: targetWidth,
       height: targetHeight,
     });
+    floatingWindow.show();
+    floatingWindow.focus();
   } else {
     // Mode === 'logo'
     const targetWidth = 72;
@@ -235,6 +242,32 @@ ipcMain.on('floating-resize', (event, mode) => {
       width: targetWidth,
       height: targetHeight,
     });
+  }
+});
+
+// Show floating bubble over all apps & games
+ipcMain.on('show-floating', () => {
+  if (!floatingWindow || floatingWindow.isDestroyed()) {
+    createFloatingBubbleWindow();
+  } else {
+    floatingWindow.show();
+    floatingWindow.focus();
+    floatingWindow.setAlwaysOnTop(true, 'screen-saver');
+    floatingWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  }
+});
+
+// Toggle floating bubble
+ipcMain.on('toggle-floating', () => {
+  if (!floatingWindow || floatingWindow.isDestroyed()) {
+    createFloatingBubbleWindow();
+  } else if (floatingWindow.isVisible()) {
+    floatingWindow.hide();
+  } else {
+    floatingWindow.show();
+    floatingWindow.focus();
+    floatingWindow.setAlwaysOnTop(true, 'screen-saver');
+    floatingWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   }
 });
 

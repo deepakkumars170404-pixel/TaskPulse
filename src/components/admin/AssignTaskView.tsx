@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { TaskPriority } from '../../types';
-import { Check, ShieldAlert, Sparkles, Calendar, CalendarDays, Clock, Send, Users } from 'lucide-react';
-import { MiniCalendar } from '../common/MiniCalendar';
+import { Check, ShieldAlert, Calendar, Clock, Send, Users, CheckCircle2 } from 'lucide-react';
+import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
 
 export const AssignTaskView: React.FC = () => {
   const { users, assignAdminTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
@@ -12,39 +12,10 @@ export const AssignTaskView: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
-  const [dueDate, setDueDate] = useState('24 Oct 2026');
+  const [dueDate, setDueDate] = useState('27 Oct 2026');
   const [dueTime, setDueTime] = useState('2:30 PM');
   const [priority, setPriority] = useState<TaskPriority>('Medium');
   const [successToast, setSuccessToast] = useState(false);
-  const [showCalendarPopover, setShowCalendarPopover] = useState(false);
-
-  const calendarRef = useRef<HTMLDivElement>(null);
-
-  // Close calendar popover on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
-        setShowCalendarPopover(false);
-      }
-    };
-    if (showCalendarPopover) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showCalendarPopover]);
-
-  // Extract dates that already have tasks assigned for workload dots
-  const existingTaskDates = tasks.map((t) => t.dueDate);
-
-  // Quick Date presets
-  const datePresets = [
-    { label: 'Today (24 Oct)', value: '24 Oct 2026' },
-    { label: 'Tomorrow (25 Oct)', value: '25 Oct 2026' },
-    { label: 'Upcoming (26 Oct)', value: '26 Oct 2026' },
-    { label: 'Next Week (02 Nov)', value: '02 Nov 2026' },
-  ];
 
   // Toggle staff selection
   const toggleStaff = (id: string) => {
@@ -91,41 +62,40 @@ export const AssignTaskView: React.FC = () => {
 
   return (
     <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto">
-      {/* Page Header with Rich Multi-Color Gradients */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-indigo-100/70">
+      {/* Clean Corporate Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Assign Work to Team
             </h1>
-            <span className="text-[11px] font-black px-3 py-1 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 text-white shadow-xs shadow-indigo-300/40">
-              {orgSettings.orgName} Executive
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-900 text-white shadow-2xs">
+              {orgSettings.orgName} Workspace
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-semibold flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
-            <span>Dispatch official assignments to one or more staff members with strict completion dates</span>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+            Schedule deadlines, set priorities, and dispatch tasks to staff queues
           </p>
         </div>
       </div>
 
       {successToast && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-300 text-emerald-950 flex items-center gap-3 animate-in fade-in shadow-xs">
-          <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span className="text-xs sm:text-sm font-bold">
-            Task assigned for {dueDate} by {dueTime}! Dispatched to selected staff members.
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-center gap-3 animate-in fade-in shadow-2xs">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span className="text-xs sm:text-sm font-semibold">
+            Task successfully dispatched! Notification chime and desktop alert sent to assigned staff.
           </span>
         </div>
       )}
 
-      {/* Full-width Responsive Grid */}
+      {/* Responsive Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Assignment Form (2 cols on xl) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-indigo-100/90 shadow-md shadow-indigo-100/30">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task title */}
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                 Task Title
               </label>
               <input
@@ -140,7 +110,7 @@ export const AssignTaskView: React.FC = () => {
 
             {/* Description */}
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                 Task Description & Instructions
               </label>
               <textarea
@@ -155,7 +125,7 @@ export const AssignTaskView: React.FC = () => {
             {/* Staff multi-select pills */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                   Assign To (Select one or more staff)
                 </label>
                 <button
@@ -163,7 +133,7 @@ export const AssignTaskView: React.FC = () => {
                   onClick={handleSelectAllStaff}
                   className="text-xs font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
                 >
-                  {selectedStaffIds.length === staffList.length ? 'Deselect All' : 'Select All'}
+                  {selectedStaffIds.length === staffList.length ? 'Deselect All' : 'Select All Staff'}
                 </button>
               </div>
 
@@ -175,15 +145,15 @@ export const AssignTaskView: React.FC = () => {
                       type="button"
                       key={staff.id}
                       onClick={() => toggleStaff(staff.id)}
-                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         isSelected
-                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-200'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200/90 border border-slate-200'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
                       <div
-                        className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
-                          isSelected ? 'bg-white text-indigo-700' : 'bg-slate-300 text-slate-700'
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-300 text-slate-700'
                         }`}
                       >
                         {staff.initials}
@@ -196,96 +166,39 @@ export const AssignTaskView: React.FC = () => {
               </div>
             </div>
 
-            {/* Due Date & Time with Mini Calendar Popover */}
-            <div className="space-y-3 bg-gradient-to-r from-slate-50 via-indigo-50/30 to-slate-50 p-4 sm:p-5 rounded-2xl border border-indigo-100/80">
+            {/* Target Deadline (Interactive Mini Calendar & Fast Clock Picker) */}
+            <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-indigo-600" />
                   <span>Target Completion Deadline</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setShowCalendarPopover(!showCalendarPopover)}
-                  className="text-xs font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1 rounded-xl border border-indigo-100 shadow-2xs"
-                >
-                  <CalendarDays className="w-3.5 h-3.5 text-cyan-600" />
-                  <span>{showCalendarPopover ? 'Close Calendar' : 'Pick from Calendar'}</span>
-                </button>
               </div>
 
-              {/* Quick Preset Buttons */}
-              <div className="flex flex-wrap gap-1.5">
-                {datePresets.map((preset) => (
-                  <button
-                    type="button"
-                    key={preset.value}
-                    onClick={() => setDueDate(preset.value)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      dueDate === preset.value
-                        ? 'bg-indigo-600 text-white shadow-2xs'
-                        : 'bg-white text-slate-600 hover:bg-slate-200/80 border border-slate-200/90'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative mt-2">
-                {/* Due Date Input with Mini Calendar Trigger */}
-                <div className="relative">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                    Completion Date
-                  </span>
-                  <div
-                    onClick={() => setShowCalendarPopover(!showCalendarPopover)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-400 text-sm font-bold text-slate-900 flex items-center justify-between cursor-pointer transition-all shadow-2xs"
-                  >
-                    <span>{dueDate}</span>
-                    <Calendar className="w-4 h-4 text-indigo-600" />
-                  </div>
-
-                  {/* Mini Calendar Popover */}
-                  {showCalendarPopover && (
-                    <div
-                      ref={calendarRef}
-                      className="absolute left-0 sm:left-auto right-auto top-16 z-50 animate-in fade-in zoom-in-95 duration-150 max-w-[calc(100vw-2.5rem)]"
-                    >
-                      <MiniCalendar
-                        selectedDate={dueDate}
-                        onSelectDate={(newDate) => {
-                          setDueDate(newDate);
-                          setShowCalendarPopover(false);
-                        }}
-                        taskDates={existingTaskDates}
-                        onClose={() => setShowCalendarPopover(false)}
-                      />
-                    </div>
-                  )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Mini Calendar Picker */}
+                <div>
+                  <QuickDatePicker
+                    value={dueDate}
+                    onChange={setDueDate}
+                    label="Completion Date (Mini Calendar)"
+                  />
                 </div>
 
-                {/* Due Time Input */}
+                {/* Fast Clock Picker */}
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                    Completion Time
-                  </span>
-                  <div className="relative">
-                    <Clock className="w-4 h-4 text-cyan-600 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={dueTime}
-                      onChange={(e) => setDueTime(e.target.value)}
-                      placeholder="2:30 PM"
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 text-sm font-bold text-slate-900 bg-white shadow-2xs"
-                    />
-                  </div>
+                  <QuickTimePicker
+                    value={dueTime}
+                    onChange={setDueTime}
+                    label="Completion Time (Clock Face & Fast Presets)"
+                  />
                 </div>
               </div>
             </div>
 
             {/* Priority pills */}
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                 Task Priority Level
               </label>
               <div className="flex flex-wrap items-center gap-2.5">
@@ -296,19 +209,23 @@ export const AssignTaskView: React.FC = () => {
                       type="button"
                       key={p}
                       onClick={() => setPriority(p)}
-                      className={`px-5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+                      className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                         isSelected
                           ? p === 'High'
-                            ? 'bg-rose-600 text-white shadow-md shadow-rose-200'
+                            ? 'bg-rose-600 text-white shadow-xs'
                             : p === 'Medium'
-                            ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md shadow-indigo-200'
-                            : 'bg-slate-800 text-white shadow-md'
+                            ? 'bg-indigo-600 text-white shadow-xs'
+                            : 'bg-slate-900 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
                       <span
                         className={`w-2 h-2 rounded-full ${
-                          isSelected ? 'bg-white' : p === 'High' ? 'bg-rose-500' : p === 'Medium' ? 'bg-amber-500' : 'bg-slate-400'
+                          p === 'High'
+                            ? 'bg-rose-400'
+                            : p === 'Medium'
+                            ? 'bg-indigo-300'
+                            : 'bg-slate-400'
                         }`}
                       />
                       <span>{p} Priority</span>
@@ -318,14 +235,14 @@ export const AssignTaskView: React.FC = () => {
               </div>
             </div>
 
-            {/* Submit & Cancel buttons */}
+            {/* Submit & Cancel Buttons */}
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                className="px-7 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-xs sm:text-sm font-black shadow-md shadow-indigo-300/60 transition-all cursor-pointer flex items-center gap-2 active:scale-95"
+                className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95"
               >
                 <Send className="w-4 h-4" />
-                <span>Assign Task to Team</span>
+                <span>Dispatch Task to Staff</span>
               </button>
               <button
                 type="button"
@@ -338,45 +255,58 @@ export const AssignTaskView: React.FC = () => {
           </form>
         </div>
 
-        {/* Sidebar Cards (1 col on xl) */}
+        {/* Sidebar Info & Recent Assignments */}
         <div className="space-y-5 sm:space-y-6">
-          {/* Compulsory work card */}
-          <div className="bg-gradient-to-br from-indigo-50/90 to-violet-50/70 border border-indigo-100 rounded-2xl p-5 sm:p-6 shadow-2xs">
+          {/* Quick Info Box */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-2xs">
             <div className="flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-xs font-black uppercase tracking-wider text-indigo-900 mb-1">
-                  Mandatory Execution Policy
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-1">
+                  Enforcement Rules
                 </h3>
-                <p className="text-xs text-indigo-800 leading-relaxed font-semibold">
-                  Tasks dispatched by Admin are compulsory and lock directly into staff to-do lists. Staff cannot reject or delete them.
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  Tasks assigned by admin bypass request confirmation and land directly into staff's active daily queue.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Recently assigned list with prominent date & time */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-indigo-100/90 shadow-md shadow-indigo-100/30">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+          {/* Recently Assigned List */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center justify-between">
               <span>Recently Assigned</span>
-              <Clock className="w-4 h-4 text-cyan-600" />
+              <Users className="w-4 h-4 text-indigo-600" />
             </h3>
-            <div className="space-y-3.5">
-              {recentlyAssigned.map((task) => (
-                <div key={task.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                  <div className="text-xs font-bold text-slate-900 hover:text-indigo-600 transition-colors">
-                    {task.title}
+            {recentlyAssigned.length === 0 ? (
+              <p className="text-xs text-slate-400 italic font-medium">No admin tasks assigned yet.</p>
+            ) : (
+              <div className="space-y-3.5">
+                {recentlyAssigned.map((task) => (
+                  <div key={task.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-xs font-bold text-slate-900 truncate">{task.title}</span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                          task.status === 'done'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                        }`}
+                      >
+                        {task.status === 'done' ? 'Done' : 'Pending'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
+                      <span className="font-medium text-slate-600">Assigned: {task.assignedToName}</span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                        <Calendar className="w-3 h-3 text-slate-500" />
+                        <span>{task.dueDate} · {task.dueTime}</span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
-                    <span className="font-semibold text-slate-600">{task.assignedToName}</span>
-                    <span className="inline-flex items-center gap-1 font-black text-indigo-700 bg-indigo-50/90 px-2 py-0.5 rounded-md border border-indigo-100">
-                      <Calendar className="w-3 h-3 text-indigo-500" />
-                      <span>{task.dueDate} · {task.dueTime}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

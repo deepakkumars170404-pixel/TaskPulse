@@ -35,7 +35,7 @@ export const BottomNav: React.FC = () => {
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-indigo-100/90 shadow-[0_-8px_25px_rgba(79,70,229,0.08)] px-2 py-2 transition-all"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-lg px-2 py-2 transition-all"
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
@@ -50,7 +50,7 @@ export const BottomNav: React.FC = () => {
               onClick={() => setCurrentPage(item.id as any)}
               className={`flex-1 flex flex-col items-center justify-center py-1 rounded-xl transition-all cursor-pointer relative ${
                 isActive
-                  ? 'text-indigo-600 font-bold'
+                  ? 'text-slate-900 font-bold'
                   : 'text-slate-500 hover:text-slate-800 font-medium'
               }`}
             >
@@ -58,7 +58,7 @@ export const BottomNav: React.FC = () => {
                 <div
                   className={`w-10 h-8 flex items-center justify-center rounded-xl transition-all ${
                     isActive
-                      ? 'bg-gradient-to-tr from-indigo-600 via-indigo-700 to-cyan-500 text-white shadow-md shadow-indigo-300 scale-105'
+                      ? 'bg-slate-900 text-white shadow-xs scale-105'
                       : 'text-slate-500'
                   }`}
                 >
@@ -66,7 +66,7 @@ export const BottomNav: React.FC = () => {
                 </div>
 
                 {badgeCount !== undefined && badgeCount > 0 && (
-                  <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs ring-2 ring-white">
+                  <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center shadow-xs ring-2 ring-white">
                     {badgeCount}
                   </span>
                 )}
@@ -74,7 +74,7 @@ export const BottomNav: React.FC = () => {
 
               <span
                 className={`text-[10px] mt-1 tracking-tight ${
-                  isActive ? 'font-black text-indigo-700' : 'text-slate-500 font-semibold'
+                  isActive ? 'font-bold text-slate-900' : 'text-slate-500 font-medium'
                 }`}
               >
                 {item.label}

@@ -11,6 +11,7 @@ import { TimingSettingsView } from './components/admin/TimingSettingsView';
 import { MyToDoView } from './components/staff/MyToDoView';
 import { CreateToDoView } from './components/staff/CreateToDoView';
 import { TaskRequestsView } from './components/staff/TaskRequestsView';
+import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
 import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubble';
 
 const MainLayout: React.FC = () => {
@@ -62,7 +63,8 @@ const MainLayout: React.FC = () => {
       {/* Modern Bottom Navigation Bar for Mobile Phones */}
       {!isEmbedded && <BottomNav />}
 
-      {/* NO in-page floating bubble inside the webpage - completely clean and unobstructed */}
+      {/* Document Picture-in-Picture Handler (renders 0 DOM in page, handles PiP popup when clicked) */}
+      <FloatingTaskWidget />
     </div>
   );
 };

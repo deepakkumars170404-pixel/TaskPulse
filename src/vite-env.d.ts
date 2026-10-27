@@ -1,12 +1,7 @@
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  readonly VITE_SUPABASE_URL?: string;
-  readonly VITE_SUPABASE_ANON_KEY?: string;
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
+interface DocumentPictureInPictureEvent extends Event {
+  readonly window: Window;
 }
 
 interface DocumentPictureInPictureOptions {
@@ -15,13 +10,9 @@ interface DocumentPictureInPictureOptions {
   disallowReturnToOpener?: boolean;
 }
 
-interface DocumentPictureInPictureEvent extends Event {
-  window: Window;
-}
-
 interface DocumentPictureInPicture {
   requestWindow(options?: DocumentPictureInPictureOptions): Promise<Window>;
-  window: Window | null;
+  readonly window: Window | null;
   onenter: ((this: DocumentPictureInPicture, ev: DocumentPictureInPictureEvent) => any) | null;
   addEventListener(type: string, listener: (ev: any) => any): void;
   removeEventListener(type: string, listener: (ev: any) => any): void;
@@ -30,6 +21,8 @@ interface DocumentPictureInPicture {
 interface ElectronAPI {
   isElectron: boolean;
   resizeFloating: (mode: 'logo' | 'expanded') => void;
+  showFloating?: () => void;
+  toggleFloating?: () => void;
   startDrag?: () => void;
   stopDrag?: () => void;
   moveFloatingBy?: (dx: number, dy: number) => void;
