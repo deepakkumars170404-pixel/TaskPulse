@@ -44,6 +44,7 @@ interface TaskToggleContextType {
   completeAllTasks: () => void;
   snoozeTask: (taskId: string, minutes: number) => void;
   playCompletionSound: () => void;
+  playCalendarClickSound: () => void;
   sendTaskNotification: (title: string, body: string) => void;
   acceptTaskRequest: (taskId: string) => void;
   rejectTaskRequest: (taskId: string, reason: string) => void;
@@ -95,40 +96,58 @@ const playRewardChime = () => {
   }
 };
 
-// Browser-native Web Audio alert chime for new task assignment
-const playAssignmentAlertSound = () => {
+// High-frequency audible alert chime for new task assignment (audible over games & music)
+export const playAssignmentAlertSound = () => {
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
     const ctx = new AudioContextClass();
     const now = ctx.currentTime;
 
-    // First tone: 587.33 Hz (D5)
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'triangle';
-    osc1.frequency.setValueAtTime(587.33, now);
-    gain1.gain.setValueAtTime(0.2, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    osc1.start(now);
-    osc1.stop(now + 0.25);
+    // High 4-tone ascending alert chime: F#5 (740Hz) -> A5 (880Hz) -> D6 (1175Hz) -> F#6 (1480Hz)
+    const tones = [
+      { freq: 739.99, time: now, dur: 0.12, vol: 0.35 },
+      { freq: 880.00, time: now + 0.08, dur: 0.14, vol: 0.40 },
+      { freq: 1174.66, time: now + 0.18, dur: 0.20, vol: 0.45 },
+      { freq: 1479.98, time: now + 0.32, dur: 0.40, vol: 0.50 },
+    ];
 
-    // Second tone: 880 Hz (A5) clear chime
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(880, now + 0.12);
-    gain2.gain.setValueAtTime(0.25, now + 0.12);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start(now + 0.12);
-    osc2.stop(now + 0.45);
+    tones.forEach(({ freq, time, dur, vol }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(vol, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(time);
+      osc.stop(time + dur);
+    });
   } catch (e) {
     // Ignore if audio permissions not yet activated
   }
+};
+
+// Clean interaction chime for calendar date clicks
+export const playCalendarClickSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(987.77, now); // B5 crisp note
+    gain.gain.setValueAtTime(0.20, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.15);
+  } catch (e) {}
 };
 
 
@@ -555,6 +574,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const rejectTaskRequest = (taskId: string, reason: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const trimmedReason = reason.trim();
+    const target = tasks.find((t) => t.id === taskId);
 
     setTasks((prev) =>
       prev.map((t) => {
@@ -564,11 +584,33 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             status: 'rejected' as const,
             rejectReason: trimmedReason,
             rejectedAt: nowTimeStr,
+            pendingReason: `[DECLINED]: ${trimmedReason}`,
+            pendingReasonUpdatedAt: nowTimeStr,
           };
         }
         return t;
       })
     );
+
+    // Send alert sound and native notification to task creator & admin
+    playAssignmentAlertSound();
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const notifTitle = `Task Declined: ${target?.title || 'Assigned Work'}`;
+      const notifBody = `${currentUser.name} declined: "${trimmedReason}"`;
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification(notifTitle, { body: notifBody, icon: '/favicon.ico' });
+        } catch (e) {}
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') {
+            try {
+              new Notification(notifTitle, { body: notifBody, icon: '/favicon.ico' });
+            } catch (e) {}
+          }
+        });
+      }
+    }
 
     // Backend database update
     backendApi.updateTask(taskId, {
@@ -645,6 +687,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         completeAllTasks,
         snoozeTask,
         playCompletionSound: playRewardChime,
+        playCalendarClickSound,
         sendTaskNotification: sendTaskAssignmentNotification,
         acceptTaskRequest,
         rejectTaskRequest,

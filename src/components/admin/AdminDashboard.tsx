@@ -325,21 +325,26 @@ export const AdminDashboard: React.FC = () => {
                         {/* Status Column & Issue Trigger */}
                         <td className="py-3.5 px-4 sm:px-5 text-right">
                           <div className="flex flex-col items-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleTaskStatus(task.id);
-                              }}
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                            <div
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
                                 isDone
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                  : 'bg-amber-50 text-amber-800 border border-amber-200'
                               }`}
-                              title="Click to toggle status"
+                              title={isDone ? 'Struck done by staff' : 'Awaiting staff action'}
                             >
-                              <span>{isDone ? 'Completed' : 'Pending'}</span>
-                            </button>
+                              {isDone ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                  <span>Struck Done by Staff</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                  <span>Pending Staff Action</span>
+                                </>
+                              )}
+                            </div>
 
                             {/* Nearby Written Issue Button / Popup Trigger */}
                             {!isDone && task.pendingReason && (

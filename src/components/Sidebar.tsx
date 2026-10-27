@@ -12,6 +12,7 @@ import {
   X,
   ShieldCheck,
   UserCheck,
+  CalendarDays,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -132,6 +133,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 <Clock className="w-4 h-4 shrink-0" />
                 <span>Timing Settings</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => handleNavClick('calendar')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                  currentPage === 'calendar'
+                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                }`}
+              >
+                <CalendarDays className="w-4 h-4 shrink-0" />
+                <span>Company Calendar</span>
+              </button>
             </>
           ) : (
             <>
@@ -185,6 +199,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                     {pendingRequestsCount}
                   </span>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleNavClick('calendar')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                  currentPage === 'calendar'
+                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                }`}
+              >
+                <CalendarDays className="w-4 h-4 shrink-0" />
+                <span>Company Calendar</span>
               </button>
             </>
           )}

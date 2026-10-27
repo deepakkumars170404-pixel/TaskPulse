@@ -343,11 +343,11 @@ export const FloatingTaskWidget: React.FC = () => {
                 title="TaskToggle · Click logo to open details"
               >
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg ring-2 ring-white hover:scale-105 transition-transform">
+                  <div className="w-16 h-16 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-xl ring-3 ring-white hover:scale-105 transition-transform">
                     <CheckSquare className="w-8 h-8 stroke-[2.5]" />
                   </div>
                   {pendingTasks.length > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white animate-pulse">
+                    <span className="absolute -top-1 -right-1 min-w-[24px] h-[24px] px-1.5 rounded-full bg-rose-600 text-white text-xs font-black flex items-center justify-center shadow-lg ring-2 ring-white">
                       {pendingTasks.length}
                     </span>
                   )}

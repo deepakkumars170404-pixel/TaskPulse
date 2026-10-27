@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   PlusCircle,
   Inbox,
+  CalendarDays,
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
@@ -22,12 +23,14 @@ export const BottomNav: React.FC = () => {
     { id: 'assign', label: 'Assign', icon: UserPlus },
     { id: 'monitor', label: 'Monitor', icon: ListTodo },
     { id: 'timing', label: 'Timing', icon: Clock },
+    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
   ] as const;
 
   const staffNavItems = [
     { id: 'mytodo', label: 'My To-Do', icon: CheckCircle2 },
     { id: 'create', label: 'Create', icon: PlusCircle },
     { id: 'requests', label: 'Requests', icon: Inbox, badge: pendingRequestsCount },
+    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
   ] as const;
 
   const navItems = currentUser.role === 'admin' ? adminNavItems : staffNavItems;

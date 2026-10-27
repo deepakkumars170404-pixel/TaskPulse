@@ -12,6 +12,7 @@ import { MyToDoView } from './components/staff/MyToDoView';
 import { CreateToDoView } from './components/staff/CreateToDoView';
 import { TaskRequestsView } from './components/staff/TaskRequestsView';
 import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
+import { FullPageCalendarView } from './components/common/FullPageCalendarView';
 import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubble';
 
 const MainLayout: React.FC = () => {
@@ -43,6 +44,7 @@ const MainLayout: React.FC = () => {
 
         {/* Main Content Area - padded at bottom on mobile to accommodate BottomNav */}
         <main className="flex-1 overflow-y-auto pb-24 md:pb-6">
+          {currentPage === 'calendar' && <FullPageCalendarView />}
           {currentUser.role === 'admin' ? (
             <>
               {currentPage === 'dashboard' && <AdminDashboard />}
