@@ -57,6 +57,7 @@ interface TaskToggleContextType {
   sendTaskNotification: (title: string, body: string) => void;
   acceptTaskRequest: (taskId: string) => void;
   rejectTaskRequest: (taskId: string, reason: string) => void;
+  moveToMyOwnToDo: (taskId: string) => void;
   sendTaskCompletedNotification: (taskTitle: string, staffName: string) => void;
   reportPendingReason: (taskId: string, reason: string) => void;
   activeDueReminder: { task: Task; minutesRemaining: number } | null;
@@ -900,7 +901,35 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     backendApi.updateTask(taskId, {
       status: 'rejected',
       pendingReason: `[DECLINED]: ${trimmedReason}`,
+      rejectReason: trimmedReason,
+      rejectedAt: nowTimeStr,
     }).catch((err) => console.warn('[Backend] reject error:', err));
+  };
+
+  // Move a declined/delegated task to the current user's own to-do list
+  const moveToMyOwnToDo = (taskId: string) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          return {
+            ...t,
+            assignedTo: currentUser.id,
+            assignedToName: currentUser.name,
+            type: 'self' as const,
+            status: 'pending' as const,
+            rejectReason: undefined,
+            rejectedAt: undefined,
+            pendingReason: undefined,
+            pendingReasonUpdatedAt: undefined,
+          };
+        }
+        return t;
+      })
+    );
+    backendApi.updateTask(taskId, {
+      status: 'pending',
+      pendingReason: undefined,
+    }).catch(() => {});
   };
 
   // Rule 5: Staff reports reason / issue for pending task
@@ -1022,6 +1051,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         sendTaskNotification: sendTaskAssignmentNotification,
         acceptTaskRequest,
         rejectTaskRequest,
+        moveToMyOwnToDo,
         sendTaskCompletedNotification,
         reportPendingReason,
         updateOfficeTiming,

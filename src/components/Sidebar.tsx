@@ -29,6 +29,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'pending'
   ).length;
 
+  // Calculate declined requests count for tasks created by current staff member
+  const declinedRequestsCount = tasks.filter(
+    (t) => t.createdBy === currentUser.id && t.type === 'staff' && t.status === 'rejected'
+  ).length;
+
   const handleNavClick = (page: any) => {
     setCurrentPage(page);
     if (onCloseMobile) onCloseMobile();
@@ -189,15 +194,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                   <Inbox className="w-4 h-4 shrink-0" />
                   <span>Task Requests</span>
                 </div>
-                {pendingRequestsCount > 0 && (
+                {(pendingRequestsCount > 0 || declinedRequestsCount > 0) && (
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                       currentPage === 'requests'
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-rose-600 text-white shadow-xs'
+                        ? 'bg-white text-indigo-700'
+                        : declinedRequestsCount > 0
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-indigo-600 text-white shadow-xs'
                     }`}
                   >
-                    {pendingRequestsCount}
+                    {declinedRequestsCount > 0
+                      ? `${declinedRequestsCount} declined`
+                      : pendingRequestsCount}
                   </span>
                 )}
               </button>

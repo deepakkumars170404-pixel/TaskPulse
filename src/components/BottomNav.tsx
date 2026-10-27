@@ -18,6 +18,12 @@ export const BottomNav: React.FC = () => {
     (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'pending'
   ).length;
 
+  const declinedRequestsCount = tasks.filter(
+    (t) => t.createdBy === currentUser.id && t.type === 'staff' && t.status === 'rejected'
+  ).length;
+
+  const totalRequestsBadge = pendingRequestsCount + declinedRequestsCount;
+
   const adminNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'assign', label: 'Assign', icon: UserPlus },
@@ -29,7 +35,7 @@ export const BottomNav: React.FC = () => {
   const staffNavItems = [
     { id: 'mytodo', label: 'My To-Do', icon: CheckCircle2 },
     { id: 'create', label: 'Create', icon: PlusCircle },
-    { id: 'requests', label: 'Requests', icon: Inbox, badge: pendingRequestsCount },
+    { id: 'requests', label: 'Requests', icon: Inbox, badge: totalRequestsBadge },
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
   ] as const;
 

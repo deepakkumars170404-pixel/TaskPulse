@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { HelpCircle, User, Users, Calendar, Clock, Send, CheckCircle2 } from 'lucide-react';
+import {
+  HelpCircle,
+  User,
+  Users,
+  Calendar,
+  Clock,
+  Send,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react';
 import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
 
 export const CreateToDoView: React.FC = () => {
-  const { currentUser, users, createStaffTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
+  const { currentUser, users, createStaffTask, deleteTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
 
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
@@ -12,6 +24,7 @@ export const CreateToDoView: React.FC = () => {
   const [dueDate, setDueDate] = useState('27 Oct 2026');
   const [dueTime, setDueTime] = useState('5:00 PM');
   const [successToast, setSuccessToast] = useState(false);
+  const [delegatedFilter, setDelegatedFilter] = useState<'all' | 'declined' | 'pending'>('all');
 
   // Filter other staff members
   const otherStaff = users.filter((u) => u.role === 'staff' && u.id !== currentUser.id);
@@ -38,9 +51,17 @@ export const CreateToDoView: React.FC = () => {
   };
 
   // Sent by me tasks
-  const sentByMeTasks = tasks
-    .filter((t) => t.createdBy === currentUser.id && t.type === 'staff')
-    .slice(0, 6);
+  const allSentByMeTasks = tasks.filter(
+    (t) => t.createdBy === currentUser.id && t.type === 'staff'
+  );
+
+  const declinedCount = allSentByMeTasks.filter((t) => t.status === 'rejected').length;
+
+  const filteredSentTasks = allSentByMeTasks.filter((t) => {
+    if (delegatedFilter === 'declined') return t.status === 'rejected';
+    if (delegatedFilter === 'pending') return t.status === 'pending';
+    return true;
+  }).slice(0, 8);
 
   return (
     <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
@@ -217,41 +238,182 @@ export const CreateToDoView: React.FC = () => {
             </div>
           </div>
 
-          {/* Delegated by you list */}
+          {/* Delegated by you list with Full Rejection & Message Visibility */}
           <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center justify-between">
-              <span>Delegated by You</span>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Delegated by You
+              </h3>
               <Users className="w-4 h-4 text-indigo-600" />
-            </h3>
-            {sentByMeTasks.length === 0 ? (
-              <p className="text-xs text-slate-400 italic font-medium">No tasks delegated to colleagues yet.</p>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl mb-4 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => setDelegatedFilter('all')}
+                className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer truncate text-center ${
+                  delegatedFilter === 'all'
+                    ? 'bg-white text-indigo-700 shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All ({allSentByMeTasks.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDelegatedFilter('declined')}
+                className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer truncate text-center flex items-center justify-center gap-1 ${
+                  delegatedFilter === 'declined'
+                    ? 'bg-rose-600 text-white shadow-2xs font-extrabold'
+                    : declinedCount > 0
+                    ? 'text-rose-700 bg-rose-50 hover:bg-rose-100 font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>Declined</span>
+                {declinedCount > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black ${
+                    delegatedFilter === 'declined' ? 'bg-white text-rose-700' : 'bg-rose-600 text-white'
+                  }`}>
+                    {declinedCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDelegatedFilter('pending')}
+                className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer truncate text-center ${
+                  delegatedFilter === 'pending'
+                    ? 'bg-white text-indigo-700 shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Pending ({allSentByMeTasks.filter((t) => t.status === 'pending').length})
+              </button>
+            </div>
+
+            {filteredSentTasks.length === 0 ? (
+              <p className="text-xs text-slate-400 italic font-medium">No tasks found under this filter.</p>
             ) : (
               <div className="space-y-3.5">
-                {sentByMeTasks.map((task) => (
-                  <div key={task.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-900 truncate">{task.title}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                          task.status === 'done'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : task.status === 'accepted'
-                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                            : 'bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
-                      >
-                        {task.status === 'done' ? 'Done' : task.status === 'accepted' ? 'Accepted' : 'Pending'}
-                      </span>
+                {filteredSentTasks.map((task) => {
+                  const isDone = task.status === 'done';
+                  const isAccepted = task.status === 'accepted';
+                  const isRejected = task.status === 'rejected';
+                  const rejectMsg =
+                    task.rejectReason ||
+                    (task.pendingReason?.startsWith('[DECLINED]: ')
+                      ? task.pendingReason.replace('[DECLINED]: ', '')
+                      : task.pendingReason);
+
+                  return (
+                    <div
+                      key={task.id}
+                      className={`border rounded-xl p-3 transition-all ${
+                        isRejected
+                          ? 'bg-rose-50/50 border-rose-200'
+                          : 'border-slate-100 hover:border-slate-200 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span
+                          className={`text-xs font-bold truncate ${
+                            isDone
+                              ? 'line-through text-slate-400'
+                              : isRejected
+                              ? 'text-rose-950 font-black'
+                              : 'text-slate-900'
+                          }`}
+                        >
+                          {task.title}
+                        </span>
+
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-md shrink-0 flex items-center gap-1 ${
+                            isDone
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : isAccepted
+                              ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                              : isRejected
+                              ? 'bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs'
+                              : 'bg-amber-50 text-amber-800 border border-amber-200'
+                          }`}
+                        >
+                          {isDone ? (
+                            'Done'
+                          ) : isAccepted ? (
+                            'Accepted'
+                          ) : isRejected ? (
+                            <>
+                              <XCircle className="w-3 h-3 text-rose-600 shrink-0" />
+                              <span>Declined</span>
+                            </>
+                          ) : (
+                            'Pending Response'
+                          )}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5 flex-wrap gap-1">
+                        <span className="font-semibold text-slate-700">To: {task.assignedToName}</span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          <span>{task.dueDate} · {task.dueTime}</span>
+                        </span>
+                      </div>
+
+                      {/* Display Colleague Rejection Message & Action Buttons */}
+                      {isRejected && (
+                        <div className="mt-2.5 p-2.5 rounded-xl bg-white border border-rose-200 space-y-2">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-rose-900">
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                            <span>Colleague Message from {task.assignedToName}:</span>
+                          </div>
+
+                          <div className="p-2 rounded-lg bg-rose-50/70 border border-rose-100 text-xs text-rose-950 font-medium leading-relaxed italic">
+                            "{rejectMsg || 'No message provided'}"
+                          </div>
+
+                          {task.rejectedAt && (
+                            <div className="text-[10px] text-rose-700 font-semibold">
+                              Declined at {task.rejectedAt}
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 pt-1 border-t border-rose-100 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTitle(task.title);
+                                setDetails(task.description || '');
+                                setDueDate(task.dueDate || '27 Oct 2026');
+                                setDueTime(task.dueTime || '5:00 PM');
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95"
+                              title="Pre-fill form to delegate this task to another colleague"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              <span>Reassign to Another Colleague</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => deleteTask(task.id)}
+                              className="px-2.5 py-1 rounded-lg text-slate-500 hover:text-rose-700 hover:bg-rose-50 text-[11px] font-semibold cursor-pointer transition-all flex items-center gap-1"
+                              title="Remove this declined task"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Dismiss</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
-                      <span className="font-medium text-slate-600">To: {task.assignedToName}</span>
-                      <span className="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                        <Calendar className="w-3 h-3 text-slate-500" />
-                        <span>{task.dueDate} · {task.dueTime}</span>
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

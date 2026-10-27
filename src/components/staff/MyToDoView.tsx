@@ -104,6 +104,7 @@ export const MyToDoView: React.FC = () => {
     reportPendingReason,
     eventTiming,
     orgSettings,
+    setCurrentPage,
   } = useTaskToggle();
 
   const [showCompleted, setShowCompleted] = useState<boolean>(true);
@@ -119,6 +120,17 @@ export const MyToDoView: React.FC = () => {
   // Directly display all tasks assigned to the current staff member
   const myTasks = useMemo(() => {
     return tasks.filter((t) => t.assignedTo === currentUser.id);
+  }, [tasks, currentUser.id]);
+
+  // Delegated tasks created by current user that were declined by colleagues
+  const declinedDelegations = useMemo(() => {
+    return tasks.filter(
+      (t) =>
+        t.createdBy === currentUser.id &&
+        t.assignedTo !== currentUser.id &&
+        t.type === 'staff' &&
+        t.status === 'rejected'
+    );
   }, [tasks, currentUser.id]);
 
   // Compute Active Monday
@@ -351,6 +363,32 @@ export const MyToDoView: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* Alert Banner for Tasks Declined by Colleagues */}
+      {declinedDelegations.length > 0 && (
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50 border-2 border-rose-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-2xs font-bold text-xs">
+              !
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs sm:text-sm font-black text-rose-950 flex items-center gap-2">
+                <span>⚠️ {declinedDelegations.length === 1 ? '1 Task Request Declined by Colleague' : `${declinedDelegations.length} Tasks Declined by Colleagues`}</span>
+              </div>
+              <p className="text-xs text-rose-900 font-medium mt-0.5 truncate">
+                <strong>{declinedDelegations[0].assignedToName}</strong> declined "{declinedDelegations[0].title}": "{declinedDelegations[0].rejectReason || (declinedDelegations[0].pendingReason?.startsWith('[DECLINED]: ') ? declinedDelegations[0].pendingReason.replace('[DECLINED]: ', '') : declinedDelegations[0].pendingReason) || 'No message provided'}"
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCurrentPage('requests')}
+            className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all shrink-0 self-start sm:self-auto"
+          >
+            View Message & Reassign
+          </button>
+        </div>
+      )}
 
       {/* =========================================================================
           ROUTINE HORIZON SWITCHER: Multi-Month Switcher & Week Navigator
