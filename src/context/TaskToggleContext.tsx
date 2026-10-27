@@ -67,7 +67,7 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
-const STORAGE_CLEAN_VERSION = 'v4_clean_production';
+const STORAGE_CLEAN_VERSION = 'v5_client_presentation';
 
 if (typeof window !== 'undefined') {
   if (localStorage.getItem('tasktoggle_data_version') !== STORAGE_CLEAN_VERSION) {

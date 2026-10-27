@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useTaskToggle } from '../../context/TaskToggleContext';
+import { useTaskToggle, parseTaskDeadline } from '../../context/TaskToggleContext';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -7,6 +7,7 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   Sparkles,
   Users,
   ShieldAlert,
@@ -121,6 +122,48 @@ export const FullPageCalendarView: React.FC = () => {
     return `${day} ${month} ${year}`;
   };
 
+  // Helper: Robust date matching across diverse date formats (e.g. '27 Oct 2026', 'today', '2026-10-27')
+  const isSameCalendarDay = (d: Date, dueDateStr?: string): boolean => {
+    if (!dueDateStr) return false;
+    const trimmed = dueDateStr.trim().toLowerCase();
+    const today = new Date();
+    if (trimmed === 'today') {
+      return (
+        d.getFullYear() === today.getFullYear() &&
+        d.getMonth() === today.getMonth() &&
+        d.getDate() === today.getDate()
+      );
+    }
+    if (trimmed === 'tomorrow') {
+      const tmrw = new Date(today);
+      tmrw.setDate(today.getDate() + 1);
+      return (
+        d.getFullYear() === tmrw.getFullYear() &&
+        d.getMonth() === tmrw.getMonth() &&
+        d.getDate() === tmrw.getDate()
+      );
+    }
+    const parts = dueDateStr.trim().split(/\s+/);
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const mIdx = months.findIndex((m) => parts[1].toLowerCase().startsWith(m));
+      const year = parseInt(parts[2], 10);
+      if (!isNaN(day) && mIdx !== -1 && !isNaN(year)) {
+        return d.getFullYear() === year && d.getMonth() === mIdx && d.getDate() === day;
+      }
+    }
+    const parsed = new Date(dueDateStr);
+    if (!isNaN(parsed.getTime())) {
+      return (
+        d.getFullYear() === parsed.getFullYear() &&
+        d.getMonth() === parsed.getMonth() &&
+        d.getDate() === parsed.getDate()
+      );
+    }
+    return false;
+  };
+
   // Helper: Format date to user-friendly string
   const formatLongDate = (d: Date): string => {
     return d.toLocaleDateString('en-US', {
@@ -177,7 +220,16 @@ export const FullPageCalendarView: React.FC = () => {
     const { date } = popoverAnchor;
     const formatted = formatTaskDate(date);
 
-    const matchingTasks = relevantTasks.filter((t) => t.dueDate === formatted);
+    const matchingTasks = relevantTasks.filter((t) => isSameCalendarDay(date, t.dueDate));
+    const pendingTasks = matchingTasks.filter((t) => t.status !== 'done');
+    const hasOverdue = pendingTasks.some((t) => {
+      if (!t.dueDate) return false;
+      const dl = parseTaskDeadline(t.dueDate, t.dueTime || '11:59 PM');
+      return dl ? dl.getTime() < Date.now() : false;
+    });
+    const hasPending = pendingTasks.length > 0;
+    const allDone = matchingTasks.length > 0 && pendingTasks.length === 0;
+
     const matchingHoliday = GOVERNMENT_HOLIDAYS.find(
       (h) => h.month === date.getMonth() && h.day === date.getDate()
     );
@@ -188,6 +240,9 @@ export const FullPageCalendarView: React.FC = () => {
       longDate: formatLongDate(date),
       holiday: matchingHoliday,
       tasks: matchingTasks,
+      hasOverdue,
+      hasPending,
+      allDone,
     };
   }, [popoverAnchor, relevantTasks]);
 
@@ -269,21 +324,21 @@ export const FullPageCalendarView: React.FC = () => {
 
         {/* Right: Legend Chips */}
         <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-bold">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 text-amber-900 border border-amber-200">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-rose-600" />
+            <span>Pending (Red Date)</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>Govt Holiday</span>
+            <span>Overdue (Yellow Date)</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">
-            <span className="w-2 h-2 rounded-full bg-indigo-600" />
-            <span>Admin Task</span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-50 text-purple-800 border border-purple-200">
-            <span className="w-2 h-2 rounded-full bg-purple-600" />
-            <span>Staff Task</span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-emerald-600" />
-            <span>Done</span>
+            <span>Completed (Green Date)</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
+            <Flag className="w-2.5 h-2.5 text-amber-600" />
+            <span>Govt Holiday</span>
           </span>
         </div>
       </div>
@@ -317,39 +372,68 @@ export const FullPageCalendarView: React.FC = () => {
               (h) => h.month === date.getMonth() && h.day === date.getDate()
             );
 
-            // Find tasks scheduled on this day
-            const dayTasks = relevantTasks.filter((t) => t.dueDate === formatted);
+            // Find tasks scheduled on this day using robust date comparison
+            const dayTasks = relevantTasks.filter((t) => isSameCalendarDay(date, t.dueDate));
             const pendingDayTasks = dayTasks.filter((t) => t.status !== 'done');
+            const hasTasks = dayTasks.length > 0;
+            const allTasksDone = hasTasks && pendingDayTasks.length === 0;
+
+            // Check if any pending task on this date is overdue (staff did not complete over due time)
+            const hasOverdueTask =
+              isCurrentMonth &&
+              pendingDayTasks.some((t) => {
+                if (!t.dueDate) return false;
+                const deadline = parseTaskDeadline(t.dueDate, t.dueTime || '11:59 PM');
+                return deadline ? deadline.getTime() < Date.now() : false;
+              });
+            const hasPendingTask = isCurrentMonth && pendingDayTasks.length > 0 && !hasOverdueTask;
+
+            // Compute background color class for this day cell
+            let cellBgClass = 'hover:bg-slate-50/80';
+            if (!isCurrentMonth) {
+              cellBgClass = 'bg-slate-50/40 text-slate-300';
+            } else if (hasOverdueTask) {
+              // Staff did not complete task over their due time -> Date FULLY YELLOW!
+              cellBgClass = 'bg-amber-100 hover:bg-amber-200/90 text-amber-950 border-amber-300 shadow-2xs';
+            } else if (hasPendingTask) {
+              // Task is pending -> Date FULLY RED!
+              cellBgClass = 'bg-rose-100 hover:bg-rose-200/90 text-rose-950 border-rose-300 shadow-2xs';
+            } else if (allTasksDone) {
+              // All tasks completed -> Date FULLY GREEN!
+              cellBgClass = 'bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border-emerald-300 shadow-2xs';
+            } else if (isToday) {
+              cellBgClass = 'bg-indigo-50/25 hover:bg-slate-50';
+            } else if (holiday) {
+              cellBgClass = 'bg-amber-50/30 hover:bg-amber-50/60';
+            }
+
+            const selectionRing = isSelected ? 'ring-3 ring-indigo-600 z-10 shadow-md' : '';
+
+            // Compute date badge class
+            let dateBadgeClass = isCurrentMonth ? 'text-slate-800' : 'text-slate-400';
+            if (hasOverdueTask) {
+              dateBadgeClass = 'bg-amber-500 text-white font-black shadow-2xs';
+            } else if (hasPendingTask) {
+              dateBadgeClass = 'bg-rose-600 text-white font-black shadow-2xs';
+            } else if (allTasksDone) {
+              dateBadgeClass = 'bg-emerald-600 text-white font-black shadow-2xs';
+            } else if (isToday) {
+              dateBadgeClass = 'bg-indigo-600 text-white shadow-xs';
+            } else if (isSelected) {
+              dateBadgeClass = 'bg-indigo-900 text-white font-bold';
+            }
 
             return (
               <div
                 key={idx}
                 onClick={(e) => handleDateClick(date, e)}
-                className={`min-h-[80px] p-1.5 sm:p-2 transition-all cursor-pointer flex flex-col justify-between group select-none relative ${
-                  !isCurrentMonth
-                    ? 'bg-slate-50/40 text-slate-300'
-                    : isSelected
-                    ? 'bg-indigo-50/70 ring-2 ring-indigo-500 z-10'
-                    : isToday
-                    ? 'bg-indigo-50/25 hover:bg-slate-50'
-                    : holiday
-                    ? 'bg-amber-50/30 hover:bg-amber-50/60'
-                    : 'hover:bg-slate-50/80'
-                }`}
+                className={`min-h-[80px] p-1.5 sm:p-2 transition-all cursor-pointer flex flex-col justify-between group select-none relative ${cellBgClass} ${selectionRing}`}
                 title="Click to view details right here"
               >
                 {/* Top Row: Date Number & Holiday Indicator */}
                 <div className="flex items-center justify-between gap-1">
                   <span
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold transition-all ${
-                      isToday
-                        ? 'bg-indigo-600 text-white shadow-xs'
-                        : isSelected
-                        ? 'bg-indigo-900 text-white'
-                        : isCurrentMonth
-                        ? 'text-slate-800'
-                        : 'text-slate-400'
-                    }`}
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold transition-all ${dateBadgeClass}`}
                   >
                     {date.getDate()}
                   </span>
@@ -402,11 +486,35 @@ export const FullPageCalendarView: React.FC = () => {
 
                 {/* Bottom: Task Counter Badge */}
                 {dayTasks.length > 0 && isCurrentMonth && (
-                  <div className="text-[9px] font-bold text-slate-500 flex items-center justify-between pt-0.5">
-                    <span>{dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}</span>
-                    {pendingDayTasks.length === 0 && dayTasks.length > 0 && (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  <div className="text-[9px] font-bold flex items-center justify-between pt-1 flex-wrap gap-1">
+                    {hasOverdueTask ? (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                        <Clock className="w-2.5 h-2.5 text-amber-700 animate-pulse" />
+                        <span>Overdue ({pendingDayTasks.length})</span>
+                      </span>
+                    ) : hasPendingTask ? (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-rose-200 text-rose-900 border border-rose-300 flex items-center gap-1 shadow-2xs">
+                        <AlertCircle className="w-2.5 h-2.5 text-rose-700" />
+                        <span>Pending ({pendingDayTasks.length})</span>
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-200 text-emerald-900 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-700" />
+                        <span>Done ({dayTasks.length})</span>
+                      </span>
                     )}
+
+                    <span
+                      className={`text-[9px] font-bold ${
+                        hasOverdueTask
+                          ? 'text-amber-800 font-extrabold'
+                          : hasPendingTask
+                          ? 'text-rose-800 font-extrabold'
+                          : 'text-slate-500'
+                      }`}
+                    >
+                      {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+                    </span>
                   </div>
                 )}
               </div>
@@ -472,6 +580,49 @@ export const FullPageCalendarView: React.FC = () => {
                     </p>
                     <p className="text-[10px] text-amber-700 font-medium mt-0.5">
                       Government {selectedDateDetails.holiday.type} Holiday
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Status Notice Banner (Yellow Overdue / Red Pending / Green Completed) */}
+              {selectedDateDetails.hasOverdue && (
+                <div className="p-2.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-950 flex items-center gap-2 shadow-2xs">
+                  <Clock className="w-4 h-4 text-amber-700 shrink-0 animate-pulse" />
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-[11px] leading-tight text-amber-900">
+                      ⚠️ Overdue Tasks Notice (Yellow Date)
+                    </p>
+                    <p className="text-[10px] text-amber-800 font-medium mt-0.5">
+                      Staff did not complete task(s) over their due time.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedDateDetails.hasPending && !selectedDateDetails.hasOverdue && (
+                <div className="p-2.5 rounded-xl bg-rose-100 border border-rose-300 text-rose-950 flex items-center gap-2 shadow-2xs">
+                  <AlertCircle className="w-4 h-4 text-rose-700 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-[11px] leading-tight text-rose-900">
+                      ⏳ Pending Tasks Scheduled (Red Date)
+                    </p>
+                    <p className="text-[10px] text-rose-800 font-medium mt-0.5">
+                      Active pending work allotted for this date.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedDateDetails.allDone && (
+                <div className="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-950 flex items-center gap-2 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-[11px] leading-tight text-emerald-900">
+                      ✅ All Tasks Completed (Green Date)
+                    </p>
+                    <p className="text-[10px] text-emerald-800 font-medium mt-0.5">
+                      All scheduled tasks on this day were successfully completed!
                     </p>
                   </div>
                 </div>

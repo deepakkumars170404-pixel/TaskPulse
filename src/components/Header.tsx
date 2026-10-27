@@ -6,12 +6,9 @@ import {
   ChevronDown,
   UserCheck,
   ShieldCheck,
-  FlaskConical,
   Menu,
   MonitorUp,
-  Volume2,
 } from 'lucide-react';
-import { SoundTestModal } from './common/SoundTestModal';
 
 interface HeaderProps {
   onOpenMobileMenu?: () => void;
@@ -20,7 +17,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const { currentUser, users, switchUser, officeTiming, orgSettings } = useTaskToggle();
   const [showSwitchDropdown, setShowSwitchDropdown] = useState(false);
-  const [showSoundTestModal, setShowSoundTestModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -111,18 +107,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           </span>
         </div>
 
-        {/* Sound & Notification Test Lab Button */}
-        <button
-          type="button"
-          onClick={() => setShowSoundTestModal(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 text-xs font-bold cursor-pointer active:scale-95 transition-all shadow-2xs"
-          title="Test all notification sounds and desktop alerts"
-        >
-          <Volume2 className="w-3.5 h-3.5 text-indigo-600" />
-          <span className="hidden md:inline">Test Sounds & Alerts</span>
-          <span className="md:hidden">Test Sounds</span>
-        </button>
-
         {/* Testing Character Switcher */}
         <div className="relative" ref={dropdownRef}>
           <button
@@ -159,14 +143,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           {/* User Switcher Dropdown */}
           {showSwitchDropdown && (
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-2 border-b border-slate-100">
-                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <FlaskConical className="w-3 h-3 text-indigo-600" />
-                  Testing Persona Switcher
-                </p>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Simulate different roles & observe task syncing in real-time.
-                </p>
+              <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Team Members & Accounts
+                  </p>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    Switch user to view persona dashboard
+                  </p>
+                </div>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                  {users.length} Active
+                </span>
               </div>
 
               <div className="py-1 space-y-1 max-h-64 overflow-y-auto">
@@ -222,10 +210,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           )}
         </div>
       </div>
-      <SoundTestModal
-        isOpen={showSoundTestModal}
-        onClose={() => setShowSoundTestModal(false)}
-      />
     </header>
   );
 };
