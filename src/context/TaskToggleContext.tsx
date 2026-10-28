@@ -369,6 +369,38 @@ export const sendTaskAssignmentNotification = (title: string, body: string) => {
   }
 };
 
+// Valid SPA route pages for URL navigation and browser back/forward history
+export const VALID_PAGES = [
+  'dashboard',
+  'assign',
+  'monitor',
+  'timing',
+  'calendar',
+  'mytodo',
+  'create',
+  'requests',
+  'login',
+] as const;
+
+export function normalizePageFromUrl(pathname: string, userRole: Role): string {
+  if (typeof window === 'undefined') return userRole === 'admin' ? 'dashboard' : 'mytodo';
+  const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase().split('?')[0].split('#')[0];
+  if (VALID_PAGES.includes(clean as any)) {
+    if (userRole === 'admin') {
+      if (['mytodo', 'create', 'requests'].includes(clean)) {
+        return 'dashboard';
+      }
+      return clean;
+    } else {
+      if (['dashboard', 'assign', 'monitor', 'timing'].includes(clean)) {
+        return 'mytodo';
+      }
+      return clean;
+    }
+  }
+  return userRole === 'admin' ? 'dashboard' : 'mytodo';
+}
+
 export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isBackendConnected] = useState<boolean>(backendApi.isConnected());
 
@@ -453,9 +485,61 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.setItem(`${STORAGE_KEY_PREFIX}font_family`, fontFamily);
   }, [themePreset, bgCanvas, fontFamily]);
 
-  const [currentPage, setCurrentPage] = useState<string>(() => {
+  // Page routing state synchronized with HTML5 History API (enables browser back & forward navigation across localhost URLs)
+  const [currentPage, _setCurrentPage] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const initialPage = normalizePageFromUrl(window.location.pathname, currentUser.role);
+      try {
+        const cleanPath = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+        if (cleanPath !== initialPage && window.history?.replaceState) {
+          window.history.replaceState(
+            { page: initialPage },
+            '',
+            `/${initialPage}${window.location.search}${window.location.hash}`
+          );
+        }
+      } catch (e) {}
+      return initialPage;
+    }
     return currentUser.role === 'admin' ? 'dashboard' : 'mytodo';
   });
+
+  // Navigate to a new page and record a browser history entry (so browser back button returns to the previous page inside localhost)
+  const setCurrentPage = useCallback((newPage: string) => {
+    _setCurrentPage((prev) => {
+      if (prev === newPage) return prev;
+      if (typeof window !== 'undefined' && window.history?.pushState) {
+        try {
+          window.history.pushState(
+            { page: newPage },
+            '',
+            `/${newPage}${window.location.search}${window.location.hash}`
+          );
+        } catch (e) {}
+      }
+      return newPage;
+    });
+  }, []);
+
+  // Listen to browser Back and Forward navigation events (popstate)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePopState = (event: PopStateEvent) => {
+      const pageFromState = event.state?.page;
+      const targetPage =
+        pageFromState && (VALID_PAGES as readonly string[]).includes(pageFromState)
+          ? pageFromState
+          : normalizePageFromUrl(window.location.pathname, currentUser.role);
+
+      _setCurrentPage(targetPage);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentUser.role]);
 
   const [requestViewTab, setRequestViewTab] = useState<'incoming' | 'sent'>('incoming');
 

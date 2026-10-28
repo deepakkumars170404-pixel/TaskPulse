@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
 
       {/* Right controls: Float Over Apps, Office Hours & User Switcher */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Floating Tasks Button (Toggles in-page floating quick tasks widget) */}
+        {/* Float Over All Apps Button (Opens floating window outside Chrome over all desktop apps) */}
         <button
           type="button"
           onClick={() => {
@@ -95,14 +95,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               return;
             }
 
-            // Dispatch event to toggle in-page floating task drawer (no external Chrome popup window)
-            window.dispatchEvent(new CustomEvent('toggle-floating-tasks'));
+            // Immediately and synchronously trigger Document PiP to guarantee active user gesture
+            window.dispatchEvent(new CustomEvent('open-pip-window'));
           }}
           className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
-          title="Toggle In-Page Floating Quick Tasks"
+          title="Float TaskToggle mini window outside Chrome over all apps"
         >
-          <CheckSquare className="w-3.5 h-3.5 text-white/90" />
-          <span>Floating Tasks</span>
+          <MonitorUp className="w-3.5 h-3.5 text-white/90" />
+          <span>Float Over Apps</span>
         </button>
 
         {/* Live Dynamic Date & Time Indicator */}
