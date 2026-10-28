@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Clock, Calendar, Check, CheckCircle2 } from 'lucide-react';
+import { getTodayDateString } from '../../utils/dateUtils';
 
 export const TimingSettingsView: React.FC = () => {
   const { officeTiming, eventTiming, users, updateOfficeTiming, updateEventTiming, orgSettings } = useTaskToggle();
@@ -13,7 +14,7 @@ export const TimingSettingsView: React.FC = () => {
 
   // Event Timing Form state
   const [eventName, setEventName] = useState(eventTiming?.eventName || 'Annual Day Preparation');
-  const [eventDate, setEventDate] = useState(eventTiming?.date || '27 Oct 2026');
+  const [eventDate, setEventDate] = useState(() => eventTiming?.date || getTodayDateString());
   const [newEventTiming, setNewEventTiming] = useState(eventTiming?.newTiming || '8:00 AM - 6:00 PM');
   const [allottedStaffIds, setAllottedStaffIds] = useState<string[]>(
     eventTiming?.allottedStaffIds || []
@@ -215,7 +216,7 @@ export const TimingSettingsView: React.FC = () => {
                   type="text"
                   value={eventDate}
                   onChange={(e) => setEventDate(e.target.value)}
-                  placeholder="27 Oct 2026"
+                  placeholder="e.g. 28 Oct 2026"
                   required
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
                 />

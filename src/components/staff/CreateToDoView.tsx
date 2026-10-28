@@ -16,6 +16,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
+import { getTodayDateString } from '../../utils/dateUtils';
 
 export const CreateToDoView: React.FC = () => {
   const { currentUser, users, createStaffTask, deleteTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
@@ -23,7 +24,7 @@ export const CreateToDoView: React.FC = () => {
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [targetUserId, setTargetUserId] = useState<string>(currentUser.id); // Default to 'Myself'
-  const [dueDate, setDueDate] = useState('27 Oct 2026');
+  const [dueDate, setDueDate] = useState(() => getTodayDateString());
   const [dueTime, setDueTime] = useState('5:00 PM');
   const [successToast, setSuccessToast] = useState(false);
   const [delegatedFilter, setDelegatedFilter] = useState<'all' | 'declined' | 'pending'>('all');
@@ -405,7 +406,7 @@ export const CreateToDoView: React.FC = () => {
                               onClick={() => {
                                 setTitle(task.title);
                                 setDetails(task.description || '');
-                                setDueDate(task.dueDate || '27 Oct 2026');
+                                setDueDate(task.dueDate || getTodayDateString());
                                 setDueTime(task.dueTime || '5:00 PM');
                               }}
                               className="px-2.5 py-1 rounded-lg bg-primary-50 hover:bg-primary-100 text-primary-600 border border-primary-200 text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTaskToggle } from '../../context/TaskToggleContext';
+import { getTodayDateString } from '../../utils/dateUtils';
 import {
   Check,
   CheckSquare,
@@ -257,7 +258,7 @@ export const FloatingTaskWidget: React.FC = () => {
     e.preventDefault();
     if (!quickTitle.trim()) return;
 
-    const TODAY_STR = '24 Oct 2026';
+    const TODAY_STR = getTodayDateString();
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     if (currentUser.role === 'admin') {

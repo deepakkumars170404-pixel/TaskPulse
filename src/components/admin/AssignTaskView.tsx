@@ -4,6 +4,7 @@ import { TaskPriority } from '../../types';
 import { Check, ShieldAlert, Calendar, Clock, Send, Users, CheckCircle2, UserPlus } from 'lucide-react';
 import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
 import { AddStaffModal } from './AddStaffModal';
+import { getTodayDateString } from '../../utils/dateUtils';
 
 export const AssignTaskView: React.FC = () => {
   const { users, currentUser, assignAdminTask, assignAdminPersonalTask, tasks, setCurrentPage, orgSettings } = useTaskToggle();
@@ -15,7 +16,7 @@ export const AssignTaskView: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
-  const [dueDate, setDueDate] = useState('27 Oct 2026');
+  const [dueDate, setDueDate] = useState(() => getTodayDateString());
   const [dueTime, setDueTime] = useState('2:30 PM');
   const [priority, setPriority] = useState<TaskPriority>('Medium');
   const [successToast, setSuccessToast] = useState(false);

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { getTodayDateString, getTodayShortString } from '../../utils/dateUtils';
 
 interface MiniCalendarProps {
-  selectedDate: string; // e.g. "24 Oct 2026"
+  selectedDate: string; // e.g. "28 Oct 2026"
   onSelectDate: (dateStr: string) => void;
   taskDates?: string[]; // list of dates with tasks to show workload dots
   onClose?: () => void;
@@ -26,7 +27,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
   taskDates = [],
   onClose,
 }) => {
-  // Parse initial month and year from selectedDate or default to Oct 2026
+  // Parse initial month and year from selectedDate or default to current real date
   const parseSelected = () => {
     const parts = selectedDate.split(' ');
     if (parts.length === 3) {
@@ -37,7 +38,8 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
         return { day, month: monthIdx, year };
       }
     }
-    return { day: 24, month: 9, year: 2026 }; // October 2026 default
+    const now = new Date();
+    return { day: now.getDate(), month: now.getMonth(), year: now.getFullYear() };
   };
 
   const initial = parseSelected();
@@ -80,6 +82,8 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
     onSelectDate(formatted);
     if (onClose) onClose();
   };
+
+  const today = new Date();
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl p-3.5 sm:p-4 w-72 max-w-[calc(100vw-2.5rem)] select-none z-50">
@@ -131,7 +135,10 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
           const dateStr = formatDateStr(day);
           const isSelected = selectedDate.toLowerCase().includes(dateStr.toLowerCase()) ||
             (day === initial.day && currentMonth === initial.month && currentYear === initial.year);
-          const isToday = day === 24 && currentMonth === 9 && currentYear === 2026;
+          const isToday =
+            day === today.getDate() &&
+            currentMonth === today.getMonth() &&
+            currentYear === today.getFullYear();
           const hasTasks = taskDates.some((td) => td && td.toLowerCase().includes(`${day} ${MONTH_SHORT[currentMonth].toLowerCase()}`));
 
           return (
@@ -162,14 +169,16 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
         <button
           type="button"
           onClick={() => {
-            onSelectDate('24 Oct 2026');
-            setCurrentMonth(9);
-            setCurrentYear(2026);
+            const todayStr = getTodayDateString();
+            onSelectDate(todayStr);
+            const now = new Date();
+            setCurrentMonth(now.getMonth());
+            setCurrentYear(now.getFullYear());
             if (onClose) onClose();
           }}
           className="text-primary-500 hover:text-primary-700 font-bold transition-colors cursor-pointer"
         >
-          Today (24 Oct)
+          Today ({getTodayShortString()})
         </button>
 
         <span className="text-[10px] text-slate-400 font-medium">Click day to assign</span>

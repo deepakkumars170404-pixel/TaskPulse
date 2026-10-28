@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTaskToggle } from '../context/TaskToggleContext';
+import { useLiveDateTime } from '../utils/dateUtils';
 import {
   CheckSquare,
   Clock,
@@ -19,6 +20,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const { currentUser, users, switchUser, logout, officeTiming, orgSettings, themePreset, setThemePreset, bgCanvas, setBgCanvas, fontFamily, setFontFamily } = useTaskToggle();
+  const { weekdayDate, timeString } = useLiveDateTime();
   const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const themeRef = useRef<HTMLDivElement>(null);
   const [showSwitchDropdown, setShowSwitchDropdown] = useState(false);
@@ -103,8 +105,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           <span>Float Over Apps</span>
         </button>
 
+        {/* Live Dynamic Date & Time Indicator */}
+        <div
+          className="hidden sm:flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium shadow-2xs"
+          title="Live real-time date and clock"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          <span className="font-bold text-slate-900">{weekdayDate}</span>
+          <span className="text-slate-400">·</span>
+          <span className="text-primary-700 font-bold">{timeString}</span>
+        </div>
+
         {/* Office Hours Chip */}
-        <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium">
+        <div className="hidden lg:flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium">
           <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
           <span className="text-[11px] sm:text-xs font-bold text-slate-900">
             <span className="hidden md:inline font-normal text-slate-500">Office: </span>

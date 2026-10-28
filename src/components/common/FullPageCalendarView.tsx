@@ -66,7 +66,7 @@ export const FullPageCalendarView: React.FC = () => {
   const { tasks, currentUser, orgSettings, playCalendarClickSound } = useTaskToggle();
 
   // Calendar active viewing month (default: current month)
-  const [activeDate, setActiveDate] = useState<Date>(() => new Date(2026, 9, 27)); // Oct 2026
+  const [activeDate, setActiveDate] = useState<Date>(() => new Date());
 
   // Centered date details modal state
   const [selectedModalDate, setSelectedModalDate] = useState<Date | null>(null);
