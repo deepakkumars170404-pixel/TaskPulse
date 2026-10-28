@@ -5,29 +5,30 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
   }
 
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    /* Tri-color ambient mesh background: Indigo + Cyan + Amber */
-    background-color: #F8FAFD;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    /* Clean Enterprise Corporate Palette: Soft Slate 50 with ultra-subtle ambient royal blue depth */
+    background-color: #F8FAFC;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 55%),
-      radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.09) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 55%);
+      radial-gradient(at 50% 0%, rgba(37, 99, 235, 0.035) 0px, transparent 65%),
+      radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.02) 0px, transparent 50%);
     background-attachment: fixed;
     color: #0F172A;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', system-ui, sans-serif;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
     letter-spacing: -0.02em;
+    color: #0F172A;
   }
 }
 
-/* Custom sleek scrollbar */
+/* Crisp corporate scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -40,7 +41,7 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #818CF8;
+  background: #94A3B8;
 }
 
 /* Hide scrollbar for clean touch swipe rows */
@@ -52,21 +53,15 @@
   scrollbar-width: none;
 }
 
-/* Glass panel with iridescent gradient border highlight */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
+/* Enterprise Clean Card Surface */
+.enterprise-card {
+  background: #FFFFFF;
   border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 4px 25px -4px rgba(79, 70, 229, 0.05), 0 2px 8px -2px rgba(14, 165, 233, 0.03);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
 }
 
-/* Subtle glow animations */
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+html.floating-mode, html.floating-mode body, body.floating-mode { 
+  background: transparent !important; 
+  background-color: transparent !important; 
+  background-image: none !important; 
 }
-.animate-pulse-subtle {
-  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-html.floating-mode, html.floating-mode body, body.floating-mode { background: transparent !important; background-color: transparent !important; background-image: none !important; }

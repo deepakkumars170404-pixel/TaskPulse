@@ -72,7 +72,7 @@ export const BottomNav: React.FC = () => {
                 <div
                   className={`w-10 h-7 flex items-center justify-center rounded-xl transition-all ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-xs scale-105'
+                      ? 'bg-blue-600 text-white shadow-xs scale-105'
                       : 'text-slate-500'
                   }`}
                 >

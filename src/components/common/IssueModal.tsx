@@ -11,7 +11,7 @@ export const IssueModal: React.FC<IssueModalProps> = ({ task, onClose }) => {
   if (!task || !task.pendingReason) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-indigo-950/40 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-blue-950/40 backdrop-blur-xs animate-in fade-in duration-150">
       <div
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden transform animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -47,7 +47,7 @@ export const IssueModal: React.FC<IssueModalProps> = ({ task, onClose }) => {
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-slate-700 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs font-semibold">
-                <User className="w-3.5 h-3.5 text-indigo-600" />
+                <User className="w-3.5 h-3.5 text-blue-600" />
                 <span>{task.assignedToName}</span>
               </div>
             </div>
@@ -55,7 +55,7 @@ export const IssueModal: React.FC<IssueModalProps> = ({ task, onClose }) => {
 
           {/* Prominent Target Deadline */}
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900">
-            <Calendar className="w-4 h-4 text-indigo-600 shrink-0" />
+            <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
             <span>Target Deadline: {task.dueDate}</span>
             <span className="text-slate-300">•</span>
             <Clock className="w-4 h-4 text-slate-500 shrink-0" />
@@ -85,7 +85,7 @@ export const IssueModal: React.FC<IssueModalProps> = ({ task, onClose }) => {
         <div className="bg-slate-50 border-t border-slate-200 px-5 sm:px-6 py-3.5 flex justify-end">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
           >
             Close
           </button>

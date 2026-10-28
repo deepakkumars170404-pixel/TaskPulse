@@ -104,15 +104,15 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4.5 bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border-b border-slate-200">
+        <div className="flex items-center justify-between px-6 py-4.5 bg-gradient-to-r from-blue-50/80 via-white to-slate-50 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
               <Volume2 className="w-5 h-5 text-white" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
                 Sound & Notification Test Lab
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">
                   Interactive
                 </span>
               </h2>
@@ -135,8 +135,8 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
         <div className="p-6 space-y-4.5 max-h-[75vh] overflow-y-auto">
           {/* Action Feedback Banner */}
           {lastActionMessage && (
-            <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs font-semibold text-indigo-800 flex items-center gap-2 animate-in fade-in duration-150">
-              <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs font-semibold text-blue-800 flex items-center gap-2 animate-in fade-in duration-150">
+              <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
               <span>{lastActionMessage}</span>
             </div>
           )}
@@ -172,7 +172,7 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
               <button
                 type="button"
                 onClick={handleRequestPermission}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all shrink-0"
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all shrink-0"
               >
                 Request Permission
               </button>
@@ -231,17 +231,17 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
             </div>
 
             {/* 2. Task Assignment Allotment Chime */}
-            <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/30 hover:bg-indigo-50/60 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/30 hover:bg-blue-50/60 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-200">
-                  <Send className="w-4.5 h-4.5 text-indigo-600" />
+                <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 border border-blue-200">
+                  <Send className="w-4.5 h-4.5 text-blue-600" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold text-slate-900">
                       2. New Task Allotment Chime
                     </h3>
-                    <span className="text-[9px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
                       4-Tone Ascending
                     </span>
                   </div>
@@ -258,7 +258,7 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
                     playAssignmentAlertSound();
                     showActionFeedback('🔊 Played New Task Allotment sound!');
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs"
+                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs"
                   title="Play audio only"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
@@ -280,7 +280,7 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
                     });
                     showActionFeedback('🔔 Triggered Task Alert chime + visual text popup banner!');
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-xs"
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-xs"
                 >
                   <Bell className="w-3.5 h-3.5" />
                   <span>Test Full Alert</span>

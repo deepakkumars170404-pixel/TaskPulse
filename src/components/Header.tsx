@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-700 hover:text-indigo-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
+            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-700 hover:text-blue-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
             aria-label="Open navigation drawer"
           >
             <Menu className="w-5 h-5" />
@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         )}
 
         {/* Brand Logo - Crisp Solid Royal Indigo */}
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs shrink-0">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs shrink-0">
           <CheckSquare className="w-5 h-5 stroke-[2.5]" />
         </div>
 
@@ -60,11 +60,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-['Outfit'] font-black text-lg sm:text-xl tracking-tight text-slate-900 leading-none">
-              Task<span className="text-indigo-600">Toggle</span>
+              Task<span className="text-blue-600">Toggle</span>
             </span>
 
             {/* Organization Badge (Deepak) */}
-            <span className="hidden xs:inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-600 text-white shadow-2xs">
+            <span className="hidden xs:inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-600 text-white shadow-2xs">
               {orgSettings.orgName}
             </span>
           </div>
@@ -92,10 +92,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             // Immediately and synchronously trigger Document PiP to guarantee active user gesture
             window.dispatchEvent(new CustomEvent('open-pip-window'));
           }}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
           title="Float TaskToggle mini popup over all other apps and games"
         >
-          <MonitorUp className="w-3.5 h-3.5 text-indigo-400" />
+          <MonitorUp className="w-3.5 h-3.5 text-white/90" />
           <span>Float Over Apps</span>
         </button>
 
@@ -119,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           >
             <div
               className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${
-                currentUser.avatarBg || 'bg-indigo-600'
+                currentUser.avatarBg || 'bg-blue-600'
               }`}
             >
               {currentUser.initials}
@@ -130,8 +130,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 <span
                   className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
                     currentUser.role === 'admin'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-indigo-50 text-indigo-700'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-blue-50 text-blue-700'
                   }`}
                 >
                   {currentUser.role.toUpperCase()}
@@ -153,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                     1-Click switch persona dashboard
                   </p>
                 </div>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
                   {users.length} Active
                 </span>
               </div>
@@ -171,14 +171,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                       }}
                       className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all cursor-pointer ${
                         isCurrent
-                          ? 'bg-indigo-50/80 text-indigo-950 font-bold border border-indigo-200/60'
+                          ? 'bg-blue-50/80 text-blue-950 font-bold border border-blue-200/60'
                           : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <div
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${
-                            u.avatarBg || 'bg-indigo-600'
+                            u.avatarBg || 'bg-blue-600'
                           }`}
                         >
                           {u.initials}
@@ -187,7 +187,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                           <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
                             {u.name}
                             {u.role === 'admin' ? (
-                              <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
+                              <ShieldCheck className="w-3 h-3 text-blue-600 shrink-0" />
                             ) : (
                               <UserCheck className="w-3 h-3 text-slate-400 shrink-0" />
                             )}
@@ -199,7 +199,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                       </div>
 
                       {isCurrent && (
-                        <span className="text-[10px] font-black text-indigo-600 px-1.5 py-0.5 rounded bg-white shadow-2xs shrink-0">
+                        <span className="text-[10px] font-black text-blue-600 px-1.5 py-0.5 rounded bg-white shadow-2xs shrink-0">
                           Active
                         </span>
                       )}

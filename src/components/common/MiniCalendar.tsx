@@ -95,7 +95,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
         </button>
 
         <div className="text-xs font-bold font-['Outfit'] text-slate-900 flex items-center gap-1.5">
-          <CalendarIcon className="w-3.5 h-3.5 text-indigo-600" />
+          <CalendarIcon className="w-3.5 h-3.5 text-blue-600" />
           <span>{MONTH_NAMES[currentMonth]} {currentYear}</span>
         </div>
 
@@ -141,16 +141,16 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
               onClick={() => handleSelectDay(day)}
               className={`h-8 w-8 mx-auto rounded-xl text-xs font-bold transition-all relative flex flex-col items-center justify-center cursor-pointer ${
                 isSelected
-                  ? 'bg-indigo-600 text-white shadow-xs'
+                  ? 'bg-blue-600 text-white shadow-xs'
                   : isToday
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
                   : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <span>{day}</span>
               {/* Task dot indicator */}
               {hasTasks && !isSelected && (
-                <span className="w-1 h-1 rounded-full bg-indigo-500 absolute bottom-1" />
+                <span className="w-1 h-1 rounded-full bg-blue-500 absolute bottom-1" />
               )}
             </button>
           );
@@ -167,7 +167,7 @@ export const MiniCalendar: React.FC<MiniCalendarProps> = ({
             setCurrentYear(2026);
             if (onClose) onClose();
           }}
-          className="text-indigo-600 hover:text-indigo-800 font-bold transition-colors cursor-pointer"
+          className="text-blue-600 hover:text-blue-800 font-bold transition-colors cursor-pointer"
         >
           Today (24 Oct)
         </button>
