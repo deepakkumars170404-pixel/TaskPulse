@@ -68,7 +68,7 @@ const MainLayout: React.FC = () => {
       {/* Modern Bottom Navigation Bar for Mobile Phones */}
       {!isEmbedded && <BottomNav />}
 
-      {/* Document Picture-in-Picture Handler (renders 0 DOM in page, handles PiP popup when clicked) */}
+      {/* In-Page Floating Quick Tasks Widget (Circular Button & Expandable Tasks Drawer) */}
       <FloatingTaskWidget />
 
       {/* 30-Minute Task Due Reminder Banner for Staff */}
