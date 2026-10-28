@@ -162,6 +162,30 @@ export function isDateUpcoming(dateStr?: string | null): boolean {
 }
 
 /**
+ * Parse an event date and timing range string (e.g. '30 Oct 2026', '4:00 AM - 7:00 PM')
+ * Returns the exact Date object corresponding to the event start time
+ */
+export function parseEventStartDateTime(dateStr?: string | null, timingStr?: string | null): Date | null {
+  if (!dateStr || !timingStr) return null;
+  const baseDate = parseDateString(dateStr);
+  if (!baseDate) return null;
+
+  // Extract start time: e.g. "4:00 AM" from "4:00 AM - 7:00 PM"
+  const startPart = timingStr.split(/[-–—]/)[0]?.trim() || timingStr;
+  const match = startPart.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  if (!match) return null;
+
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const meridiem = match[3]?.toUpperCase();
+
+  if (meridiem === 'PM' && hours < 12) hours += 12;
+  if (meridiem === 'AM' && hours === 12) hours = 0;
+
+  return new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), hours, minutes, 0, 0);
+}
+
+/**
  * React hook that returns live updating real-time date and time strings
  * Automatically ticks every 1 second
  */

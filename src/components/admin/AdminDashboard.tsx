@@ -25,6 +25,7 @@ import {
   isDateToday,
   isDatePrevious,
   isDateUpcoming,
+  useLiveDateTime,
 } from '../../utils/dateUtils';
 
 export const AdminDashboard: React.FC = () => {
@@ -53,9 +54,8 @@ export const AdminDashboard: React.FC = () => {
   const [quickPriority, setQuickPriority] = useState<TaskPriority>('High');
   const [showQuickSuccess, setShowQuickSuccess] = useState(false);
 
-  // Dynamic today reference string (e.g. '28 Oct 2026')
-  const todayStr = getTodayDateString();
-  const todayShort = getTodayShortString();
+  // Dynamic live date reference string (updates in real-time)
+  const { todayStandard: todayStr, todayShort } = useLiveDateTime();
 
   // 1. Separate Tasks: Admin Own Tasks vs Staff Target Tasks
   const adminOwnTasks = tasks.filter(

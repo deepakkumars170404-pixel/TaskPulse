@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Task, getTaskDeclineReason } from '../../types';
+import { isDateToday, isDateUpcoming, isDatePrevious } from '../../utils/dateUtils';
 import {
   Check,
   Clock,
@@ -300,9 +301,12 @@ export const MyToDoView: React.FC = () => {
     weekDays.every((d) => d.totalCount === 0 || d.isAllDone) &&
     weekDays.some((d) => d.totalCount > 0);
 
-  // Check event allotment
+  // Check event allotment and scheduled date
   const isAllottedToEvent =
     eventTiming?.isActive && eventTiming.allottedStaffIds.includes(currentUser.id);
+  const isEventToday = eventTiming?.date ? isDateToday(eventTiming.date) : false;
+  const isEventUpcoming = eventTiming?.date ? isDateUpcoming(eventTiming.date) : false;
+  const isEventPrevious = eventTiming?.date ? isDatePrevious(eventTiming.date) : false;
 
   // Handlers for Navigation
   const handlePrevWeek = () => {
@@ -1263,20 +1267,76 @@ export const MyToDoView: React.FC = () => {
             </p>
           </div>
 
-          {/* Event or Special Schedule Notice (Light theme, no black) */}
+          {/* Event or Special Schedule Notice (Accurate Allotted Date & Active State) */}
           {isAllottedToEvent && (
-            <div className="bg-primary-50 rounded-2xl p-5 border border-primary-200 shadow-xs space-y-2 text-primary-950">
-              <div className="flex items-center gap-2 text-primary-600 text-xs font-bold">
-                <Sparkles className="w-4 h-4 text-primary-500" />
-                <span>Special Event Duty Active</span>
+            <div
+              className={`rounded-2xl p-4 sm:p-5 border shadow-xs space-y-2.5 transition-all ${
+                isEventToday
+                  ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
+                  : isEventUpcoming
+                  ? 'bg-primary-50/80 border-primary-300 text-primary-950'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div
+                  className={`flex items-center gap-1.5 text-xs font-bold ${
+                    isEventToday
+                      ? 'text-emerald-700'
+                      : isEventUpcoming
+                      ? 'text-primary-700'
+                      : 'text-slate-600'
+                  }`}
+                >
+                  <Sparkles
+                    className={`w-4 h-4 ${
+                      isEventToday ? 'text-emerald-600 animate-spin' : 'text-primary-600'
+                    }`}
+                  />
+                  <span>
+                    {isEventToday
+                      ? '✨ Special Event Duty Active Today'
+                      : isEventUpcoming
+                      ? '🗓️ Upcoming Special Event Duty'
+                      : '✓ Completed Special Event Duty'}
+                  </span>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    isEventToday
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      : isEventUpcoming
+                      ? 'bg-primary-100 text-primary-800 border-primary-300'
+                      : 'bg-slate-100 text-slate-600 border-slate-200'
+                  }`}
+                >
+                  {isEventToday ? 'Active Today' : isEventUpcoming ? 'Upcoming Schedule' : 'Past Schedule'}
+                </span>
               </div>
-              <h4 className="font-bold text-sm text-primary-950">{eventTiming.eventName}</h4>
-              <p className="text-xs text-primary-700 leading-relaxed font-normal">
-                Special office schedule assigned by Admin for today.
-              </p>
-              <div className="pt-2 text-[11px] font-bold text-primary-800 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-primary-600" />
-                <span>Special Timing: {eventTiming.newTiming}</span>
+
+              <div>
+                <h4 className="font-black text-sm sm:text-base text-slate-900 leading-snug">
+                  {eventTiming.eventName}
+                </h4>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed font-medium">
+                  {isEventToday
+                    ? `Special office schedule assigned by Admin for today (${eventTiming.date}). Your shift timing is active.`
+                    : isEventUpcoming
+                    ? `Special duty schedule assigned by Admin for ${eventTiming.date}. You are allotted to this shift.`
+                    : `Past event schedule assigned for ${eventTiming.date}.`}
+                </p>
+              </div>
+
+              {/* Allotted Date & Timing Pills - Clearly showing correct allotted date */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-bold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 shadow-2xs">
+                  <Calendar className="w-3.5 h-3.5 text-primary-600 shrink-0" />
+                  <span>Allotted Date: <strong>{eventTiming.date}</strong></span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800 shadow-2xs">
+                  <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>Shift Hours: <strong>{eventTiming.newTiming}</strong></span>
+                </span>
               </div>
             </div>
           )}

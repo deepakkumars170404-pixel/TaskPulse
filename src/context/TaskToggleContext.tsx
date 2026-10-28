@@ -9,6 +9,7 @@ import {
 } from '../data/initialData';
 import { backendApi } from '../services/backendApi';
 import { mapDbTaskToFrontend } from '../lib/supabase';
+import { parseEventStartDateTime } from '../utils/dateUtils';
 
 interface TaskToggleContextType {
   currentUser: User;
@@ -844,6 +845,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             (Array.isArray(data.staffIds) && data.staffIds.includes(currentUser.id));
 
           if (data.action === 'ASSIGN' && isTargeted) {
+            playAssignmentAlertSound();
             triggerTaskAlert({
               id: `assign_${Date.now()}`,
               title: `New Task from ${data.senderName || 'Admin'}`,
@@ -852,7 +854,20 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               senderName: data.senderName || 'Admin',
               dueDate: data.dueDate,
               dueTime: data.dueTime,
-              type: 'admin',
+              priority: data.priority,
+              type: data.isStaffToStaff ? 'staff' : 'admin',
+            });
+          } else if (data.action === 'COMPLETED_BY_STAFF' && data.taskCreatorId === currentUser.id && data.completedByUserId !== currentUser.id) {
+            playAssignmentAlertSound();
+            triggerTaskAlert({
+              id: `completed_${Date.now()}`,
+              title: `🎉 Task Completed by ${data.completedBy || 'Staff'}`,
+              message: `Finished and struck done at ${data.completedAt || 'today'}.`,
+              taskTitle: data.taskTitle || 'Assigned Work',
+              senderName: data.completedBy || 'Staff',
+              dueDate: data.dueDate,
+              dueTime: data.dueTime,
+              type: 'staff',
             });
           } else if (data.action === 'DECLINE' && data.taskCreatorId === currentUser.id) {
             playAssignmentAlertSound();
@@ -884,6 +899,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           const isAllotted =
             Array.isArray(data.allottedStaffIds) && data.allottedStaffIds.includes(currentUser.id);
           if (isAllotted) {
+            playAssignmentAlertSound();
             triggerTaskAlert({
               id: `event_${Date.now()}`,
               title: `🗓️ Special Schedule Allotted by ${data.senderName || 'Admin'}`,
@@ -1020,6 +1036,54 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       checkAndTriggerPendingStaffAlerts(currentUser.id, triggerTaskAlert);
     }
   }, [currentUser?.id, triggerTaskAlert]);
+
+  // Automated 1-Hour-Before Special Event Duty Notification for Allotted Staff
+  useEffect(() => {
+    if (!eventTiming?.isActive || !Array.isArray(eventTiming.allottedStaffIds)) {
+      return;
+    }
+
+    const checkOneHourReminder = () => {
+      // Only proceed if current active user is one of the allotted staff members
+      if (!eventTiming.allottedStaffIds.includes(currentUser.id)) {
+        return;
+      }
+
+      const eventStart = parseEventStartDateTime(eventTiming.date, eventTiming.newTiming);
+      if (!eventStart) return;
+
+      const now = Date.now();
+      const diffMs = eventStart.getTime() - now;
+      // If within 60 minutes before start time (0 < diffMs <= 60 * 60 * 1000)
+      const isWithinOneHourBefore = diffMs > 0 && diffMs <= 60 * 60 * 1000;
+
+      if (isWithinOneHourBefore) {
+        const reminderKey = `event_1hr_notified_${eventTiming.id}_${eventTiming.date}_${currentUser.id}`;
+        if (!sessionStorage.getItem(reminderKey)) {
+          sessionStorage.setItem(reminderKey, 'true');
+          const minutesLeft = Math.max(1, Math.round(diffMs / 60000));
+          const startTimeStr = eventTiming.newTiming?.split(/[-–—]/)[0]?.trim() || '';
+
+          playAssignmentAlertSound();
+          triggerTaskAlert({
+            id: `event_1hr_${Date.now()}`,
+            title: `⏰ 1-Hour Special Event Reminder (${minutesLeft}m left)`,
+            taskTitle: eventTiming.eventName,
+            message: `Starts in ${minutesLeft} minutes at ${startTimeStr}! Special Shift: ${eventTiming.newTiming} on ${eventTiming.date}.`,
+            senderName: 'Admin',
+            dueDate: eventTiming.date,
+            dueTime: eventTiming.newTiming,
+            priority: 'High',
+            type: 'event',
+          });
+        }
+      }
+    };
+
+    checkOneHourReminder();
+    const interval = setInterval(checkOneHourReminder, 20000); // Check every 20 seconds
+    return () => clearInterval(interval);
+  }, [eventTiming, currentUser.id, triggerTaskAlert]);
 
   const switchUser = (userId: string) => {
     const user = users.find((u) => u.id === userId);
@@ -1186,6 +1250,19 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setTasks((prev) => [newTask, ...prev]);
 
     if (!isSelf) {
+      const alert: TaskAlert = {
+        id: `staff_task_${Date.now()}_${data.createForUserId}`,
+        title: `New Task from ${currentUser.name}`,
+        taskTitle: data.title,
+        message: `Due: ${data.dueDate} · ${data.dueTime}`,
+        senderName: currentUser.name,
+        dueDate: data.dueDate,
+        dueTime: data.dueTime,
+        priority: 'Medium',
+        type: 'staff',
+      };
+      queuePendingStaffAlert(data.createForUserId, alert);
+
       sendTaskAssignmentNotification(
         `New Task from ${currentUser.name}`,
         `${data.title} · Due: ${data.dueTime}`
@@ -1205,6 +1282,8 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       dueDate: data.dueDate,
       dueTime: data.dueTime,
       senderName: currentUser.name,
+      priority: 'Medium',
+      isStaffToStaff: !isSelf,
     });
   };
 
@@ -1269,6 +1348,22 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const taskTitle = target.title || 'Assigned Task';
       const staffName = target.assignedToName || currentUser.name;
       sendTaskCompletedNotification(taskTitle, staffName);
+
+      // Notify the work giver (Admin or colleague who assigned this task)
+      if (target.createdBy && target.createdBy !== currentUser.id) {
+        const completionAlert: TaskAlert = {
+          id: `completed_${Date.now()}_${target.id}`,
+          title: `🎉 Task Completed by ${currentUser.name}`,
+          taskTitle: target.title,
+          message: `Finished and struck completed at ${nowTimeStr}.`,
+          senderName: currentUser.name,
+          dueDate: target.dueDate,
+          dueTime: target.dueTime,
+          priority: target.priority,
+          type: 'staff',
+        };
+        queuePendingStaffAlert(target.createdBy, completionAlert);
+      }
     }
 
     // Backend database update
@@ -1280,11 +1375,17 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // Cross-tab / cross-window instant broadcast
     broadcastEvent({
       type: 'TASKS_UPDATE',
-      action: 'TOGGLE',
+      action: updatedStatus === 'done' ? 'COMPLETED_BY_STAFF' : 'TOGGLE',
       tasks: nextTasks,
       taskId,
       status: updatedStatus,
       completedBy: currentUser.name,
+      completedByUserId: currentUser.id,
+      taskCreatorId: target.createdBy,
+      taskTitle: target.title,
+      dueDate: target.dueDate,
+      dueTime: target.dueTime,
+      completedAt: nowTimeStr,
     });
   };
 
