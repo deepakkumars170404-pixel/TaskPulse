@@ -129,10 +129,16 @@ export const MyToDoView: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<RoutineDay | 'all'>('all');
   const [viewScope, setViewScope] = useState<'routine' | 'month' | 'all'>('routine');
 
-  // Directly display all tasks assigned to the current staff member (excluding declined/rejected tasks)
+  // Display all tasks assigned to the current staff member AND tasks delegated by current user to colleagues
   const myTasks = useMemo(() => {
-    return tasks.filter((t) => t.assignedTo === currentUser.id && t.status !== 'rejected');
+    return tasks.filter((t) => {
+      if (t.assignedTo === currentUser.id && t.status !== 'rejected') return true;
+      if (t.createdBy === currentUser.id && t.assignedTo !== currentUser.id) return true;
+      return false;
+    });
   }, [tasks, currentUser.id]);
+
+  const [taskSourceFilter, setTaskSourceFilter] = useState<'all' | 'assigned' | 'delegated'>('all');
 
   // Delegated tasks created by current user that were declined by colleagues (any type)
   const declinedDelegations = useMemo(() => {
@@ -261,13 +267,24 @@ export const MyToDoView: React.FC = () => {
       });
     }
 
+    // Filter by task source (Assigned to Me vs Sent to Colleagues)
+    if (taskSourceFilter === 'assigned') {
+      result = result.filter((t) => t.assignedTo === currentUser.id);
+    } else if (taskSourceFilter === 'delegated') {
+      result = result.filter((t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id);
+    }
+
     // Filter completed tasks if toggled off
     if (!showCompleted) {
       result = result.filter((t) => t.status !== 'done');
     }
 
     return result;
-  }, [myTasks, viewScope, selectedDay, weekDays, referenceDate, showCompleted]);
+  }, [myTasks, viewScope, selectedDay, weekDays, referenceDate, showCompleted, taskSourceFilter, currentUser.id]);
+
+  // Delegated counts
+  const assignedToMeCount = myTasks.filter((t) => t.assignedTo === currentUser.id).length;
+  const delegatedByMeCount = myTasks.filter((t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id).length;
 
   // Overall metrics
   const totalTasks = myTasks.length;
@@ -766,7 +783,46 @@ export const MyToDoView: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 self-start sm:self-auto">
+              <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                {/* Source Filter Pills: All / Assigned to Me / Sent to Colleagues */}
+                {delegatedByMeCount > 0 && (
+                  <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setTaskSourceFilter('all')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                        taskSourceFilter === 'all'
+                          ? 'bg-white text-indigo-700 shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      All ({myTasks.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTaskSourceFilter('assigned')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                        taskSourceFilter === 'assigned'
+                          ? 'bg-white text-indigo-700 shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Assigned to Me ({assignedToMeCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTaskSourceFilter('delegated')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                        taskSourceFilter === 'delegated'
+                          ? 'bg-white text-purple-700 shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      Sent to Colleagues ({delegatedByMeCount})
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
                   <span className="text-xs font-semibold text-slate-700">Show completed</span>
                   <button
@@ -818,6 +874,7 @@ export const MyToDoView: React.FC = () => {
                   const isCompulsory = task.type === 'admin';
                   const isEditingReason = editingReasonTaskId === task.id;
                   const senderUser = users.find((u) => u.id === task.createdBy);
+                  const isDelegatedByMe = task.createdBy === currentUser.id && task.assignedTo !== currentUser.id;
 
                   return (
                     <div
@@ -843,6 +900,8 @@ export const MyToDoView: React.FC = () => {
                             ? 'bg-rose-500'
                             : isDone
                             ? 'bg-emerald-500'
+                            : isDelegatedByMe
+                            ? (task.pendingReason ? 'bg-amber-500' : 'bg-purple-600')
                             : isCompulsory
                             ? 'bg-indigo-600'
                             : 'bg-slate-300 group-hover:bg-indigo-500'
@@ -922,15 +981,18 @@ export const MyToDoView: React.FC = () => {
                                   )}
                                 </div>
 
-                                {/* Who it is FROM (Admin Deepak / Staff Name / Self) */}
-                                {task.type === 'admin' && (
+                                {/* Who it is FROM or Sent TO */}
+                                {isDelegatedByMe ? (
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-200">
+                                    <Send className="w-3.5 h-3.5 text-purple-600" />
+                                    <span>Sent to: {task.assignedToName || 'Colleague'}</span>
+                                  </span>
+                                ) : task.type === 'admin' ? (
                                   <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">
                                     <ShieldAlert className="w-3.5 h-3.5 text-indigo-600" />
                                     <span>From Admin ({orgSettings.orgName})</span>
                                   </span>
-                                )}
-
-                                {task.type === 'staff' && (
+                                ) : task.type === 'staff' ? (
                                   <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
                                     <Users className="w-3.5 h-3.5 text-slate-600" />
                                     <span>
@@ -938,9 +1000,7 @@ export const MyToDoView: React.FC = () => {
                                       {senderUser?.name || task.createdByName || 'Staff'}
                                     </span>
                                   </span>
-                                )}
-
-                                {task.type === 'self' && (
+                                ) : (
                                   <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 border border-slate-200">
                                     <User className="w-3.5 h-3.5 text-slate-400" />
                                     <span>Self Created</span>
@@ -955,60 +1015,105 @@ export const MyToDoView: React.FC = () => {
                                   </span>
                                 )}
 
-                                {isRejected && (
-                                  <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200">
-                                    <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                    <span>Declined {task.rejectedAt ? `(${task.rejectedAt})` : ''}</span>
-                                  </span>
-                                )}
+                                {isDelegatedByMe ? (
+                                  isDone ? (
+                                    <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span>✓ Completed by {task.assignedToName?.split(' ')[0]} {task.completedAt ? `(${task.completedAt})` : ''}</span>
+                                    </span>
+                                  ) : isRejected ? (
+                                    <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200">
+                                      <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                      <span>Declined by {task.assignedToName?.split(' ')[0]}</span>
+                                    </span>
+                                  ) : task.pendingReason ? (
+                                    <span className="text-[11px] font-bold text-amber-900 flex items-center gap-1 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200">
+                                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                                      <span>Issue Reported</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-[11px] font-bold text-purple-700 flex items-center gap-1 bg-purple-50 px-2.5 py-0.5 rounded-lg border border-purple-200">
+                                      <Clock className="w-3.5 h-3.5 text-purple-600" />
+                                      <span>In Progress with {task.assignedToName?.split(' ')[0]}</span>
+                                    </span>
+                                  )
+                                ) : (
+                                  <>
+                                    {isRejected && (
+                                      <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200">
+                                        <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                                        <span>Declined {task.rejectedAt ? `(${task.rejectedAt})` : ''}</span>
+                                      </span>
+                                    )}
 
-                                {isDone && task.completedAt && (
-                                  <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                    <span>Done at {task.completedAt}</span>
-                                  </span>
+                                    {isDone && task.completedAt && (
+                                      <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                        <span>Done at {task.completedAt}</span>
+                                      </span>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             </div>
                           </div>
 
-                          {/* Quick Snooze & Issue Reporting Actions */}
+                          {/* Quick Snooze, Issue Reporting, or Delegated Reassign */}
                           <div className="flex items-center gap-2 shrink-0 pl-10 sm:pl-0 flex-wrap">
-                            {!isDone && !isRejected && (
+                            {isDelegatedByMe ? (
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  snoozeTask(task.id, 30);
+                                  setReassigningTaskId(task.id);
+                                  const firstOther = users.find((u) => u.role === 'staff' && u.id !== currentUser.id && u.id !== task.assignedTo);
+                                  setReassignTargetUserId(firstOther?.id || '');
                                 }}
-                                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer"
-                                title="Snooze deadline by +30 minutes"
+                                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer flex items-center gap-1"
+                                title="Reassign to another colleague"
                               >
-                                +30m Snooze
+                                <RotateCcw className="w-3.5 h-3.5 text-slate-600" />
+                                <span>Reassign</span>
                               </button>
-                            )}
+                            ) : (
+                              <>
+                                {!isDone && !isRejected && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      snoozeTask(task.id, 30);
+                                    }}
+                                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer"
+                                    title="Snooze deadline by +30 minutes"
+                                  >
+                                    +30m Snooze
+                                  </button>
+                                )}
 
-                            {!isDone && !isRejected && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenReasonBox(task.id, task.pendingReason);
-                                }}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                                  task.pendingReason
-                                    ? 'bg-amber-50 text-amber-900 border-amber-300'
-                                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                                }`}
-                              >
-                                <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
-                                <span>{task.pendingReason ? 'Reason Sent' : 'Report Issue'}</span>
-                              </button>
+                                {!isDone && !isRejected && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenReasonBox(task.id, task.pendingReason);
+                                    }}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                                      task.pendingReason
+                                        ? 'bg-amber-50 text-amber-900 border-amber-300'
+                                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                                    }`}
+                                  >
+                                    <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
+                                    <span>{task.pendingReason ? 'Reason Sent' : 'Report Issue'}</span>
+                                  </button>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>
 
-                        {/* Reported Pending / Decline Reason Display */}
+                        {/* Reported Pending / Decline / Issue Reason Display */}
                         {task.pendingReason && !isEditingReason && (
                           <div className={`mt-3 p-3 rounded-xl border text-xs flex items-start justify-between gap-3 ${
                             isRejected
@@ -1023,13 +1128,15 @@ export const MyToDoView: React.FC = () => {
                               )}
                               <div>
                                 <span className="font-bold">
-                                  {isRejected
+                                  {isDelegatedByMe
+                                    ? `Issue Reported by ${task.assignedToName}: `
+                                    : isRejected
                                     ? `Decline Reason to ${senderUser?.name || task.createdByName || 'Colleague'}: `
                                     : task.type === 'admin'
                                     ? 'Pending Reason to Admin: '
                                     : `Pending Reason to ${senderUser?.name || task.createdByName || 'Colleague'}: `}
                                 </span>
-                                <span>{task.pendingReason.replace(/^\[DECLINED\]:\s*/, '')}</span>
+                                <span className="font-semibold italic">"{task.pendingReason.replace(/^\[DECLINED\]:\s*/, '')}"</span>
                                 {task.pendingReasonUpdatedAt && (
                                   <span className={`text-[10px] ml-2 font-medium ${isRejected ? 'text-rose-700' : 'text-amber-700'}`}>
                                     ({task.pendingReasonUpdatedAt})
@@ -1037,7 +1144,20 @@ export const MyToDoView: React.FC = () => {
                                 )}
                               </div>
                             </div>
-                            {!isRejected && (
+                            {isDelegatedByMe ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setReassigningTaskId(task.id);
+                                  const firstOther = users.find((u) => u.role === 'staff' && u.id !== currentUser.id && u.id !== task.assignedTo);
+                                  setReassignTargetUserId(firstOther?.id || '');
+                                }}
+                                className="text-[11px] font-bold text-amber-900 underline hover:text-amber-950 shrink-0 cursor-pointer"
+                              >
+                                Reassign
+                              </button>
+                            ) : !isRejected ? (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -1048,7 +1168,7 @@ export const MyToDoView: React.FC = () => {
                               >
                                 Edit
                               </button>
-                            )}
+                            ) : null}
                           </div>
                         )}
 

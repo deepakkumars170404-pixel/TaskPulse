@@ -11,6 +11,7 @@ import {
   UserCheck,
   XCircle,
   AlertCircle,
+  AlertTriangle,
   Send,
   RotateCcw,
   Trash2,
@@ -561,6 +562,22 @@ export const TaskRequestsView: React.FC = () => {
                     <div className="text-[10px] text-slate-400 font-semibold">
                       Due: {task.dueDate} · {task.dueTime}
                     </div>
+                    {task.pendingReason && task.status !== 'done' && (
+                      <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 font-medium space-y-0.5">
+                        <div className="flex items-center gap-1 font-bold text-[11px] text-amber-800">
+                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                          <span>Issue from {task.assignedToName}:</span>
+                        </div>
+                        <p className="italic text-[11px] font-semibold text-slate-900">
+                          "{task.pendingReason.replace(/^\[DECLINED\]:\s*/, '')}"
+                        </p>
+                        {task.pendingReasonUpdatedAt && (
+                          <div className="text-[10px] text-amber-700 font-medium">
+                            Reported at {task.pendingReasonUpdatedAt}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

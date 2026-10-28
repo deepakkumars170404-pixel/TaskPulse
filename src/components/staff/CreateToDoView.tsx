@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  AlertTriangle,
   RotateCcw,
   Trash2,
 } from 'lucide-react';
@@ -361,6 +362,24 @@ export const CreateToDoView: React.FC = () => {
                           <span>{task.dueDate} · {task.dueTime}</span>
                         </span>
                       </div>
+
+                      {/* Display Colleague Issue / Delay Reason */}
+                      {task.pendingReason && !isRejected && (
+                        <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 space-y-1.5">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Issue Reported by {task.assignedToName}:</span>
+                          </div>
+                          <div className="p-2 rounded-lg bg-white border border-amber-200 text-xs text-amber-950 font-bold leading-relaxed italic shadow-2xs">
+                            "{task.pendingReason.replace(/^\[DECLINED\]:\s*/, '')}"
+                          </div>
+                          {task.pendingReasonUpdatedAt && (
+                            <div className="text-[10px] text-amber-700 font-semibold">
+                              Reported at {task.pendingReasonUpdatedAt}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Display Colleague Rejection Message & Action Buttons */}
                       {isRejected && (

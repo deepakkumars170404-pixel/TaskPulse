@@ -437,6 +437,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Cross-Tab & Cross-Window Instant Real-Time Sync Channel
   const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
+  const tasksRef = useRef<Task[]>(tasks);
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   const broadcastEvent = useCallback((eventData: any) => {
     try {
@@ -592,18 +596,64 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
       } else if (payload.eventType === 'UPDATE') {
         const updatedTask = mapDbTaskToFrontend(payload.new);
+        const prevTask = tasksRef.current.find((t) => t.id === updatedTask.id);
+
         setTasks((prev) =>
           prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
         );
 
-        if (updatedTask.status === 'rejected' && updatedTask.createdBy === currentUser.id) {
+        const isCreator = updatedTask.createdBy === currentUser.id;
+        const newReasonReported =
+          updatedTask.pendingReason &&
+          (!prevTask || prevTask.pendingReason !== updatedTask.pendingReason);
+
+        if (isCreator && updatedTask.pendingReason && newReasonReported) {
+          playAssignmentAlertSound();
           triggerTaskAlert({
             id: updatedTask.id,
-            title: `Task Declined by ${updatedTask.assignedToName}`,
-            message: `"${updatedTask.rejectReason || 'Declined'}"`,
+            title: `⚠️ Issue Reported by ${updatedTask.assignedToName}`,
+            message: `"${updatedTask.pendingReason.replace(/^\[DECLINED\]:\s*/, '')}"`,
             taskTitle: updatedTask.title,
             senderName: updatedTask.assignedToName,
+            dueDate: updatedTask.dueDate,
+            dueTime: updatedTask.dueTime,
+            priority: updatedTask.priority,
+            type: 'issue',
+          });
+        } else if (
+          isCreator &&
+          updatedTask.status === 'rejected' &&
+          (!prevTask || prevTask.status !== 'rejected')
+        ) {
+          playAssignmentAlertSound();
+          triggerTaskAlert({
+            id: updatedTask.id,
+            title: `❌ Task Declined by ${updatedTask.assignedToName}`,
+            message: `"${updatedTask.rejectReason || updatedTask.pendingReason?.replace(/^\[DECLINED\]:\s*/, '') || 'Declined'}"`,
+            taskTitle: updatedTask.title,
+            senderName: updatedTask.assignedToName,
+            dueDate: updatedTask.dueDate,
+            dueTime: updatedTask.dueTime,
+            priority: updatedTask.priority,
             type: 'decline',
+          });
+        } else if (
+          isCreator &&
+          updatedTask.status === 'done' &&
+          prevTask?.status !== 'done' &&
+          updatedTask.assignedTo !== currentUser.id
+        ) {
+          playAssignmentAlertSound();
+          triggerTaskAlert({
+            id: updatedTask.id,
+            title: `🎉 Task Completed by ${updatedTask.assignedToName}`,
+            message: `Finished at ${updatedTask.completedAt || 'today'}`,
+            taskTitle: updatedTask.title,
+            senderName: updatedTask.assignedToName,
+            dueDate: updatedTask.dueDate,
+            dueTime: updatedTask.dueTime,
+            priority: updatedTask.priority,
+            type: 'staff',
           });
         }
       } else if (payload.eventType === 'DELETE') {
@@ -650,6 +700,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               type: 'admin',
             });
           } else if (data.action === 'DECLINE' && data.taskCreatorId === currentUser.id) {
+            playAssignmentAlertSound();
             triggerTaskAlert({
               id: `decline_${Date.now()}`,
               title: `Task Declined by ${data.declinedBy || 'Colleague'}`,
@@ -657,6 +708,16 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               taskTitle: data.taskTitle || 'Assigned Work',
               senderName: data.declinedBy || 'Colleague',
               type: 'decline',
+            });
+          } else if (data.action === 'ISSUE_REPORTED' && data.taskCreatorId === currentUser.id) {
+            playAssignmentAlertSound();
+            triggerTaskAlert({
+              id: `issue_${Date.now()}`,
+              title: `⚠️ Issue Reported by ${data.reportedBy || 'Colleague'}`,
+              message: `"${data.reason || 'Pending Issue'}"`,
+              taskTitle: data.taskTitle || 'Assigned Work',
+              senderName: data.reportedBy || 'Colleague',
+              type: 'issue',
             });
           }
         }
@@ -1243,25 +1304,49 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const reportPendingReason = (taskId: string, reason: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const trimmed = reason.trim();
+    const target = tasks.find((t) => t.id === taskId);
 
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          return {
-            ...t,
-            pendingReason: trimmed,
-            pendingReasonUpdatedAt: nowTimeStr,
-          };
-        }
-        return t;
-      })
-    );
+    const updatedTasks = tasks.map((t) => {
+      if (t.id === taskId) {
+        return {
+          ...t,
+          pendingReason: trimmed,
+          pendingReasonUpdatedAt: nowTimeStr,
+        };
+      }
+      return t;
+    });
+
+    setTasks(updatedTasks);
 
     // Backend database update
     backendApi.updateTask(taskId, {
       pendingReason: trimmed,
       pendingReasonUpdatedAt: nowTimeStr,
     }).catch((err) => console.warn('[Backend] reason report error:', err));
+
+    // Native browser notification
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const notifTitle = `Issue Reported: ${target?.title || 'Assigned Work'}`;
+      const notifBody = `${currentUser.name} reported: "${trimmed}"`;
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification(notifTitle, { body: notifBody, icon: '/favicon.ico' });
+        } catch (e) {}
+      }
+    }
+
+    // Cross-tab broadcast
+    broadcastEvent({
+      type: 'TASKS_UPDATE',
+      action: 'ISSUE_REPORTED',
+      tasks: updatedTasks,
+      taskId,
+      taskTitle: target?.title || 'Assigned Task',
+      reason: trimmed,
+      reportedBy: currentUser.name,
+      taskCreatorId: target?.createdBy,
+    });
   };
 
   // Rule 6: Admin updates office timing (Owner access)

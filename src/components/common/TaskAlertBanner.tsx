@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { Bell, ShieldAlert, Users, XCircle, X, ArrowRight, Calendar, Clock } from 'lucide-react';
+import { Bell, ShieldAlert, Users, XCircle, AlertTriangle, X, ArrowRight, Calendar, Clock } from 'lucide-react';
 
 export const TaskAlertBanner: React.FC = () => {
   const { activeTaskAlert, dismissTaskAlert, setCurrentPage, currentUser } = useTaskToggle();
@@ -18,6 +18,7 @@ export const TaskAlertBanner: React.FC = () => {
   if (!activeTaskAlert) return null;
 
   const isDecline = activeTaskAlert.type === 'decline';
+  const isIssue = activeTaskAlert.type === 'issue';
   const isAdmin = activeTaskAlert.type === 'admin';
 
   const handleActionClick = () => {
@@ -35,6 +36,8 @@ export const TaskAlertBanner: React.FC = () => {
         className={`bg-white rounded-2xl p-4 sm:p-5 shadow-2xl border-2 transition-all ${
           isDecline
             ? 'border-rose-400 shadow-rose-500/10'
+            : isIssue
+            ? 'border-amber-400 shadow-amber-500/15 ring-2 ring-amber-400/20'
             : isAdmin
             ? 'border-indigo-500 shadow-indigo-500/15 ring-2 ring-indigo-400/20'
             : 'border-sky-400 shadow-sky-500/10'
@@ -46,6 +49,8 @@ export const TaskAlertBanner: React.FC = () => {
             className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
               isDecline
                 ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                : isIssue
+                ? 'bg-amber-50 text-amber-600 border border-amber-200 animate-pulse'
                 : isAdmin
                 ? 'bg-indigo-600 text-white animate-bounce'
                 : 'bg-sky-50 text-sky-600 border border-sky-200'
@@ -53,6 +58,8 @@ export const TaskAlertBanner: React.FC = () => {
           >
             {isDecline ? (
               <XCircle className="w-5 h-5 stroke-[2.5]" />
+            ) : isIssue ? (
+              <AlertTriangle className="w-5 h-5 stroke-[2.5]" />
             ) : isAdmin ? (
               <ShieldAlert className="w-6 h-6 stroke-[2.5]" />
             ) : (
@@ -67,6 +74,8 @@ export const TaskAlertBanner: React.FC = () => {
                 className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border flex items-center gap-1 ${
                   isDecline
                     ? 'bg-rose-100 text-rose-800 border-rose-300'
+                    : isIssue
+                    ? 'bg-amber-100 text-amber-900 border-amber-300'
                     : isAdmin
                     ? 'bg-indigo-100 text-indigo-900 border-indigo-300'
                     : 'bg-sky-100 text-sky-800 border-sky-300'
@@ -90,6 +99,13 @@ export const TaskAlertBanner: React.FC = () => {
             <h4 className="text-sm sm:text-base font-black text-slate-900 mt-2 leading-snug">
               {activeTaskAlert.taskTitle}
             </h4>
+
+            {/* Message / Reason */}
+            {activeTaskAlert.message && (
+              <p className="text-xs text-slate-800 font-bold italic mt-1 bg-amber-50/70 p-2 rounded-lg border border-amber-200">
+                {activeTaskAlert.message}
+              </p>
+            )}
 
             {/* From & Details */}
             <p className="text-xs text-slate-600 font-medium mt-1">
@@ -127,10 +143,12 @@ export const TaskAlertBanner: React.FC = () => {
                 className={`flex-1 py-2 px-3 rounded-xl text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center justify-center gap-1.5 ${
                   isDecline
                     ? 'bg-rose-600 hover:bg-rose-700'
+                    : isIssue
+                    ? 'bg-amber-600 hover:bg-amber-700'
                     : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
               >
-                <span>{isDecline ? 'Review Rejection' : 'Open in My To-Do'}</span>
+                <span>{isDecline ? 'Review Rejection' : isIssue ? 'View Issue in My To-Do' : 'Open in My To-Do'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 

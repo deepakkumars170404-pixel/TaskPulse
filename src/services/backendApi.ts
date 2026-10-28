@@ -91,6 +91,8 @@ class BackendApiService {
         if (updates.pendingReason !== undefined) dbUpdates.pending_reason = updates.pendingReason;
         if (updates.pendingReasonUpdatedAt !== undefined)
           dbUpdates.pending_reason_updated_at = updates.pendingReasonUpdatedAt;
+        if (updates.rejectReason !== undefined) dbUpdates.reject_reason = updates.rejectReason;
+        if (updates.rejectedAt !== undefined) dbUpdates.rejected_at = updates.rejectedAt;
         if (updates.acceptedAt !== undefined) dbUpdates.accepted_at = updates.acceptedAt;
         if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
 

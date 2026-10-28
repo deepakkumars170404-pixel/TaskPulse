@@ -67,7 +67,7 @@ export interface TaskAlert {
   dueDate?: string;
   dueTime?: string;
   priority?: string;
-  type?: 'admin' | 'staff' | 'decline';
+  type?: 'admin' | 'staff' | 'decline' | 'issue';
 }
 
 /**
