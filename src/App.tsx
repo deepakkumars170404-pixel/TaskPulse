@@ -19,7 +19,7 @@ import { TaskAlertBanner } from './components/common/TaskAlertBanner';
 import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
 
 const MainLayout: React.FC = () => {
-  const { currentPage, currentUser } = useTaskToggle();
+  const { currentPage, currentUser, isAuthenticated } = useTaskToggle();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Detect if TaskToggle is embedded inside ConnectX (via ?embedded=true in URL)
@@ -27,7 +27,8 @@ const MainLayout: React.FC = () => {
     return new URLSearchParams(window.location.search).get('embedded') === 'true';
   }, []);
 
-  if (currentPage === 'login' && !isEmbedded) {
+  // Strict Authentication Guard: If user is logged out or on login page, ALWAYS render LoginView!
+  if ((!isAuthenticated || currentPage === 'login') && !isEmbedded) {
     return <LoginView />;
   }
 

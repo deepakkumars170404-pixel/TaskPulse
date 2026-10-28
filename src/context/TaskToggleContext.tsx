@@ -19,6 +19,7 @@ interface TaskToggleContextType {
   eventTiming: EventTiming | null;
   orgSettings: OrgSettings;
   currentPage: string;
+  isAuthenticated: boolean;
   showCompleted: boolean;
   isBackendConnected: boolean;
   setShowCompleted: (val: boolean) => void;
@@ -382,9 +383,11 @@ export const VALID_PAGES = [
   'login',
 ] as const;
 
-export function normalizePageFromUrl(pathname: string, userRole: Role): string {
+export function normalizePageFromUrl(pathname: string, userRole: Role, isAuth = true): string {
+  if (!isAuth) return 'login';
   if (typeof window === 'undefined') return userRole === 'admin' ? 'dashboard' : 'mytodo';
   const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase().split('?')[0].split('#')[0];
+  if (clean === 'login') return 'login';
   if (VALID_PAGES.includes(clean as any)) {
     if (userRole === 'admin') {
       if (['mytodo', 'create', 'requests'].includes(clean)) {
@@ -485,15 +488,28 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.setItem(`${STORAGE_KEY_PREFIX}font_family`, fontFamily);
   }, [themePreset, bgCanvas, fontFamily]);
 
+  // User Authentication State (strict security guard for logout and page navigation)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const savedLoggedIn = localStorage.getItem(`${STORAGE_KEY_PREFIX}is_logged_in`);
+    if (savedLoggedIn === 'false') return false;
+    if (typeof window !== 'undefined') {
+      const clean = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase().split('?')[0].split('#')[0];
+      if (clean === 'login') return false;
+    }
+    return true;
+  });
+
   // Page routing state synchronized with HTML5 History API (enables browser back & forward navigation across localhost URLs)
   const [currentPage, _setCurrentPage] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      const initialPage = normalizePageFromUrl(window.location.pathname, currentUser.role);
+      const savedLoggedIn = localStorage.getItem(`${STORAGE_KEY_PREFIX}is_logged_in`);
+      const isAuth = savedLoggedIn !== 'false' && !window.location.pathname.toLowerCase().includes('/login');
+      const initialPage = normalizePageFromUrl(window.location.pathname, currentUser.role, isAuth);
       try {
         const cleanPath = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
         if (cleanPath !== initialPage && window.history?.replaceState) {
           window.history.replaceState(
-            { page: initialPage },
+            { page: initialPage, isAuth },
             '',
             `/${initialPage}${window.location.search}${window.location.hash}`
           );
@@ -526,11 +542,29 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (typeof window === 'undefined') return;
 
     const handlePopState = (event: PopStateEvent) => {
+      // SECURITY GUARD: If user is logged out, strictly STAY on login! Never let back button go into internal pages!
+      if (!isAuthenticated) {
+        _setCurrentPage('login');
+        try {
+          if (window.location.pathname !== '/login') {
+            window.history.replaceState({ page: 'login' }, '', '/login');
+          }
+        } catch (e) {}
+        return;
+      }
+
       const pageFromState = event.state?.page;
       const targetPage =
         pageFromState && (VALID_PAGES as readonly string[]).includes(pageFromState)
           ? pageFromState
-          : normalizePageFromUrl(window.location.pathname, currentUser.role);
+          : normalizePageFromUrl(window.location.pathname, currentUser.role, isAuthenticated);
+
+      if (targetPage === 'login') {
+        _setCurrentPage('login');
+        setIsAuthenticated(false);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'false');
+        return;
+      }
 
       _setCurrentPage(targetPage);
     };
@@ -539,7 +573,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [currentUser.role]);
+  }, [currentUser.role, isAuthenticated]);
 
   const [requestViewTab, setRequestViewTab] = useState<'incoming' | 'sent'>('incoming');
 
@@ -1174,6 +1208,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (user) {
       setActiveDueReminder(null);
       setCurrentUser(user);
+      setIsAuthenticated(true);
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, user.id);
       if (user.role === 'admin') {
         setCurrentPage('dashboard');
       } else {
@@ -1190,6 +1227,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (user) {
       setActiveDueReminder(null);
       setCurrentUser(user);
+      setIsAuthenticated(true);
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, user.id);
       setCurrentPage(user.role === 'admin' ? 'dashboard' : 'mytodo');
       checkAndTriggerPendingStaffAlerts(user.id, triggerTaskAlert);
     }
@@ -1197,7 +1237,16 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const logout = () => {
     setActiveDueReminder(null);
-    setCurrentPage('login');
+    setIsAuthenticated(false);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'false');
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}current_user_id`);
+    _setCurrentPage('login');
+
+    if (typeof window !== 'undefined' && window.history) {
+      try {
+        window.history.pushState({ page: 'login', isLoggedOut: true }, '', '/login');
+      } catch (e) {}
+    }
   };
 
   // Rule 1: Admin assigns task to one or more staff (Compulsory)
@@ -1866,6 +1915,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         eventTiming,
         orgSettings,
         currentPage,
+        isAuthenticated,
         showCompleted,
         isBackendConnected,
         setShowCompleted,
