@@ -288,6 +288,52 @@ export const SoundTestModal: React.FC<SoundTestModalProps> = ({ isOpen, onClose 
               </div>
             </div>
 
+            {/* 2b. Special Date & Time Schedule Allotment Alert */}
+            <div className="p-4 rounded-xl border border-primary-300 bg-primary-50/40 hover:bg-primary-50/70 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <Calendar className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Special Date & Time Assignment Alert
+                    </h3>
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-primary-100 text-primary-800 px-1.5 py-0.5 rounded border border-primary-200">
+                      Sound + Screen Banner
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Ascending notify chime + visual on-screen alert banner popping up when Admin assigns special date, timing, or event shifts to specific staff.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerTaskAlert({
+                      id: `test_event_${Date.now()}`,
+                      title: '🗓️ Special Schedule Allotted by Admin (Deepak)',
+                      taskTitle: 'Annual Day Preparation & Special Shift',
+                      message: 'Special Working Hours: 8:00 AM - 6:00 PM on 28 Oct 2026',
+                      senderName: 'Deepak (Admin)',
+                      dueDate: '28 Oct 2026',
+                      dueTime: '8:00 AM - 6:00 PM',
+                      priority: 'High',
+                      type: 'event',
+                    });
+                    showActionFeedback('🔔 Triggered Special Date & Time alert sound + screen message!');
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-xs"
+                >
+                  <Bell className="w-3.5 h-3.5" />
+                  <span>Test Special Alert</span>
+                </button>
+              </div>
+            </div>
+
             {/* 3. Task Completion Dopamine Chime */}
             <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 hover:bg-emerald-50/60 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-start gap-3">

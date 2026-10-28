@@ -1,16 +1,27 @@
 import React, { useEffect } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { Bell, ShieldAlert, Users, XCircle, AlertTriangle, X, ArrowRight, Calendar, Clock } from 'lucide-react';
+import {
+  Bell,
+  ShieldAlert,
+  Users,
+  XCircle,
+  AlertTriangle,
+  X,
+  ArrowRight,
+  Calendar,
+  Clock,
+  Sparkles,
+} from 'lucide-react';
 
 export const TaskAlertBanner: React.FC = () => {
   const { activeTaskAlert, dismissTaskAlert, setCurrentPage, currentUser } = useTaskToggle();
 
-  // Auto-dismiss the popup banner after 9 seconds
+  // Auto-dismiss the popup banner after 12 seconds
   useEffect(() => {
     if (activeTaskAlert) {
       const timer = setTimeout(() => {
         dismissTaskAlert();
-      }, 9000);
+      }, 12000);
       return () => clearTimeout(timer);
     }
   }, [activeTaskAlert, dismissTaskAlert]);
@@ -19,11 +30,14 @@ export const TaskAlertBanner: React.FC = () => {
 
   const isDecline = activeTaskAlert.type === 'decline';
   const isIssue = activeTaskAlert.type === 'issue';
+  const isEvent = activeTaskAlert.type === 'event';
   const isAdmin = activeTaskAlert.type === 'admin';
 
   const handleActionClick = () => {
     if (isDecline) {
       setCurrentPage(currentUser.role === 'admin' ? 'monitor' : 'requests');
+    } else if (isEvent) {
+      setCurrentPage('mytodo');
     } else {
       setCurrentPage(currentUser.role === 'admin' ? 'dashboard' : 'mytodo');
     }
@@ -38,6 +52,8 @@ export const TaskAlertBanner: React.FC = () => {
             ? 'border-rose-400 shadow-rose-500/10'
             : isIssue
             ? 'border-amber-400 shadow-amber-500/15 ring-2 ring-amber-400/20'
+            : isEvent
+            ? 'border-primary-500 shadow-primary-500/20 ring-2 ring-primary-400/25'
             : isAdmin
             ? 'border-primary-500 shadow-primary-500/15 ring-2 ring-primary-400/20'
             : 'border-sky-400 shadow-sky-500/10'
@@ -51,6 +67,8 @@ export const TaskAlertBanner: React.FC = () => {
                 ? 'bg-rose-50 text-rose-600 border border-rose-200'
                 : isIssue
                 ? 'bg-amber-50 text-amber-600 border border-amber-200 animate-pulse'
+                : isEvent
+                ? 'bg-primary-500 text-white animate-bounce shadow-primary-500/30'
                 : isAdmin
                 ? 'bg-primary-500 text-white animate-bounce'
                 : 'bg-sky-50 text-sky-600 border border-sky-200'
@@ -60,6 +78,8 @@ export const TaskAlertBanner: React.FC = () => {
               <XCircle className="w-5 h-5 stroke-[2.5]" />
             ) : isIssue ? (
               <AlertTriangle className="w-5 h-5 stroke-[2.5]" />
+            ) : isEvent ? (
+              <Calendar className="w-6 h-6 stroke-[2.5]" />
             ) : isAdmin ? (
               <ShieldAlert className="w-6 h-6 stroke-[2.5]" />
             ) : (
@@ -76,12 +96,18 @@ export const TaskAlertBanner: React.FC = () => {
                     ? 'bg-rose-100 text-rose-800 border-rose-300'
                     : isIssue
                     ? 'bg-amber-100 text-amber-900 border-amber-300'
+                    : isEvent
+                    ? 'bg-primary-100 text-primary-800 border-primary-300'
                     : isAdmin
                     ? 'bg-primary-100 text-primary-800 border-primary-300'
                     : 'bg-sky-100 text-sky-800 border-sky-300'
                 }`}
               >
-                <Bell className="w-3 h-3 animate-pulse" />
+                {isEvent ? (
+                  <Sparkles className="w-3 h-3 text-primary-600 animate-spin" />
+                ) : (
+                  <Bell className="w-3 h-3 animate-pulse" />
+                )}
                 <span>{activeTaskAlert.title}</span>
               </span>
 
@@ -95,14 +121,20 @@ export const TaskAlertBanner: React.FC = () => {
               </button>
             </div>
 
-            {/* Task Title */}
+            {/* Task / Event Title */}
             <h4 className="text-sm sm:text-base font-black text-slate-900 mt-2 leading-snug">
               {activeTaskAlert.taskTitle}
             </h4>
 
             {/* Message / Reason */}
             {activeTaskAlert.message && (
-              <p className="text-xs text-slate-800 font-bold italic mt-1 bg-amber-50/70 p-2 rounded-lg border border-amber-200">
+              <p
+                className={`text-xs font-bold mt-1 p-2 rounded-lg border ${
+                  isEvent
+                    ? 'bg-primary-50/70 text-primary-950 border-primary-200'
+                    : 'bg-amber-50/70 text-slate-800 italic border-amber-200'
+                }`}
+              >
                 {activeTaskAlert.message}
               </p>
             )}
@@ -117,7 +149,7 @@ export const TaskAlertBanner: React.FC = () => {
               <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-600 flex-wrap">
                 {activeTaskAlert.dueDate && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 font-bold text-slate-800 border border-slate-200">
-                    <Calendar className="w-3 h-3 text-slate-500" />
+                    <Calendar className="w-3 h-3 text-primary-500" />
                     <span>{activeTaskAlert.dueDate}</span>
                   </span>
                 )}
@@ -127,11 +159,15 @@ export const TaskAlertBanner: React.FC = () => {
                     <span>{activeTaskAlert.dueTime}</span>
                   </span>
                 )}
-                {activeTaskAlert.priority && (
+                {isEvent ? (
+                  <span className="px-2 py-0.5 rounded-md bg-primary-50 text-primary-800 font-bold border border-primary-200">
+                    Special Shift Allotted
+                  </span>
+                ) : activeTaskAlert.priority ? (
                   <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-bold border border-amber-200">
                     {activeTaskAlert.priority} Priority
                   </span>
-                )}
+                ) : null}
               </div>
             )}
 
@@ -145,10 +181,20 @@ export const TaskAlertBanner: React.FC = () => {
                     ? 'bg-rose-600 hover:bg-rose-700'
                     : isIssue
                     ? 'bg-amber-600 hover:bg-amber-700'
+                    : isEvent
+                    ? 'bg-primary-500 hover:bg-primary-600'
                     : 'bg-primary-500 hover:bg-primary-600'
                 }`}
               >
-                <span>{isDecline ? 'Review Rejection' : isIssue ? 'View Issue in My To-Do' : 'Open in My To-Do'}</span>
+                <span>
+                  {isDecline
+                    ? 'Review Rejection'
+                    : isIssue
+                    ? 'View Issue in My To-Do'
+                    : isEvent
+                    ? 'View My Schedule'
+                    : 'Open in My To-Do'}
+                </span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
@@ -166,4 +212,3 @@ export const TaskAlertBanner: React.FC = () => {
     </div>
   );
 };
-

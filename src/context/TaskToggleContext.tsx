@@ -89,6 +89,36 @@ const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undef
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
 const STORAGE_CLEAN_VERSION = 'v7_disable_auto_due_popup';
+const PENDING_STAFF_ALERTS_KEY = 'tasktoggle_pending_staff_alerts';
+
+export function queuePendingStaffAlert(userId: string, alert: TaskAlert) {
+  try {
+    const existing = localStorage.getItem(PENDING_STAFF_ALERTS_KEY);
+    const parsed: Record<string, TaskAlert[]> = existing ? JSON.parse(existing) : {};
+    if (!parsed[userId]) parsed[userId] = [];
+    if (!parsed[userId].some((a) => a.id === alert.id)) {
+      parsed[userId].push(alert);
+    }
+    localStorage.setItem(PENDING_STAFF_ALERTS_KEY, JSON.stringify(parsed));
+  } catch (e) {}
+}
+
+export function checkAndTriggerPendingStaffAlerts(userId: string, triggerFn: (alert: TaskAlert) => void) {
+  try {
+    const existing = localStorage.getItem(PENDING_STAFF_ALERTS_KEY);
+    if (!existing) return;
+    const parsed: Record<string, TaskAlert[]> = JSON.parse(existing);
+    const userAlerts = parsed[userId];
+    if (userAlerts && userAlerts.length > 0) {
+      const alert = userAlerts[userAlerts.length - 1];
+      delete parsed[userId];
+      localStorage.setItem(PENDING_STAFF_ALERTS_KEY, JSON.stringify(parsed));
+      setTimeout(() => {
+        triggerFn(alert);
+      }, 400);
+    }
+  } catch (e) {}
+}
 
 if (typeof window !== 'undefined') {
   if (localStorage.getItem('tasktoggle_data_version') !== STORAGE_CLEAN_VERSION) {
@@ -846,6 +876,27 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             });
           }
         }
+
+        if (data.type === 'EVENT_TIMING_UPDATE') {
+          if (data.eventTiming) {
+            setEventTiming(data.eventTiming);
+          }
+          const isAllotted =
+            Array.isArray(data.allottedStaffIds) && data.allottedStaffIds.includes(currentUser.id);
+          if (isAllotted) {
+            triggerTaskAlert({
+              id: `event_${Date.now()}`,
+              title: `🗓️ Special Schedule Allotted by ${data.senderName || 'Admin'}`,
+              taskTitle: data.eventName || 'Special Event Schedule',
+              message: `Special Office Hours: ${data.timing} on ${data.date}`,
+              senderName: data.senderName || 'Admin',
+              dueDate: data.date,
+              dueTime: data.timing,
+              priority: 'High',
+              type: 'event',
+            });
+          }
+        }
       };
     }
 
@@ -964,6 +1015,12 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => clearInterval(interval);
   }, [tasks, currentUser]);
 
+  useEffect(() => {
+    if (currentUser?.id) {
+      checkAndTriggerPendingStaffAlerts(currentUser.id, triggerTaskAlert);
+    }
+  }, [currentUser?.id, triggerTaskAlert]);
+
   const switchUser = (userId: string) => {
     const user = users.find((u) => u.id === userId);
     if (user) {
@@ -974,6 +1031,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       } else {
         setCurrentPage('mytodo');
       }
+      checkAndTriggerPendingStaffAlerts(user.id, triggerTaskAlert);
     }
   };
 
@@ -985,6 +1043,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setActiveDueReminder(null);
       setCurrentUser(user);
       setCurrentPage(user.role === 'admin' ? 'dashboard' : 'mytodo');
+      checkAndTriggerPendingStaffAlerts(user.id, triggerTaskAlert);
     }
   };
 
@@ -1034,6 +1093,24 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     newTasks.forEach((t) => {
       backendApi.createTask(t).catch((err) => console.warn('[Backend] assign error:', err));
     });
+
+    // Queue persistent notification alert for each assigned staff member
+    if (Array.isArray(data.staffIds)) {
+      data.staffIds.forEach((staffId) => {
+        const alert: TaskAlert = {
+          id: `task_${Date.now()}_${staffId}`,
+          title: `New Task from ${currentUser.name || 'Admin'}`,
+          taskTitle: data.title,
+          message: `Due: ${data.dueDate} · ${data.dueTime}`,
+          senderName: currentUser.name || (orgSettings.orgName ? `${orgSettings.orgName} (Admin)` : 'Deepak (Admin)'),
+          dueDate: data.dueDate,
+          dueTime: data.dueTime,
+          priority: data.priority,
+          type: 'admin',
+        };
+        queuePendingStaffAlert(staffId, alert);
+      });
+    }
 
     // Cross-tab / cross-window instant broadcast
     broadcastEvent({
@@ -1489,6 +1566,55 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const updateEventTiming = (newEvent: EventTiming) => {
     setEventTiming(newEvent);
     backendApi.updateEventTiming(newEvent).catch((err) => console.warn('[Backend] event timing error:', err));
+
+    const sender = currentUser.name || (orgSettings.orgName ? `${orgSettings.orgName} (Admin)` : 'Deepak (Admin)');
+
+    // 1. Play alert sound feedback
+    playAssignmentAlertSound();
+
+    // 2. Queue persistent notification alert for each allotted staff member
+    if (Array.isArray(newEvent.allottedStaffIds)) {
+      newEvent.allottedStaffIds.forEach((staffId) => {
+        const alert: TaskAlert = {
+          id: `event_${Date.now()}_${staffId}`,
+          title: `🗓️ Special Schedule Allotted by ${sender}`,
+          taskTitle: newEvent.eventName || 'Special Event Schedule',
+          message: `Special Office Hours: ${newEvent.newTiming} on ${newEvent.date}`,
+          senderName: sender,
+          dueDate: newEvent.date,
+          dueTime: newEvent.newTiming,
+          priority: 'High',
+          type: 'event',
+        };
+        queuePendingStaffAlert(staffId, alert);
+      });
+    }
+
+    // 3. Real-time broadcast across all open tabs and windows
+    broadcastEvent({
+      type: 'EVENT_TIMING_UPDATE',
+      eventTiming: newEvent,
+      allottedStaffIds: newEvent.allottedStaffIds,
+      eventName: newEvent.eventName,
+      date: newEvent.date,
+      timing: newEvent.newTiming,
+      senderName: sender,
+    });
+
+    // 4. If current active user in this tab is one of the allotted staff members
+    if (Array.isArray(newEvent.allottedStaffIds) && newEvent.allottedStaffIds.includes(currentUser.id)) {
+      triggerTaskAlert({
+        id: `event_${Date.now()}_self`,
+        title: `🗓️ Special Schedule Allotted by ${sender}`,
+        taskTitle: newEvent.eventName || 'Special Event Schedule',
+        message: `Special Office Hours: ${newEvent.newTiming} on ${newEvent.date}`,
+        senderName: sender,
+        dueDate: newEvent.date,
+        dueTime: newEvent.newTiming,
+        priority: 'High',
+        type: 'event',
+      });
+    }
   };
 
   const addStaffUser = (name: string, email: string) => {

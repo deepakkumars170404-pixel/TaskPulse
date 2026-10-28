@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { Clock, Calendar, Check, CheckCircle2 } from 'lucide-react';
+import { Clock, Calendar, Check, CheckCircle2, Bell } from 'lucide-react';
 import { getTodayDateString } from '../../utils/dateUtils';
 
 export const TimingSettingsView: React.FC = () => {
-  const { officeTiming, eventTiming, users, updateOfficeTiming, updateEventTiming, orgSettings } = useTaskToggle();
+  const {
+    officeTiming,
+    eventTiming,
+    users,
+    updateOfficeTiming,
+    updateEventTiming,
+    orgSettings,
+    triggerTaskAlert,
+  } = useTaskToggle();
 
   // General Timing Form state
   const [openTime, setOpenTime] = useState(officeTiming.openTime);
@@ -95,7 +103,7 @@ export const TimingSettingsView: React.FC = () => {
         <div className="p-4 rounded-xl bg-primary-50 border border-primary-200 text-primary-950 flex items-center gap-3 animate-in fade-in shadow-2xs">
           <CheckCircle2 className="w-5 h-5 text-primary-500 shrink-0" />
           <span className="text-xs sm:text-sm font-semibold">
-            Event timing and staff allotment applied! Allotted staff now see the revised schedule.
+            Special event schedule saved! {allottedStaffIds.length} staff member{allottedStaffIds.length === 1 ? '' : 's'} assigned and notified with alert sound & on-screen message banner.
           </span>
         </div>
       )}
@@ -265,12 +273,34 @@ export const TimingSettingsView: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <button
                 type="submit"
                 className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer active:scale-95"
               >
-                Apply Event Schedule
+                Apply Event Schedule & Notify Staff
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  triggerTaskAlert({
+                    id: `test_event_${Date.now()}`,
+                    title: `🗓️ Special Schedule Allotted by ${orgSettings.orgName} (Admin)`,
+                    taskTitle: eventName,
+                    message: `Special Office Hours: ${newEventTiming} on ${eventDate}`,
+                    senderName: `${orgSettings.orgName} (Admin)`,
+                    dueDate: eventDate,
+                    dueTime: newEventTiming,
+                    priority: 'High',
+                    type: 'event',
+                  });
+                }}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold border border-slate-200 transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1.5"
+                title="Preview the exact notify sound and screen message that the allotted staff will receive"
+              >
+                <Bell className="w-4 h-4 text-primary-500" />
+                <span>Test Staff Sound & Screen Message</span>
               </button>
             </div>
           </form>
