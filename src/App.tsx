@@ -17,10 +17,28 @@ import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubb
 import { DueReminderBanner } from './components/common/DueReminderBanner';
 import { TaskAlertBanner } from './components/common/TaskAlertBanner';
 import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
+import {
+  AssignTaskModal,
+  StaffDirectoryModal,
+  DepartmentsModal,
+  ReportsModal,
+  SettingsModal,
+  HelpModal,
+} from './components/admin/ExecutiveModals';
 
 const MainLayout: React.FC = () => {
   const { currentPage, currentUser } = useTaskToggle();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Global Modals State
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isDirectoryModalOpen, setIsDirectoryModalOpen] = useState(false);
+  const [isDepartmentsModalOpen, setIsDepartmentsModalOpen] = useState(false);
+  const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   // Detect if TaskToggle is embedded inside ConnectX (via ?embedded=true in URL)
   const isEmbedded = useMemo(() => {
@@ -32,25 +50,46 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${isEmbedded ? 'bg-transparent' : 'bg-slate-50'}`}>
-      {/* Top Header */}
+    <div className={`min-h-screen flex ${isEmbedded ? 'bg-transparent' : 'bg-[#F6F7FB]'}`}>
+      {/* 1. Left Sidebar (~270px) */}
       {!isEmbedded && (
-        <Header onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
-      )}
-
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Desktop Sidebar & Mobile Drawer */}
         <Sidebar
           isMobileOpen={isMobileMenuOpen}
           onCloseMobile={() => setIsMobileMenuOpen(false)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onOpenDirectory={() => setIsDirectoryModalOpen(true)}
+          onOpenDepartments={() => setIsDepartmentsModalOpen(true)}
+          onOpenReports={() => setIsReportsModalOpen(true)}
+          onOpenSettings={() => setIsSettingsModalOpen(true)}
+          onOpenHelp={() => setIsHelpModalOpen(true)}
+          onOpenAssignModal={() => setIsAssignModalOpen(true)}
         />
+      )}
 
-        {/* Main Content Area - Full width edge-to-edge with smooth scrolling */}
-        <main className={`flex-1 overflow-y-auto min-w-0 w-full ${currentPage === 'calendar' ? 'pb-20 md:pb-0 flex flex-col p-0' : 'pb-20 md:pb-4'}`}>
+      {/* 2. Main Content Viewport */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Top Header */}
+        {!isEmbedded && (
+          <Header
+            onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+            onOpenAssignModal={() => setIsAssignModalOpen(true)}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+        )}
+
+        {/* Scrollable Main Area */}
+        <main className="flex-1 overflow-y-auto min-w-0 w-full pb-24 lg:pb-8">
           {currentPage === 'calendar' && <FullPageCalendarView />}
           {currentUser.role === 'admin' ? (
             <>
-              {currentPage === 'dashboard' && <AdminDashboard />}
+              {currentPage === 'dashboard' && (
+                <AdminDashboard
+                  searchQuery={searchQuery}
+                  onOpenAssignModal={() => setIsAssignModalOpen(true)}
+                />
+              )}
               {currentPage === 'assign' && <AssignTaskView />}
               {currentPage === 'monitor' && <TaskMonitorView />}
               {currentPage === 'timing' && <TimingSettingsView />}
@@ -65,10 +104,10 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Modern Bottom Navigation Bar for Mobile Phones */}
+      {/* Bottom Navigation for Mobile Phones */}
       {!isEmbedded && <BottomNav />}
 
-      {/* Document Picture-in-Picture Handler (renders 0 DOM in page, handles PiP popup when clicked) */}
+      {/* Document Picture-in-Picture Handler */}
       <FloatingTaskWidget />
 
       {/* 30-Minute Task Due Reminder Banner for Staff */}
@@ -79,6 +118,14 @@ const MainLayout: React.FC = () => {
 
       {/* Progressive Web App (PWA) Automated Install Prompt */}
       <PwaInstallPrompt />
+
+      {/* Interactive Global Modals */}
+      <AssignTaskModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} />
+      <StaffDirectoryModal isOpen={isDirectoryModalOpen} onClose={() => setIsDirectoryModalOpen(false)} />
+      <DepartmentsModal isOpen={isDepartmentsModalOpen} onClose={() => setIsDepartmentsModalOpen(false)} />
+      <ReportsModal isOpen={isReportsModalOpen} onClose={() => setIsReportsModalOpen(false)} />
+      <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} />
+      <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
     </div>
   );
 };
@@ -98,17 +145,14 @@ export function App() {
       document.body.style.backgroundColor = 'transparent';
       document.documentElement.classList.add('floating-mode');
       document.body.classList.add('floating-mode');
-      document.body.className = 'floating-mode bg-transparent text-slate-900 antialiased font-[\'Open_Sans\',sans-serif] overflow-hidden';
+      document.body.className =
+        'floating-mode bg-transparent text-[#1E293B] antialiased font-[\'Plus_Jakarta_Sans\',sans-serif] overflow-hidden';
     }
   }, [isFloatingMode]);
 
   return (
     <TaskToggleProvider>
-      {isFloatingMode ? (
-        <ElectronFloatingBubble />
-      ) : (
-        <MainLayout />
-      )}
+      {isFloatingMode ? <ElectronFloatingBubble /> : <MainLayout />}
     </TaskToggleProvider>
   );
 }

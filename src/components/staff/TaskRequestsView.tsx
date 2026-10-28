@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { getTaskDeclineReason } from '../../types';
 import {
@@ -17,6 +17,8 @@ import {
   Trash2,
   ArrowRight,
   UserPlus,
+  Layers,
+  CheckCircle2,
 } from 'lucide-react';
 
 export const TaskRequestsView: React.FC = () => {
@@ -36,29 +38,48 @@ export const TaskRequestsView: React.FC = () => {
   } = useTaskToggle();
 
   // 1. INCOMING REQUESTS (Tasks sent by colleagues to current user)
-  const incomingPending = tasks.filter(
-    (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'pending'
-  );
+  const incomingPending = useMemo(() => {
+    return tasks.filter(
+      (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'pending'
+    );
+  }, [tasks, currentUser.id]);
 
-  const incomingAccepted = tasks.filter(
-    (t) => t.assignedTo === currentUser.id && t.type === 'staff' && (t.status === 'accepted' || t.status === 'done')
-  );
+  const incomingAccepted = useMemo(() => {
+    return tasks.filter(
+      (t) => t.assignedTo === currentUser.id && t.type === 'staff' && (t.status === 'accepted' || t.status === 'done')
+    );
+  }, [tasks, currentUser.id]);
 
-  const incomingRejected = tasks.filter(
-    (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'rejected'
-  );
+  const incomingRejected = useMemo(() => {
+    return tasks.filter(
+      (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'rejected'
+    );
+  }, [tasks, currentUser.id]);
 
   // 2. OUTGOING / DELEGATED REQUESTS (Tasks created by current user for colleagues)
-  const delegatedTasks = tasks.filter(
-    (t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id
-  );
+  const delegatedTasks = useMemo(() => {
+    return tasks.filter(
+      (t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id
+    );
+  }, [tasks, currentUser.id]);
 
-  const delegatedDeclined = delegatedTasks.filter((t) => t.status === 'rejected');
-  const delegatedPending = delegatedTasks.filter((t) => t.status === 'pending');
-  const delegatedActive = delegatedTasks.filter((t) => t.status === 'accepted');
-  const delegatedCompleted = delegatedTasks.filter((t) => t.status === 'done');
+  const delegatedDeclined = useMemo(() => {
+    return delegatedTasks.filter((t) => t.status === 'rejected');
+  }, [delegatedTasks]);
 
-  // Active Main Tab: 'incoming' (Requests Sent to Me) | 'sent' (Tasks I Delegated to Colleagues)
+  const delegatedPending = useMemo(() => {
+    return delegatedTasks.filter((t) => t.status === 'pending');
+  }, [delegatedTasks]);
+
+  const delegatedActive = useMemo(() => {
+    return delegatedTasks.filter((t) => t.status === 'accepted');
+  }, [delegatedTasks]);
+
+  const delegatedCompleted = useMemo(() => {
+    return delegatedTasks.filter((t) => t.status === 'done');
+  }, [delegatedTasks]);
+
+  // Active Main Tab: 'incoming' | 'sent'
   const [activeTab, setActiveTab] = useState<'incoming' | 'sent'>(() => {
     if (requestViewTab) return requestViewTab;
     if (delegatedDeclined.length > 0 && incomingPending.length === 0) return 'sent';
@@ -107,58 +128,134 @@ export const TaskRequestsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
-      {/* Toast Feedback */}
+    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 max-w-7xl mx-auto select-none animate-in fade-in duration-200">
+      {/* Toast Notification */}
       {toastMessage && (
-        <div className="p-3.5 sm:p-4 rounded-xl bg-indigo-600 text-white flex items-center gap-3 animate-in fade-in shadow-md">
-          <Check className="w-5 h-5 text-white shrink-0" />
-          <span className="text-xs sm:text-sm font-semibold">{toastMessage}</span>
+        <div className="p-3.5 rounded-xl bg-slate-900 text-white flex items-center gap-2.5 animate-in fade-in shadow-lg">
+          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
       )}
 
-      {/* Clean Corporate Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      {/* =========================================================================
+          1. HEADER & CONTROLS
+          ========================================================================= */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 pb-4 border-b border-slate-200/80">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold font-['Outfit'] text-slate-800 tracking-tight">
-              Colleague Task Requests & Delegations
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="w-8 h-8 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center shadow-xs">
+              <Inbox className="w-4 h-4 stroke-[2.2]" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900 tracking-tight">
+              Colleague Task Requests
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-              {orgSettings.orgName} Staff
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
+              {orgSettings.orgName || 'Workspace'} Delegations
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-            Manage work requests between team members — approve, decline with reasons, and track delegated tasks
+          <p className="text-xs text-slate-500 mt-1 font-medium">
+            Review incoming work requests between team members — approve, decline with reasons, and track delegated deliverables
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setCurrentPage('create')}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+          className="btn-primary-gradient px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer shadow-xs active:scale-95 transition-all self-start md:self-auto"
         >
-          <UserPlus className="w-4 h-4" />
+          <UserPlus className="w-3.5 h-3.5" />
           <span>Delegate New Task</span>
         </button>
       </div>
 
-      {/* Main Tab Navigation: Incoming vs Delegated */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto no-scrollbar">
+      {/* =========================================================================
+          2. KPI OVERVIEW SUMMARY (4 CARDS)
+          ========================================================================= */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Card 1: Incoming Pending */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>Awaiting Action</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-amber-600">
+              {incomingPending.length}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">
+              Incoming
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2: Accepted & Done */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Accepted Work</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-emerald-600">
+              {incomingAccepted.length}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">
+              In Schedule
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Delegated to Colleagues */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[#4F46E5] flex items-center gap-1">
+            <Send className="w-3 h-3" />
+            <span>Given to Team</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-[#4F46E5]">
+              {delegatedTasks.length}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">
+              Total Delegated
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: Declined Alerts */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            <span>Declined by Team</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-rose-600">
+              {delegatedDeclined.length}
+            </span>
+            <span className="text-[11px] font-bold text-rose-700">
+              {delegatedDeclined.length > 0 ? 'Needs Attention' : 'None'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          3. MAIN TAB NAVIGATION
+          ========================================================================= */}
+      <div className="bg-white rounded-xl p-1.5 border border-slate-200/80 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setActiveTab('incoming')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+          className={`flex-1 min-w-[200px] py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
             activeTab === 'incoming'
-              ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-[#4F46E5] text-white shadow-2xs font-bold'
+              : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <Inbox className="w-4 h-4" />
-          <span>📥 Incoming Requests (Awaiting Me)</span>
+          <Inbox className="w-3.5 h-3.5" />
+          <span>Incoming Requests (Awaiting Me)</span>
           {incomingPending.length > 0 && (
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                activeTab === 'incoming' ? 'bg-white/20 text-white' : 'bg-rose-600 text-white shadow-2xs'
+              className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                activeTab === 'incoming' ? 'bg-white text-[#4F46E5]' : 'bg-rose-500 text-white'
               }`}
             >
               {incomingPending.length}
@@ -169,140 +266,120 @@ export const TaskRequestsView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('sent')}
-          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+          className={`flex-1 min-w-[200px] py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-2 ${
             activeTab === 'sent'
-              ? 'bg-indigo-600 text-white shadow-xs'
-              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-[#4F46E5] text-white shadow-2xs font-bold'
+              : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          <Send className="w-4 h-4" />
-          <span>📤 Delegated by Me (Tasks Given to Colleagues)</span>
-          {delegatedDeclined.length > 0 ? (
+          <Send className="w-3.5 h-3.5" />
+          <span>Delegated by Me ({delegatedTasks.length})</span>
+          {delegatedDeclined.length > 0 && (
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                activeTab === 'sent' ? 'bg-rose-100 text-rose-900 border border-rose-300' : 'bg-rose-600 text-white shadow-xs'
+              className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                activeTab === 'sent' ? 'bg-rose-100 text-rose-900' : 'bg-rose-500 text-white'
               }`}
             >
               ⚠️ {delegatedDeclined.length} Declined
-            </span>
-          ) : (
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                activeTab === 'sent' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-              }`}
-            >
-              {delegatedTasks.length}
             </span>
           )}
         </button>
       </div>
 
       {/* =========================================================================
-          TAB 1: INCOMING REQUESTS (WAITING FOR MY ACCEPTANCE / DECLINE)
+          TAB 1: INCOMING REQUESTS
           ========================================================================= */}
       {activeTab === 'incoming' && (
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
-          {/* Main Incoming Feed (2 cols on xl) */}
-          <div className="xl:col-span-2 space-y-4">
-            <div className="bg-white rounded-2xl p-4 sm:p-7 border border-slate-200 shadow-xs">
-              <div className="mb-5 pb-3 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm sm:text-base font-bold text-slate-800 font-['Outfit'] flex items-center gap-2">
-                    <span>Awaiting Your Confirmation</span>
-                    <span className="text-xs font-semibold text-slate-500">
-                      ({incomingPending.length} pending)
-                    </span>
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                    Approving adds the task to your daily schedule; declining sends your reason directly to the colleague.
-                  </p>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 w-full">
+          {/* Main Feed (2 cols) */}
+          <div className="lg:col-span-2 space-y-3">
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h2 className="text-sm font-bold text-slate-900">
+                  Requests Awaiting Your Approval ({incomingPending.length})
+                </h2>
+                <span className="text-[11px] text-slate-400">
+                  Accept to schedule · Decline to report reason
+                </span>
               </div>
 
               {incomingPending.length === 0 ? (
-                <div className="text-center py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <Inbox className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-slate-700">No requests waiting</p>
-                  <p className="text-xs text-slate-400 mt-1">You are all caught up on staff delegations!</p>
+                <div className="text-center py-12 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                  <Inbox className="w-8 h-8 text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-xs font-bold text-slate-700">No requests waiting</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">You are all caught up on staff delegations!</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {incomingPending.map((task) => {
                     const isRejecting = rejectingTaskId === task.id;
 
                     return (
                       <div
                         key={task.id}
-                        className="flex flex-col gap-3 p-4 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 transition-all shadow-2xs"
+                        className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 transition-all shadow-2xs space-y-2.5"
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3.5">
-                          <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                              {task.createdByName
-                                .split(' ')
-                                .map((n) => n[0])
-                                .join('')
-                                .substring(0, 2)
-                                .toUpperCase()}
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <div className="w-8 h-8 rounded-full bg-[#4F46E5] text-white font-bold text-xs flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                              {task.createdByName?.slice(0, 1) || 'C'}
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="text-sm font-bold text-slate-800 truncate">{task.title}</h3>
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                                {task.title}
+                              </h3>
                               {task.description && (
-                                <p className="text-xs text-slate-500 mt-0.5 leading-relaxed font-medium">{task.description}</p>
+                                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                                  {task.description}
+                                </p>
                               )}
-                              <p className="text-[11px] text-slate-500 mt-1 font-medium">
-                                Delegated by <strong className="font-semibold text-slate-800">{task.createdByName}</strong>
-                              </p>
-
-                              {/* Target Deadline */}
-                              <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 mt-2">
-                                <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                                <span>Complete by: {task.dueDate}</span>
+                              <div className="flex items-center gap-2 pt-0.5 text-[11px] text-slate-500 font-medium flex-wrap">
+                                <span>From: <strong className="text-slate-800 capitalize">{task.createdByName}</strong></span>
                                 <span className="text-slate-300">•</span>
-                                <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                                <span>{task.dueTime}</span>
+                                <span className="inline-flex items-center gap-1 text-slate-700 font-semibold bg-slate-50 px-2 py-0.2 rounded border border-slate-200">
+                                  <Calendar className="w-3 h-3 text-[#4F46E5]" />
+                                  <span>{task.dueDate} · {task.dueTime}</span>
+                                </span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Action Buttons: Accept or Reject */}
+                          {/* Action Buttons */}
                           {!isRejecting && (
-                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                            <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
                               <button
                                 type="button"
                                 onClick={() => acceptTaskRequest(task.id)}
-                                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
-                                title="Approve and accept into your schedule"
+                                className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
                               >
-                                <Check className="w-4 h-4 stroke-[3]" />
+                                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                                 <span>Accept Task</span>
                               </button>
 
                               <button
                                 type="button"
                                 onClick={() => handleStartReject(task.id)}
-                                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 text-xs font-bold transition-all border border-slate-200 cursor-pointer flex items-center gap-1.5"
-                                title="Decline task with reason"
+                                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 text-xs font-semibold transition-all border border-slate-200 cursor-pointer flex items-center gap-1"
                               >
-                                <X className="w-4 h-4" />
+                                <X className="w-3.5 h-3.5" />
                                 <span>Decline</span>
                               </button>
                             </div>
                           )}
                         </div>
 
-                        {/* Inline Rejection Reason Box */}
+                        {/* Inline Decline Box */}
                         {isRejecting && (
-                          <div className="mt-2 p-3.5 rounded-xl bg-rose-50/70 border border-rose-200 space-y-3 animate-in fade-in duration-150">
+                          <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 space-y-2 animate-in fade-in duration-100">
                             <div className="flex items-center justify-between">
                               <label className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
-                                <AlertCircle className="w-4 h-4 text-rose-600" />
-                                <span>Please provide a reason to {task.createdByName}:</span>
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                                <span>Provide a reason to {task.createdByName}:</span>
                               </label>
                               <button
                                 type="button"
                                 onClick={() => setRejectingTaskId(null)}
-                                className="text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                                className="text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
                               >
                                 Cancel
                               </button>
@@ -311,24 +388,24 @@ export const TaskRequestsView: React.FC = () => {
                             <textarea
                               value={rejectReason}
                               onChange={(e) => setRejectReason(e.target.value)}
-                              placeholder={`e.g. "I have back-to-back client demos today and cannot take this up before 5 PM."`}
+                              placeholder={`e.g. "I am handling urgent client deliverables today and cannot commit to this deadline."`}
                               rows={2}
                               autoFocus
-                              className="w-full px-3 py-2 text-xs bg-white border border-rose-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 text-slate-800 placeholder:text-slate-400 font-medium"
+                              className="w-full px-3 py-1.5 text-xs bg-white border border-rose-200 rounded-lg focus:outline-none focus:border-rose-500 text-slate-800 placeholder:text-slate-400"
                             />
 
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 type="button"
                                 onClick={() => setRejectingTaskId(null)}
-                                className="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200 text-xs font-semibold cursor-pointer"
+                                className="px-3 py-1 rounded text-xs text-slate-600 hover:bg-slate-200 cursor-pointer"
                               >
                                 Cancel
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleConfirmReject(task.id)}
-                                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+                                className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs cursor-pointer active:scale-95"
                               >
                                 Submit Rejection
                               </button>
@@ -343,32 +420,35 @@ export const TaskRequestsView: React.FC = () => {
             </div>
           </div>
 
-          {/* Right column: Accepted Today & Decline History */}
-          <div className="space-y-5 sm:space-y-6">
-            {/* Accepted today */}
-            <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center justify-between">
-                <span>Accepted Today</span>
-                <UserCheck className="w-4 h-4 text-emerald-600" />
-              </h3>
+          {/* Right Column: Accepted & Declined History */}
+          <div className="space-y-4">
+            {/* Accepted Today */}
+            <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Accepted Deliverables</span>
+                </h3>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700">
+                  {incomingAccepted.length}
+                </span>
+              </div>
+
               {incomingAccepted.length === 0 ? (
-                <p className="text-xs text-slate-400 italic font-medium">No tasks accepted yet today.</p>
+                <p className="text-xs text-slate-400 italic py-3 text-center">No tasks accepted yet.</p>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
                   {incomingAccepted.map((task) => (
-                    <div key={task.id} className="border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
+                    <div key={task.id} className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-1">
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-xs font-bold text-slate-800">{task.title}</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                        <span className="text-xs font-semibold text-slate-800 truncate">{task.title}</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 shrink-0">
                           Accepted
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-                        <span className="font-medium text-slate-600">From: {task.createdByName}</span>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-700 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                          <Calendar className="w-3 h-3 text-slate-500" />
-                          <span>{task.dueDate} · {task.dueTime}</span>
-                        </span>
+                      <div className="text-[10px] text-slate-400 flex items-center justify-between">
+                        <span>From: {task.createdByName}</span>
+                        <span>{task.dueDate}</span>
                       </div>
                     </div>
                   ))}
@@ -376,30 +456,33 @@ export const TaskRequestsView: React.FC = () => {
               )}
             </div>
 
-            {/* Rejected Requests History */}
+            {/* Declined by You */}
             {incomingRejected.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center justify-between">
-                  <span>Declined by You</span>
-                  <XCircle className="w-4 h-4 text-rose-500" />
-                </h3>
-                <div className="space-y-2.5">
+              <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Declined by You</span>
+                  </h3>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-50 text-rose-700">
+                    {incomingRejected.length}
+                  </span>
+                </div>
+
+                <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
                   {incomingRejected.map((task) => (
-                    <div key={task.id} className="border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
+                    <div key={task.id} className="p-2.5 rounded-lg bg-rose-50/40 border border-rose-100 space-y-1">
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-xs font-bold text-slate-700 line-through">{task.title}</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
+                        <span className="text-xs font-semibold text-slate-700 line-through truncate">{task.title}</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 shrink-0">
                           Declined
                         </span>
                       </div>
                       {task.rejectReason && (
-                        <p className="text-[11px] text-rose-800 font-medium mt-1 bg-rose-50/50 p-1.5 rounded-md border border-rose-100">
-                          Reason: "{task.rejectReason}"
+                        <p className="text-[11px] text-rose-800 italic bg-white p-1.5 rounded border border-rose-100">
+                          "{task.rejectReason}"
                         </p>
                       )}
-                      <div className="text-[10px] text-slate-400 mt-1">
-                        From: {task.createdByName} {task.rejectedAt ? `· ${task.rejectedAt}` : ''}
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -410,78 +493,67 @@ export const TaskRequestsView: React.FC = () => {
       )}
 
       {/* =========================================================================
-          TAB 2: DELEGATED BY ME (TASKS I GAVE TO COLLEAGUES)
-          Allows the task giver to immediately see if a colleague rejected
-          the task and read their full message / reason with action buttons!
+          TAB 2: DELEGATED BY ME
           ========================================================================= */}
       {activeTab === 'sent' && (
-        <div className="space-y-6">
-          {/* SECTION 1: 🚨 DECLINED BY COLLEAGUES (HIGHLIGHTED AT TOP) */}
+        <div className="space-y-4">
+          {/* Section: Declined by Colleague (Alert at top) */}
           {delegatedDeclined.length > 0 && (
-            <div className="bg-rose-50/70 border-2 border-rose-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between gap-2 border-b border-rose-200 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                    <XCircle className="w-4 h-4" />
+            <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-4 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-rose-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded bg-rose-600 text-white flex items-center justify-center font-bold text-xs">
+                    <XCircle className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h2 className="text-sm sm:text-base font-black text-rose-950 font-['Outfit']">
+                    <h2 className="text-xs sm:text-sm font-bold text-rose-950">
                       Declined by Colleague ({delegatedDeclined.length})
                     </h2>
-                    <p className="text-xs text-rose-800 font-medium">
-                      Colleagues were unable to accept these tasks and provided the following reasons.
+                    <p className="text-[11px] text-rose-700">
+                      Colleagues declined these tasks and provided reasons below. You can take over or reassign.
                     </p>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-900 border border-rose-300">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300">
                   Action Required
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {delegatedDeclined.map((task) => {
                   const colleagueMsg = getTaskDeclineReason(task) || 'No message provided';
 
                   return (
                     <div
                       key={task.id}
-                      className="bg-white rounded-xl p-4 border-2 border-rose-200 shadow-2xs space-y-3 flex flex-col justify-between"
+                      className="bg-white rounded-xl p-3.5 border border-rose-200 shadow-2xs space-y-2.5 flex flex-col justify-between"
                     >
                       <div>
-                        {/* Task Header */}
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="text-sm font-black text-slate-900">{task.title}</h3>
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 shrink-0">
-                            ❌ Declined by {task.assignedToName}
+                          <h3 className="text-xs sm:text-sm font-bold text-slate-900">{task.title}</h3>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200 shrink-0">
+                            Declined by {task.assignedToName}
                           </span>
                         </div>
 
                         {task.description && (
-                          <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">
+                          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                             {task.description}
                           </p>
                         )}
 
-                        <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-500 font-semibold flex-wrap">
-                          <span className="text-slate-700">Sent to: <strong>{task.assignedToName}</strong></span>
+                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 flex-wrap">
+                          <span>Sent to: <strong className="text-slate-800 capitalize">{task.assignedToName}</strong></span>
                           <span>•</span>
-                          <span className="text-slate-500">Due: {task.dueDate} · {task.dueTime}</span>
+                          <span>Due: {task.dueDate} · {task.dueTime}</span>
                         </div>
 
-                        {/* Colleague Rejection Message Box */}
-                        <div className="mt-3 p-3 rounded-xl bg-rose-50/90 border border-rose-200 space-y-1.5">
-                          <div className="flex items-center justify-between text-xs font-bold text-rose-900">
-                            <div className="flex items-center gap-1.5">
-                              <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                              <span>Why {task.assignedToName} Declined:</span>
-                            </div>
-                            {task.rejectedAt && (
-                              <span className="text-[10px] text-rose-700 font-medium">
-                                at {task.rejectedAt}
-                              </span>
-                            )}
+                        {/* Rejection Message */}
+                        <div className="mt-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs">
+                          <div className="text-[10px] font-bold text-rose-900 mb-0.5">
+                            Why {task.assignedToName} Declined:
                           </div>
-                          <p className="text-xs text-rose-950 font-bold italic bg-white p-2.5 rounded-lg border border-rose-100 leading-relaxed shadow-2xs">
+                          <p className="font-semibold italic text-rose-950 bg-white p-2 rounded border border-rose-100">
                             "{colleagueMsg}"
                           </p>
                         </div>
@@ -492,10 +564,9 @@ export const TaskRequestsView: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleMoveToSelf(task.id)}
-                          className="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95"
-                          title="Take over this task and move it to your own personal to-do list"
+                          className="px-2.5 py-1 rounded-lg bg-[#4F46E5] text-white text-xs font-semibold cursor-pointer shadow-2xs flex items-center gap-1 active:scale-95"
                         >
-                          <Check className="w-3.5 h-3.5" />
+                          <Check className="w-3 h-3" />
                           <span>Move to My Schedule</span>
                         </button>
 
@@ -507,20 +578,19 @@ export const TaskRequestsView: React.FC = () => {
                               const firstOther = users.find((u) => u.role === 'staff' && u.id !== currentUser.id && u.id !== task.assignedTo);
                               setReassignTargetUserId(firstOther?.id || '');
                             }}
-                            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95 shadow-xs"
-                            title="Reassign to another colleague"
+                            className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-[#4F46E5] border border-indigo-200 text-xs font-semibold cursor-pointer flex items-center gap-1"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
+                            <RotateCcw className="w-3 h-3" />
                             <span>Reassign</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleDeleteTask(task.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-700 hover:bg-rose-50 transition-all cursor-pointer"
-                            title="Dismiss and remove task"
+                            className="p-1 rounded text-slate-400 hover:text-rose-600 cursor-pointer"
+                            title="Dismiss task"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -531,92 +601,70 @@ export const TaskRequestsView: React.FC = () => {
             </div>
           )}
 
-          {/* SECTION 2: ⏳ AWAITING COLLEAGUE CONFIRMATION */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-sm sm:text-base font-bold text-slate-800 font-['Outfit'] flex items-center gap-2">
-                <span>Awaiting Colleague Response</span>
-                <span className="text-xs font-semibold text-slate-500">
-                  ({delegatedPending.length} pending)
-                </span>
+          {/* Section: Awaiting Colleague Response */}
+          <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                Awaiting Colleague Confirmation ({delegatedPending.length})
               </h2>
             </div>
 
             {delegatedPending.length === 0 ? (
-              <p className="text-xs text-slate-400 italic font-medium py-3">
+              <p className="text-xs text-slate-400 italic py-3 text-center">
                 No tasks currently waiting for colleague confirmation.
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {delegatedPending.map((task) => (
-                  <div key={task.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                  <div key={task.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-bold text-slate-900 truncate">{task.title}</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
+                      <span className="text-xs font-semibold text-slate-900 truncate">{task.title}</span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
                         Pending
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 font-medium">
-                      Delegated to: <strong className="text-slate-800">{task.assignedToName}</strong>
+                    <div className="text-[11px] text-slate-500">
+                      Delegated to: <strong className="text-slate-800 capitalize">{task.assignedToName}</strong>
                     </div>
-                    <div className="text-[10px] text-slate-400 font-semibold">
+                    <div className="text-[10px] text-slate-400">
                       Due: {task.dueDate} · {task.dueTime}
                     </div>
-                    {task.pendingReason && task.status !== 'done' && (
-                      <div className="mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 font-medium space-y-0.5">
-                        <div className="flex items-center gap-1 font-bold text-[11px] text-amber-800">
-                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                          <span>Issue from {task.assignedToName}:</span>
-                        </div>
-                        <p className="italic text-[11px] font-semibold text-slate-900">
-                          "{task.pendingReason.replace(/^\[DECLINED\]:\s*/, '')}"
-                        </p>
-                        {task.pendingReasonUpdatedAt && (
-                          <div className="text-[10px] text-amber-700 font-medium">
-                            Reported at {task.pendingReasonUpdatedAt}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          {/* SECTION 3: ✓ ACCEPTED & FINISHED BY COLLEAGUES */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="text-sm sm:text-base font-bold text-slate-800 font-['Outfit'] flex items-center gap-2">
-                <span>Accepted & In Progress</span>
-                <span className="text-xs font-semibold text-slate-500">
-                  ({delegatedActive.length + delegatedCompleted.length} tasks)
-                </span>
+          {/* Section: Accepted & In Progress */}
+          <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                Accepted & In Progress ({delegatedActive.length + delegatedCompleted.length})
               </h2>
             </div>
 
             {delegatedActive.length === 0 && delegatedCompleted.length === 0 ? (
-              <p className="text-xs text-slate-400 italic font-medium py-3">
-                No accepted tasks from colleagues at the moment.
+              <p className="text-xs text-slate-400 italic py-3 text-center">
+                No active tasks with colleagues at the moment.
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[...delegatedActive, ...delegatedCompleted].map((task) => (
-                  <div key={task.id} className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-2">
+                  <div key={task.id} className="p-3 rounded-lg border border-slate-200 bg-white space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <span className={`text-xs font-bold truncate ${task.status === 'done' ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                      <span className={`text-xs font-semibold truncate ${task.status === 'done' ? 'line-through text-slate-400' : 'text-slate-900'}`}>
                         {task.title}
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded shrink-0 ${
                         task.status === 'done' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                       }`}>
                         {task.status === 'done' ? '✓ Finished' : 'In Progress'}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 font-medium">
-                      Executing by: <strong className="text-slate-800">{task.assignedToName}</strong>
+                    <div className="text-[11px] text-slate-500">
+                      Staff: <strong className="text-slate-800 capitalize">{task.assignedToName}</strong>
                     </div>
-                    <div className="text-[10px] text-slate-400 font-semibold">
+                    <div className="text-[10px] text-slate-400">
                       Due: {task.dueDate} · {task.dueTime}
                     </div>
                   </div>
@@ -627,14 +675,14 @@ export const TaskRequestsView: React.FC = () => {
         </div>
       )}
 
-      {/* Reassign Colleague Modal */}
+      {/* Reassign Modal */}
       {reassignTaskId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-2xl max-w-md w-full space-y-4">
+          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-2xl max-w-md w-full space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 text-indigo-600">
-                <RotateCcw className="w-5 h-5" />
-                <h3 className="text-base font-bold text-slate-900 font-['Outfit']">
+              <div className="flex items-center gap-2 text-[#4F46E5]">
+                <RotateCcw className="w-4 h-4" />
+                <h3 className="text-sm font-bold text-slate-900">
                   Reassign Task to Colleague
                 </h3>
               </div>
@@ -648,7 +696,7 @@ export const TaskRequestsView: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-600 font-medium leading-relaxed">
-              Select another colleague to reassign this task to. They will receive an instant notification.
+              Select another colleague to reassign this task to. They will receive an instant notification in their incoming requests.
             </p>
 
             <div className="space-y-1.5">
@@ -656,7 +704,7 @@ export const TaskRequestsView: React.FC = () => {
               <select
                 value={reassignTargetUserId}
                 onChange={(e) => setReassignTargetUserId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-indigo-600 bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#4F46E5] bg-white shadow-2xs"
               >
                 <option value="">-- Select a Colleague --</option>
                 {users
@@ -673,7 +721,7 @@ export const TaskRequestsView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setReassignTaskId(null)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 Cancel
               </button>
@@ -689,7 +737,7 @@ export const TaskRequestsView: React.FC = () => {
                     setTimeout(() => setToastMessage(null), 3500);
                   }
                 }}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+                className="btn-primary-gradient px-4 py-1.5 rounded-lg disabled:opacity-50 text-white text-xs font-semibold shadow-xs cursor-pointer active:scale-95 transition-all"
               >
                 Confirm Reassignment
               </button>

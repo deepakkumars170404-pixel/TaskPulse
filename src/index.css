@@ -1,5 +1,34 @@
 @import "tailwindcss";
 
+@theme {
+  --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  --color-primary-indigo: #4F46E5;
+  --color-primary-dark: #4338CA;
+  --color-primary-light: #6366F1;
+  --color-primary-soft: #EEF2FF;
+  
+  --color-success-green: #16A34A;
+  --color-success-soft: #ECFDF5;
+  --color-success-border: #A7F3D0;
+  
+  --color-warning-amber: #D97706;
+  --color-warning-soft: #FFFBEB;
+  
+  --color-danger-red: #DC2626;
+  --color-danger-soft: #FEF2F2;
+  
+  --color-page-bg: #F8FAFC;
+  --color-sidebar-bg: #FAFAFD;
+  --color-card-border: #E2E8F0;
+  
+  --color-text-heading: #0F172A;
+  --color-text-body: #334155;
+  --color-text-muted: #64748B;
+  --color-text-faint: #94A3B8;
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -10,21 +39,25 @@
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    /* Tri-color ambient mesh background: Indigo + Cyan + Amber */
-    background-color: #F8FAFD;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 55%),
-      radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.09) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 55%);
-    background-attachment: fixed;
-    color: #0F172A;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #F8FAFC;
+    color: #1E293B;
   }
+}
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', system-ui, sans-serif;
-    letter-spacing: -0.02em;
-  }
+.font-jakarta {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Primary Linear Gradient */
+.btn-primary-gradient {
+  background: linear-gradient(135deg, #4338CA 0%, #4F46E5 50%, #6366F1 100%);
+  color: #FFFFFF;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-primary-gradient:hover {
+  background: linear-gradient(135deg, #3730A3 0%, #4338CA 50%, #4F46E5 100%);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 /* Custom sleek scrollbar */
@@ -36,14 +69,13 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #E2E8F0;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #818CF8;
+  background: #CBD5E1;
 }
 
-/* Hide scrollbar for clean touch swipe rows */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -52,21 +84,16 @@
   scrollbar-width: none;
 }
 
-/* Glass panel with iridescent gradient border highlight */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 4px 25px -4px rgba(79, 70, 229, 0.05), 0 2px 8px -2px rgba(14, 165, 233, 0.03);
+/* Clean, modern SaaS card shadow */
+.shadow-premium-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+.shadow-premium-card-hover:hover {
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
-/* Subtle glow animations */
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+html.floating-mode, html.floating-mode body, body.floating-mode {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
 }
-.animate-pulse-subtle {
-  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-html.floating-mode, html.floating-mode body, body.floating-mode { background: transparent !important; background-color: transparent !important; background-image: none !important; }

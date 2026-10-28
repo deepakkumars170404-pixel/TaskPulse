@@ -10,13 +10,15 @@ import {
   AlertCircle,
   Sparkles,
   Users,
-  ShieldAlert,
   ShieldCheck,
   UserCheck,
   User,
   X,
   Flag,
   CalendarDays,
+  Check,
+  Search,
+  Filter,
 } from 'lucide-react';
 import { Task, getTaskDeclineReason } from '../../types';
 
@@ -48,6 +50,10 @@ const GOVERNMENT_HOLIDAYS: Holiday[] = [
   { dateStr: '2026-10-20', month: 9, day: 20, name: 'Vijaya Dasami / Dussehra', type: 'Festival' },
   { dateStr: '2026-11-08', month: 10, day: 8, name: 'Deepavali / Diwali', type: 'Festival' },
   { dateStr: '2026-12-25', month: 11, day: 25, name: 'Christmas Day', type: 'Public' },
+  // 2027 Upcoming Holidays
+  { dateStr: '2027-01-01', month: 0, day: 1, name: "New Year's Day 2027", type: 'Public' },
+  { dateStr: '2027-01-14', month: 0, day: 14, name: 'Pongal 2027', type: 'Festival' },
+  { dateStr: '2027-01-26', month: 0, day: 26, name: 'Republic Day 2027', type: 'National' },
 ];
 
 const MONTH_NAMES = [
@@ -63,10 +69,13 @@ const SHORT_MONTH_NAMES = [
 const WEEKDAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export const FullPageCalendarView: React.FC = () => {
-  const { tasks, currentUser, orgSettings, playCalendarClickSound } = useTaskToggle();
+  const { tasks, currentUser, orgSettings, playCalendarClickSound, toggleTaskStatus } = useTaskToggle();
 
-  // Calendar active viewing month (default: current month)
-  const [activeDate, setActiveDate] = useState<Date>(() => new Date(2026, 9, 27)); // Oct 2026
+  // Calendar active viewing month (dynamic, defaults to current system date)
+  const [activeDate, setActiveDate] = useState<Date>(() => new Date());
+
+  // View filter for main calendar grid
+  const [viewFilter, setViewFilter] = useState<'all' | 'admin' | 'staff' | 'mine'>('all');
 
   // Centered date details modal state
   const [selectedModalDate, setSelectedModalDate] = useState<Date | null>(null);
@@ -120,7 +129,7 @@ export const FullPageCalendarView: React.FC = () => {
     return `${day} ${month} ${year}`;
   };
 
-  // Helper: Robust date matching across diverse date formats (e.g. '27 Oct 2026', 'today', '2026-10-27')
+  // Helper: Robust date matching across diverse date formats (e.g. '28 Oct 2026', 'today', '2026-10-28')
   const isSameCalendarDay = (d: Date, dueDateStr?: string): boolean => {
     if (!dueDateStr) return false;
     const trimmed = dueDateStr.trim().toLowerCase();
@@ -162,12 +171,39 @@ export const FullPageCalendarView: React.FC = () => {
     return false;
   };
 
+  // Helper: Check if task belongs to the active viewing month
+  const isSameCalendarMonth = (dueDateStr?: string, year?: number, month?: number): boolean => {
+    if (!dueDateStr || year === undefined || month === undefined) return false;
+    const trimmed = dueDateStr.trim().toLowerCase();
+    const now = new Date();
+    if (trimmed === 'today') {
+      return now.getFullYear() === year && now.getMonth() === month;
+    }
+    if (trimmed === 'tomorrow') {
+      const tmrw = new Date(now);
+      tmrw.setDate(now.getDate() + 1);
+      return tmrw.getFullYear() === year && tmrw.getMonth() === month;
+    }
+    const parts = dueDateStr.trim().split(/\s+/);
+    if (parts.length === 3) {
+      const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+      const mIdx = months.findIndex((m) => parts[1].toLowerCase().startsWith(m));
+      const y = parseInt(parts[2], 10);
+      return mIdx === month && y === year;
+    }
+    const parsed = new Date(dueDateStr);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.getFullYear() === year && parsed.getMonth() === month;
+    }
+    return false;
+  };
+
   // Helper: Format date to user-friendly string
   const formatLongDate = (d: Date): string => {
     return d.toLocaleDateString('en-US', {
-      weekday: 'short',
+      weekday: 'long',
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric',
     });
   };
@@ -206,11 +242,40 @@ export const FullPageCalendarView: React.FC = () => {
     return days;
   }, [currentYear, currentMonth]);
 
-  // Tasks visible to current user (Admin sees all company tasks, Staff sees assigned & delegated, excluding declined)
+  // Tasks visible to current user (Admin sees all company tasks, Staff sees assigned & created)
   const relevantTasks = useMemo(() => {
-    if (currentUser.role === 'admin') return tasks;
-    return tasks.filter((t) => (t.assignedTo === currentUser.id && t.status !== 'rejected') || t.createdBy === currentUser.id);
-  }, [tasks, currentUser]);
+    let list: Task[] = [];
+    if (currentUser.role === 'admin') {
+      list = tasks;
+    } else {
+      list = tasks.filter((t) => (t.assignedTo === currentUser.id && t.status !== 'rejected') || t.createdBy === currentUser.id);
+    }
+
+    if (viewFilter === 'admin') {
+      return list.filter((t) => t.type === 'admin');
+    }
+    if (viewFilter === 'staff') {
+      return list.filter((t) => t.type === 'staff');
+    }
+    if (viewFilter === 'mine') {
+      return list.filter((t) => t.assignedTo === currentUser.id);
+    }
+    return list;
+  }, [tasks, currentUser, viewFilter]);
+
+  // Monthly Summary Stats
+  const { monthTasks, monthCompletedCount, monthPendingCount, monthHolidays } = useMemo(() => {
+    const inMonth = relevantTasks.filter((t) => isSameCalendarMonth(t.dueDate, currentYear, currentMonth));
+    const completed = inMonth.filter((t) => t.status === 'done').length;
+    const pending = inMonth.filter((t) => t.status !== 'done' && t.status !== 'rejected').length;
+    const hols = GOVERNMENT_HOLIDAYS.filter((h) => h.month === currentMonth);
+    return {
+      monthTasks: inMonth,
+      monthCompletedCount: completed,
+      monthPendingCount: pending,
+      monthHolidays: hols,
+    };
+  }, [relevantTasks, currentYear, currentMonth]);
 
   // Tasks & holiday for selected modal date
   const selectedDateDetails = useMemo(() => {
@@ -260,83 +325,243 @@ export const FullPageCalendarView: React.FC = () => {
   const today = new Date();
 
   return (
-    <div className="w-full h-full flex-1 flex flex-col p-2 sm:p-3 space-y-2.5 min-h-0 select-none">
-      {/* 1. Sleek Compact Control Toolbar (Unified Navigation & Legend) */}
-      <div className="bg-white rounded-2xl p-2.5 sm:p-3 border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-2.5 shrink-0">
-        {/* Left: Navigation & Month */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-0.5">
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              className="p-1.5 rounded-lg hover:bg-white text-slate-700 transition-all cursor-pointer active:scale-95 hover:shadow-2xs"
-              title="Previous Month"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-
-            <span className="text-sm sm:text-base font-black text-slate-900 font-['Outfit'] px-2 min-w-[140px] text-center">
-              {MONTH_NAMES[currentMonth]} {currentYear}
-            </span>
-
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              className="p-1.5 rounded-lg hover:bg-white text-slate-700 transition-all cursor-pointer active:scale-95 hover:shadow-2xs"
-              title="Next Month"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+    <div className="w-full px-0 py-3 sm:py-4 space-y-3 sm:space-y-4 select-none animate-in fade-in duration-200">
+      {/* =========================================================================
+          1. HEADER & CONTROLS
+          ========================================================================= */}
+      <div className="px-3 sm:px-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+          <div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="w-8 h-8 rounded-lg bg-[#4F46E5] text-white flex items-center justify-center shadow-xs">
+                <CalendarDays className="w-4 h-4 stroke-[2.2]" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold font-['Outfit'] text-slate-900 tracking-tight">
+                Company Calendar
+              </h1>
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
+                {orgSettings.orgName || 'Workspace'} Schedule
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Interactive roster of assigned deliverables, company deadlines, and official holidays
+            </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleResetToToday}
-            className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
-          >
-            <CalendarIcon className="w-3.5 h-3.5" />
-            <span>Today</span>
-          </button>
+          {/* Month Navigation Controls */}
+          <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+            <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition-all cursor-pointer active:scale-95"
+                title="Previous Month"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-          <span className="hidden md:inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-600 text-white shadow-2xs">
-            {orgSettings.orgName} Calendar
-          </span>
-        </div>
+              <span className="text-xs sm:text-sm font-bold text-slate-900 px-3 min-w-[140px] text-center font-['Outfit']">
+                {MONTH_NAMES[currentMonth]} {currentYear}
+              </span>
 
-        {/* Right: Legend Chips */}
-        <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-bold">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-rose-600" />
-            <span>Pending (Red Date)</span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>Overdue (Yellow Date)</span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-600" />
-            <span>Completed (Green Date)</span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
-            <Flag className="w-2.5 h-2.5 text-amber-600" />
-            <span>Govt Holiday</span>
-          </span>
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-700 transition-all cursor-pointer active:scale-95"
+                title="Next Month"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleResetToToday}
+              className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-2xs"
+            >
+              <CalendarIcon className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Today</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* 2. Full-Space Responsive Calendar Grid */}
-      <div className="flex-1 w-full bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col overflow-hidden min-h-[500px]">
+      {/* =========================================================================
+          2. MONTH SUMMARY METRICS (4 CARDS)
+          ========================================================================= */}
+      <div className="px-3 sm:px-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        {/* Card 1: Deliverables */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Month Deliverables
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-slate-900">
+              {monthTasks.length}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">
+              {MONTH_NAMES[currentMonth]}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 2: Completed */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Completed</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-emerald-600">
+              {monthCompletedCount}
+            </span>
+            <span className="text-[11px] font-bold text-emerald-700">
+              {monthTasks.length > 0 ? Math.round((monthCompletedCount / monthTasks.length) * 100) : 100}%
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Pending */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>In Progress</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-amber-600">
+              {monthPendingCount}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">
+              {monthPendingCount === 1 ? 'task left' : 'tasks left'}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: Official Holidays */}
+        <div className="bg-white rounded-xl p-3.5 border border-slate-200/80 shadow-2xs space-y-1">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 flex items-center gap-1">
+            <Flag className="w-3 h-3" />
+            <span>Govt Holidays</span>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <span className="text-xl sm:text-2xl font-black text-indigo-600">
+              {monthHolidays.length}
+            </span>
+            <span
+              className="text-[11px] font-medium text-slate-500 truncate max-w-[110px]"
+              title={monthHolidays.map((h) => h.name).join(', ')}
+            >
+              {monthHolidays.length > 0 ? monthHolidays[0].name.split('/')[0] : 'None'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      {/* =========================================================================
+          3. FILTER PILLS & COLOR LEGEND
+          ========================================================================= */}
+      <div className="px-3 sm:px-4">
+        <div className="bg-white rounded-xl p-3 border border-slate-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setViewFilter('all')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                viewFilter === 'all'
+                  ? 'bg-[#EEF2FF] text-[#4F46E5] font-bold'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              All Work ({tasks.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewFilter('admin')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                viewFilter === 'admin'
+                  ? 'bg-[#4F46E5] text-white font-bold shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Admin Allotted ({tasks.filter((t) => t.type === 'admin').length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewFilter('staff')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                viewFilter === 'staff'
+                  ? 'bg-purple-600 text-white font-bold shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Staff Allotted ({tasks.filter((t) => t.type === 'staff').length})</span>
+            </button>
+
+            {currentUser.role === 'staff' && (
+              <button
+                type="button"
+                onClick={() => setViewFilter('mine')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                  viewFilter === 'mine'
+                    ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>My Tasks ({tasks.filter((t) => t.assignedTo === currentUser.id).length})</span>
+              </button>
+            )}
+          </div>
+
+          {/* Legend Chips */}
+          <div className="flex items-center gap-2.5 flex-wrap text-[11px] font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-2xs" />
+              <span>Completed</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-2xs" />
+              <span>Pending</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-2xs" />
+              <span>Overdue</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Flag className="w-3 h-3 text-amber-600" />
+              <span>Govt Holiday</span>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#4F46E5] shadow-2xs" />
+              <span>Today</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          4. CALENDAR GRID (EDGE-TO-EDGE, NO LEFT/RIGHT PADDING)
+          ========================================================================= */}
+      <div className="bg-white border-y border-slate-200/90 shadow-2xs overflow-hidden w-full">
         {/* Days of Week Header */}
-        <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-200 text-center py-2 text-[11px] font-bold text-slate-600 uppercase tracking-wider shrink-0">
-          {WEEKDAY_NAMES.map((name) => (
-            <div key={name}>{name}</div>
+        <div className="grid grid-cols-7 bg-slate-50/80 border-b border-slate-200 text-center py-2.5 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+          {WEEKDAY_NAMES.map((name, idx) => (
+            <div key={name} className={idx >= 5 ? 'text-indigo-600 font-extrabold' : ''}>
+              {name}
+            </div>
           ))}
         </div>
 
-        {/* 42 Calendar Date Cells filling full space */}
-        <div className="flex-1 grid grid-cols-7 grid-rows-6 divide-x divide-y divide-slate-100 bg-white">
+        {/* 42 Calendar Cells */}
+        <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 bg-white">
           {calendarDays.map(({ date, isCurrentMonth }, idx) => {
-            const formatted = formatTaskDate(date);
             const isToday =
               date.getFullYear() === today.getFullYear() &&
               date.getMonth() === today.getMonth() &&
@@ -353,13 +578,13 @@ export const FullPageCalendarView: React.FC = () => {
               (h) => h.month === date.getMonth() && h.day === date.getDate()
             );
 
-            // Find tasks scheduled on this day using robust date comparison
+            // Find tasks scheduled on this day
             const dayTasks = relevantTasks.filter((t) => isSameCalendarDay(date, t.dueDate));
             const pendingDayTasks = dayTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected');
             const hasTasks = dayTasks.length > 0;
             const allTasksDone = hasTasks && pendingDayTasks.length === 0;
 
-            // Check if any pending task on this date is overdue (staff did not complete over due time)
+            // Check overdue
             const hasOverdueTask =
               isCurrentMonth &&
               pendingDayTasks.some((t) => {
@@ -369,52 +594,47 @@ export const FullPageCalendarView: React.FC = () => {
               });
             const hasPendingTask = isCurrentMonth && pendingDayTasks.length > 0 && !hasOverdueTask;
 
-            // Compute background color class for this day cell
+            // Compute background color class
             let cellBgClass = 'hover:bg-slate-50/80';
             if (!isCurrentMonth) {
               cellBgClass = 'bg-slate-50/40 text-slate-300';
             } else if (hasOverdueTask) {
-              // Staff did not complete task over their due time -> Date FULLY YELLOW!
-              cellBgClass = 'bg-amber-100 hover:bg-amber-200/90 text-amber-950 border-amber-300 shadow-2xs';
+              cellBgClass = 'bg-amber-50/60 hover:bg-amber-100/70 text-amber-950 border-amber-200';
             } else if (hasPendingTask) {
-              // Task is pending -> Date FULLY RED!
-              cellBgClass = 'bg-rose-100 hover:bg-rose-200/90 text-rose-950 border-rose-300 shadow-2xs';
+              cellBgClass = 'bg-rose-50/40 hover:bg-rose-100/60 text-rose-950 border-rose-200';
             } else if (allTasksDone) {
-              // All tasks completed -> Date FULLY GREEN!
-              cellBgClass = 'bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border-emerald-300 shadow-2xs';
+              cellBgClass = 'bg-emerald-50/40 hover:bg-emerald-100/60 text-emerald-950 border-emerald-200';
             } else if (isToday) {
-              cellBgClass = 'bg-indigo-50/25 hover:bg-slate-50';
+              cellBgClass = 'bg-indigo-50/30 hover:bg-indigo-50/60';
             } else if (holiday) {
               cellBgClass = 'bg-amber-50/30 hover:bg-amber-50/60';
             }
 
-            const selectionRing = isSelected ? 'ring-3 ring-indigo-600 z-10 shadow-md' : '';
+            const selectionRing = isSelected ? 'ring-2 ring-[#4F46E5] z-10 shadow-md' : '';
 
             // Compute date badge class
             let dateBadgeClass = isCurrentMonth ? 'text-slate-800' : 'text-slate-400';
-            if (hasOverdueTask) {
-              dateBadgeClass = 'bg-amber-500 text-white font-black shadow-2xs';
+            if (isToday) {
+              dateBadgeClass = 'bg-[#4F46E5] text-white font-extrabold shadow-xs';
+            } else if (hasOverdueTask) {
+              dateBadgeClass = 'bg-amber-500 text-white font-bold shadow-2xs';
             } else if (hasPendingTask) {
-              dateBadgeClass = 'bg-rose-600 text-white font-black shadow-2xs';
+              dateBadgeClass = 'bg-rose-500 text-white font-bold shadow-2xs';
             } else if (allTasksDone) {
-              dateBadgeClass = 'bg-emerald-600 text-white font-black shadow-2xs';
-            } else if (isToday) {
-              dateBadgeClass = 'bg-indigo-600 text-white shadow-xs';
-            } else if (isSelected) {
-              dateBadgeClass = 'bg-indigo-900 text-white font-bold';
+              dateBadgeClass = 'bg-emerald-600 text-white font-bold shadow-2xs';
             }
 
             return (
               <div
                 key={idx}
                 onClick={() => handleDateClick(date)}
-                className={`min-h-[58px] sm:min-h-[85px] p-1 sm:p-2 transition-all cursor-pointer flex flex-col justify-between group select-none relative overflow-hidden ${cellBgClass} ${selectionRing}`}
-                title="Click to view details"
+                className={`min-h-[82px] sm:min-h-[105px] p-1.5 sm:p-2.5 transition-all cursor-pointer flex flex-col justify-between group select-none relative overflow-hidden ${cellBgClass} ${selectionRing}`}
+                title="Click to view full day details & tasks"
               >
                 {/* Top Row: Date Number & Holiday Indicator */}
                 <div className="flex items-center justify-between gap-1 overflow-hidden">
                   <span
-                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-extrabold transition-all shrink-0 ${dateBadgeClass}`}
+                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all shrink-0 ${dateBadgeClass}`}
                   >
                     {date.getDate()}
                   </span>
@@ -422,13 +642,11 @@ export const FullPageCalendarView: React.FC = () => {
                   {/* Holiday Flag Badge */}
                   {holiday && isCurrentMonth && (
                     <>
-                      {/* Mobile Holiday Icon */}
                       <span className="sm:hidden text-amber-600 shrink-0" title={`Holiday: ${holiday.name}`}>
                         <Flag className="w-2.5 h-2.5 fill-current" />
                       </span>
-                      {/* Desktop Holiday Badge */}
                       <span
-                        className="hidden sm:inline-flex text-[9px] font-black px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-900 border border-amber-300 truncate max-w-[110px] items-center gap-0.5"
+                        className="hidden sm:inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 truncate max-w-[110px] items-center gap-0.5 shadow-2xs"
                         title={`Government Holiday: ${holiday.name}`}
                       >
                         <Flag className="w-2.5 h-2.5 text-amber-600 shrink-0" />
@@ -440,7 +658,7 @@ export const FullPageCalendarView: React.FC = () => {
 
                 {/* Middle: Color-coded Task Chips */}
                 {/* Mobile: Compact Dots */}
-                <div className="sm:hidden flex items-center gap-1 my-0.5 flex-wrap overflow-hidden">
+                <div className="sm:hidden flex items-center gap-1 my-1 flex-wrap overflow-hidden">
                   {dayTasks.slice(0, 3).map((task) => (
                     <span
                       key={task.id}
@@ -448,39 +666,39 @@ export const FullPageCalendarView: React.FC = () => {
                         task.status === 'done'
                           ? 'bg-emerald-500'
                           : task.type === 'admin'
-                          ? 'bg-indigo-600'
+                          ? 'bg-[#4F46E5]'
                           : 'bg-purple-600'
                       }`}
                       title={`${task.title} (${task.assignedToName})`}
                     />
                   ))}
                   {dayTasks.length > 3 && (
-                    <span className="text-[7px] font-bold text-slate-500 leading-none">
+                    <span className="text-[8px] font-bold text-slate-500 leading-none">
                       +{dayTasks.length - 3}
                     </span>
                   )}
                 </div>
 
-                {/* Desktop: Full Title Chips */}
-                <div className="hidden sm:block space-y-1 my-0.5 overflow-hidden">
+                {/* Desktop: Task Title Chips */}
+                <div className="hidden sm:block space-y-1 my-1 overflow-hidden">
                   {dayTasks.slice(0, 2).map((task) => {
                     const isDone = task.status === 'done';
                     const isAdmin = task.type === 'admin';
                     return (
                       <div
                         key={task.id}
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold truncate flex items-center gap-1 ${
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-semibold truncate flex items-center gap-1 border ${
                           isDone
-                            ? 'bg-emerald-50 text-emerald-700 line-through border border-emerald-200'
+                            ? 'bg-emerald-50 text-emerald-700 line-through border-emerald-200'
                             : isAdmin
-                            ? 'bg-indigo-50 text-indigo-800 border border-indigo-200'
-                            : 'bg-purple-50 text-purple-800 border border-purple-200'
+                            ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                            : 'bg-purple-50 text-purple-800 border-purple-200'
                         }`}
-                        title={`${task.title} (${task.assignedToName})`}
+                        title={`${task.title} (Assigned to ${task.assignedToName})`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                            isDone ? 'bg-emerald-500' : isAdmin ? 'bg-indigo-600' : 'bg-purple-600'
+                            isDone ? 'bg-emerald-500' : isAdmin ? 'bg-[#4F46E5]' : 'bg-purple-600'
                           }`}
                         />
                         <span className="truncate">{task.title}</span>
@@ -497,59 +715,28 @@ export const FullPageCalendarView: React.FC = () => {
 
                 {/* Bottom: Task Counter Badge */}
                 {dayTasks.length > 0 && isCurrentMonth && (
-                  <>
-                    {/* Mobile: Compact Pill */}
-                    <div className="sm:hidden flex items-center justify-center pt-0.5 overflow-hidden">
-                      {hasOverdueTask ? (
-                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-amber-200 text-amber-900 border border-amber-300 flex items-center gap-0.5 leading-tight truncate">
-                          <Clock className="w-2 h-2 text-amber-700 animate-pulse shrink-0" />
-                          <span>{pendingDayTasks.length}</span>
-                        </span>
-                      ) : hasPendingTask ? (
-                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-rose-200 text-rose-900 border border-rose-300 flex items-center gap-0.5 leading-tight truncate">
-                          <AlertCircle className="w-2 h-2 text-rose-700 shrink-0" />
-                          <span>{pendingDayTasks.length}</span>
-                        </span>
-                      ) : (
-                        <span className="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-200 text-emerald-900 border border-emerald-300 flex items-center gap-0.5 leading-tight truncate">
-                          <CheckCircle2 className="w-2 h-2 text-emerald-700 shrink-0" />
-                          <span>{dayTasks.length}</span>
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Desktop: Expanded Pill */}
-                    <div className="hidden sm:flex items-center justify-between pt-1 flex-wrap gap-1">
-                      {hasOverdueTask ? (
-                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
-                          <Clock className="w-2.5 h-2.5 text-amber-700 animate-pulse" />
-                          <span>Overdue ({pendingDayTasks.length})</span>
-                        </span>
-                      ) : hasPendingTask ? (
-                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-rose-200 text-rose-900 border border-rose-300 flex items-center gap-1 shadow-2xs">
-                          <AlertCircle className="w-2.5 h-2.5 text-rose-700" />
-                          <span>Pending ({pendingDayTasks.length})</span>
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-200 text-emerald-900 border border-emerald-300 flex items-center gap-1 shadow-2xs">
-                          <CheckCircle2 className="w-2.5 h-2.5 text-emerald-700" />
-                          <span>Done ({dayTasks.length})</span>
-                        </span>
-                      )}
-
-                      <span
-                        className={`text-[9px] font-bold ${
-                          hasOverdueTask
-                            ? 'text-amber-800 font-extrabold'
-                            : hasPendingTask
-                            ? 'text-rose-800 font-extrabold'
-                            : 'text-slate-500'
-                        }`}
-                      >
-                        {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+                  <div className="flex items-center justify-between pt-0.5 border-t border-slate-100/60 text-[9px] font-bold">
+                    {hasOverdueTask ? (
+                      <span className="text-amber-700 flex items-center gap-0.5">
+                        <Clock className="w-2.5 h-2.5" />
+                        <span>{pendingDayTasks.length} Overdue</span>
                       </span>
-                    </div>
-                  </>
+                    ) : hasPendingTask ? (
+                      <span className="text-rose-600 flex items-center gap-0.5">
+                        <AlertCircle className="w-2.5 h-2.5" />
+                        <span>{pendingDayTasks.length} Pending</span>
+                      </span>
+                    ) : (
+                      <span className="text-emerald-700 flex items-center gap-0.5">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span>All Done</span>
+                      </span>
+                    )}
+
+                    <span className="text-slate-400 font-medium">
+                      {dayTasks.length} {dayTasks.length === 1 ? 'task' : 'tasks'}
+                    </span>
+                  </div>
                 )}
               </div>
             );
@@ -558,7 +745,7 @@ export const FullPageCalendarView: React.FC = () => {
       </div>
 
       {/* =========================================================================
-          3. CENTERED MODAL DIALOG: PERFECT ON DESKTOP & MOBILE
+          5. CENTERED MODAL DIALOG: PERFECT ON DESKTOP & MOBILE
           Displays directly in the CENTER OF THE SCREEN with clean backdrop
           ========================================================================= */}
       {selectedDateDetails && (
@@ -573,11 +760,11 @@ export const FullPageCalendarView: React.FC = () => {
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 border-b border-slate-200 px-4 sm:px-5 py-3.5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-[#4F46E5] text-white flex items-center justify-center shrink-0 shadow-xs">
                   <CalendarDays className="w-4.5 h-4.5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate font-['Outfit']">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight truncate font-['Outfit']">
                     {selectedDateDetails.longDate}
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500 font-semibold flex-wrap">
@@ -626,12 +813,12 @@ export const FullPageCalendarView: React.FC = () => {
                 onClick={() => setModalTaskFilter('admin')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   modalTaskFilter === 'admin'
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-[#4F46E5] text-white shadow-xs'
                     : 'text-indigo-700 hover:bg-indigo-100/60'
                 }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin Allot Work ({selectedDateDetails.adminTasks.length})</span>
+                <span>Admin Allot ({selectedDateDetails.adminTasks.length})</span>
               </button>
 
               <button
@@ -644,7 +831,7 @@ export const FullPageCalendarView: React.FC = () => {
                 }`}
               >
                 <UserCheck className="w-3.5 h-3.5" />
-                <span>Staff Allot Work ({selectedDateDetails.staffTasks.length})</span>
+                <span>Staff Allot ({selectedDateDetails.staffTasks.length})</span>
               </button>
             </div>
 
@@ -652,7 +839,7 @@ export const FullPageCalendarView: React.FC = () => {
             <div className="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1 max-h-[55vh]">
               {/* Government Public Holiday Banner if matched */}
               {selectedDateDetails.holiday && (
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-center gap-2.5 shadow-2xs">
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-center gap-2.5 shadow-2xs">
                   <Flag className="w-4 h-4 text-amber-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="font-extrabold text-xs leading-tight text-amber-900">
@@ -665,7 +852,7 @@ export const FullPageCalendarView: React.FC = () => {
                 </div>
               )}
 
-              {/* Status Notice Banner (Yellow Overdue / Red Pending / Green Completed) */}
+              {/* Status Notice Banner */}
               {selectedDateDetails.hasOverdue && (
                 <div className="p-2.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-950 flex items-center gap-2 shadow-2xs">
                   <Clock className="w-4 h-4 text-amber-700 shrink-0 animate-pulse" />
@@ -726,6 +913,9 @@ export const FullPageCalendarView: React.FC = () => {
                     const isRejected = task.status === 'rejected';
                     const isAdmin = task.type === 'admin';
                     const isStaffAllot = task.type === 'staff';
+                    const canToggle =
+                      (currentUser.role === 'staff' && task.assignedTo === currentUser.id) ||
+                      (currentUser.role === 'admin' && task.assignedTo === currentUser.id);
 
                     return (
                       <div
@@ -744,24 +934,24 @@ export const FullPageCalendarView: React.FC = () => {
                         <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {isAdmin ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 border border-indigo-200 shadow-2xs">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 border border-indigo-200 shadow-2xs">
                                 <ShieldCheck className="w-3 h-3 text-indigo-600" />
                                 <span>Admin Allot Work</span>
                               </span>
                             ) : isStaffAllot ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200 shadow-2xs">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200 shadow-2xs">
                                 <UserCheck className="w-3 h-3 text-purple-600" />
                                 <span>Staff Allot Work</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                                 <User className="w-3 h-3 text-slate-500" />
-                                <span>Self To-Do</span>
+                                <span>Personal Task</span>
                               </span>
                             )}
 
                             <span
-                              className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded ${
+                              className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${
                                 task.priority === 'High'
                                   ? 'bg-rose-100 text-rose-800'
                                   : task.priority === 'Medium'
@@ -769,25 +959,53 @@ export const FullPageCalendarView: React.FC = () => {
                                   : 'bg-slate-100 text-slate-700'
                               }`}
                             >
-                              {task.priority} Priority
+                              {task.priority}
                             </span>
                           </div>
 
-                          <span
-                            className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                              isDone
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : isRejected
-                                ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                                : 'bg-amber-100 text-amber-900 border border-amber-300'
-                            }`}
-                          >
-                            {isDone
-                              ? '✓ Completed'
-                              : isRejected
-                              ? `❌ Declined by ${task.assignedToName}`
-                              : '⏰ Pending'}
-                          </span>
+                          {/* Status Badge / Interactive Button */}
+                          <div className="flex items-center gap-1.5">
+                            {canToggle && !isRejected ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleTaskStatus(task.id)}
+                                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md cursor-pointer transition-all ${
+                                  isDone
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                                    : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+                                }`}
+                                title="Click to strike / toggle completion"
+                              >
+                                {isDone ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-700 stroke-[2.5]" />
+                                    <span>Completed</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Clock className="w-3 h-3 text-amber-700" />
+                                    <span>In Progress (Click to Done)</span>
+                                  </>
+                                )}
+                              </button>
+                            ) : (
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                  isDone
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                    : isRejected
+                                    ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                    : 'bg-amber-100 text-amber-900 border border-amber-300'
+                                }`}
+                              >
+                                {isDone
+                                  ? `✓ Completed${task.completedAt ? ` (${task.completedAt})` : ''}`
+                                  : isRejected
+                                  ? `❌ Declined`
+                                  : '⏰ In Progress'}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Title & Description */}
@@ -795,8 +1013,6 @@ export const FullPageCalendarView: React.FC = () => {
                           className={`text-sm font-bold leading-snug ${
                             isDone
                               ? 'line-through text-slate-400 decoration-emerald-500'
-                              : isRejected
-                              ? 'text-slate-900'
                               : 'text-slate-900'
                           }`}
                         >
@@ -809,7 +1025,7 @@ export const FullPageCalendarView: React.FC = () => {
                           </p>
                         )}
 
-                        {/* Colleague Rejection Message Box */}
+                        {/* Declined message box */}
                         {isRejected && (
                           <div className="mt-2.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200">
                             <div className="text-[11px] font-bold text-rose-900 flex items-center gap-1.5">
@@ -830,11 +1046,11 @@ export const FullPageCalendarView: React.FC = () => {
                           </span>
 
                           <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-slate-700">
-                            Allotted To: <strong className="text-slate-900">{task.assignedToName}</strong>
+                            Allotted To: <strong className="text-slate-900 capitalize">{task.assignedToName}</strong>
                           </span>
 
                           <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 text-slate-700">
-                            By: <strong className="text-slate-900">{task.createdByName}</strong>
+                            By: <strong className="text-slate-900 capitalize">{task.createdByName}</strong>
                           </span>
                         </div>
                       </div>

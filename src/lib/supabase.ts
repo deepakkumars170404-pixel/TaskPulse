@@ -3,8 +3,8 @@ import { Task } from '../types';
 
 const env = (import.meta as any).env || {};
 
-const DEFAULT_SUPABASE_URL = 'https://otgnvfuiveknbhavuntq.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90Z252ZnVpdmVrbmJoYXZ1bnRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMTI4NjIsImV4cCI6MjEwODU4ODg2Mn0.4nsa8cfxlSsCtJCqIs9_VIIxorbM43QdjPdrntcxCYs';
+export const DEFAULT_SUPABASE_URL = 'https://otgnvfuiveknbhavuntq.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90Z252ZnVpdmVrbmJoYXZ1bnRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMTI4NjIsImV4cCI6MjEwODU4ODg2Mn0.4nsa8cfxlSsCtJCqIs9_VIIxorbM43QdjPdrntcxCYs';
 
 // Read credentials from build environment variables or custom localStorage override
 export const getSupabaseConfig = (): { url: string; key: string } => {
@@ -14,14 +14,17 @@ export const getSupabaseConfig = (): { url: string; key: string } => {
   if (typeof window !== 'undefined') {
     const customUrl = localStorage.getItem('tasktoggle_supabase_url');
     const customKey = localStorage.getItem('tasktoggle_supabase_anon_key');
-    if (customUrl && customKey) {
+    if (customUrl && customKey && customUrl.includes('otgnvfuiveknbhavuntq')) {
       url = customUrl.trim();
       key = customKey.trim();
+    } else if (customUrl) {
+      localStorage.removeItem('tasktoggle_supabase_url');
+      localStorage.removeItem('tasktoggle_supabase_anon_key');
     }
   }
 
-  // If missing or pointing to the old uninitialized project, use the active Deepak project
-  if (!url || url.includes('giuftrigtoackyrfbacw')) {
+  // Always fallback to the active verified Deepak project from .env
+  if (!url || !url.startsWith('https://')) {
     url = DEFAULT_SUPABASE_URL;
     key = DEFAULT_SUPABASE_ANON_KEY;
   }
@@ -53,10 +56,10 @@ export const mapDbTaskToFrontend = (row: any): Task => {
     title: row.title,
     description: row.description || '',
     createdBy: row.created_by,
-    createdByName: row.created_by_name,
+    createdByName: row.created_by_name || 'Deepak (Admin)',
     assignedTo: row.assigned_to,
-    assignedToName: row.assigned_to_name,
-    type: row.type,
+    assignedToName: row.assigned_to_name || 'Staff',
+    type: row.type || (row.created_by === 'admin_deepak' ? 'admin' : 'staff'),
     priority: row.priority || 'Medium',
     dueDate: row.due_date,
     dueTime: row.due_time,
@@ -73,7 +76,6 @@ export const mapDbTaskToFrontend = (row: any): Task => {
 
 // Helper: Convert Frontend Task (camelCase) to Database row (snake_case)
 export const mapFrontendTaskToDb = (task: Task): any => {
-  // Gracefully map legacy admin_1 to admin_deepak to avoid foreign key errors with public.users
   const createdBy = task.createdBy === 'admin_1' ? 'admin_deepak' : task.createdBy;
   const assignedTo = task.assignedTo === 'admin_1' ? 'admin_deepak' : task.assignedTo;
 

@@ -82,7 +82,7 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
-const STORAGE_CLEAN_VERSION = 'v7_disable_auto_due_popup';
+const STORAGE_CLEAN_VERSION = 'v12_no_hardcoded_pure_supabase';
 
 if (typeof window !== 'undefined') {
   if (localStorage.getItem('tasktoggle_data_version') !== STORAGE_CLEAN_VERSION) {
@@ -368,7 +368,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Tasks state
   const [tasks, setTasks] = useState<Task[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}tasks`);
-    return saved ? JSON.parse(saved) : INITIAL_TASKS;
+    if (saved) { try { const p = JSON.parse(saved); if (Array.isArray(p) && p.length > 0) return p; } catch(e){} } return INITIAL_TASKS;
   });
 
   // Office hours state

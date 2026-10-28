@@ -227,7 +227,7 @@ export const ElectronFloatingBubble: React.FC = () => {
         >
           <div className="relative">
             {/* Solid Indigo Circular Logo - Zero white background */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center shadow-2xl ring-3 ring-white pointer-events-none">
+            <div className="w-16 h-16 rounded-full bg-[#4F46E5] text-white flex items-center justify-center shadow-2xl ring-3 ring-white pointer-events-none">
               <CheckSquare className="w-8 h-8 stroke-[2.5]" />
             </div>
 
