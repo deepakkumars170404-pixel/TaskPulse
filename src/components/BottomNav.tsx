@@ -44,7 +44,7 @@ export const BottomNav: React.FC = () => {
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-lg px-2 py-1.5 transition-all"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#090D16]/95 backdrop-blur-2xl border-t border-white/[0.08] shadow-[0_-4px_30px_rgba(0,0,0,0.6)] px-2 py-1.5 transition-all"
       style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
     >
       <div className="flex items-center justify-around max-w-md mx-auto">
@@ -72,8 +72,8 @@ export const BottomNav: React.FC = () => {
                 <div
                   className={`w-10 h-7 flex items-center justify-center rounded-xl transition-all ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-xs scale-105'
-                      : 'text-slate-500'
+                      ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)] scale-105 border border-white/20'
+                      : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Icon className={`w-4.5 h-4.5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
@@ -88,7 +88,7 @@ export const BottomNav: React.FC = () => {
 
               <span
                 className={`text-[10px] mt-0.5 tracking-tight ${
-                  isActive ? 'font-bold text-slate-900' : 'text-slate-500 font-medium'
+                  isActive ? 'font-bold text-cyan-400' : 'text-slate-400 font-medium'
                 }`}
               >
                 {item.label}

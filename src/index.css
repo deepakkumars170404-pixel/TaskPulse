@@ -5,42 +5,48 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: dark;
   }
 
   body {
     margin: 0;
     padding: 0;
     font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    /* Tri-color ambient mesh background: Indigo + Cyan + Amber */
-    background-color: #F8FAFD;
+    /* High-Tech Cyber Deep Obsidian Theme with Ambient Mesh & Matrix Micro-Grid */
+    background-color: #080C16;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.09) 0px, transparent 55%),
-      radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.09) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 55%);
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 45%),
+      radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.16) 0px, transparent 40%),
+      radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 55%),
+      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px;
     background-attachment: fixed;
-    color: #0F172A;
+    color: #F8FAFC;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
   }
 }
 
-/* Custom sleek scrollbar */
+/* Custom sleek high-tech cyber scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(8, 12, 22, 0.5);
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: rgba(99, 102, 241, 0.35);
   border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #818CF8;
+  background: rgba(6, 182, 212, 0.65);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
 }
 
 /* Hide scrollbar for clean touch swipe rows */
@@ -52,21 +58,34 @@
   scrollbar-width: none;
 }
 
-/* Glass panel with iridescent gradient border highlight */
+/* Futuristic Glass panel with iridescent glow border */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.cyber-card {
+  background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 4px 25px -4px rgba(79, 70, 229, 0.05), 0 2px 8px -2px rgba(14, 165, 233, 0.03);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
 }
 
 /* Subtle glow animations */
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+@keyframes cyber-glow {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4)); }
+  50% { opacity: 0.85; filter: drop-shadow(0 0 14px rgba(6, 182, 212, 0.6)); }
 }
-.animate-pulse-subtle {
-  animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-cyber-glow {
+  animation: cyber-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-html.floating-mode, html.floating-mode body, body.floating-mode { background: transparent !important; background-color: transparent !important; background-image: none !important; }
+html.floating-mode, html.floating-mode body, body.floating-mode { 
+  background: transparent !important; 
+  background-color: transparent !important; 
+  background-image: none !important; 
+}

@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
     <div className="flex flex-col justify-between h-full p-4 sm:p-5">
       <div className="space-y-5">
         {/* User Card on Top of Sidebar */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 shadow-2xs flex items-center justify-between">
+        <div className="p-3.5 rounded-2xl bg-[#0F172A]/90 border border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.2)] flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-xs shrink-0 ${
@@ -56,10 +56,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
               {currentUser.initials}
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-bold text-slate-900 leading-tight truncate">
+              <div className="text-xs font-bold text-white leading-tight truncate">
                 {currentUser.name}
               </div>
-              <div className="text-[10px] text-slate-500 capitalize font-medium flex items-center gap-1 mt-0.5">
+              <div className="text-[10px] text-slate-400 capitalize font-medium flex items-center gap-1 mt-0.5">
                 {currentUser.role === 'admin' ? (
                   <ShieldCheck className="w-3 h-3 text-indigo-600" />
                 ) : (
@@ -96,8 +96,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('dashboard')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'dashboard'
-                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] font-bold border border-white/10'
+                    : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 font-semibold'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 shrink-0" />
@@ -148,8 +148,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('calendar')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'calendar'
-                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] font-bold border border-white/10'
+                    : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 font-semibold'
                 }`}
               >
                 <CalendarDays className="w-4 h-4 shrink-0" />
@@ -163,8 +163,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('mytodo')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'mytodo'
-                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] font-bold border border-white/10'
+                    : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 font-semibold'
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -176,8 +176,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('create')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'create'
-                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] font-bold border border-white/10'
+                    : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 font-semibold'
                 }`}
               >
                 <PlusCircle className="w-4 h-4 shrink-0" />
@@ -189,8 +189,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('requests')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'requests'
-                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] font-bold border border-white/10'
+                    : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 font-semibold'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -232,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
       </div>
 
       {/* Bottom Section: Office hours info + Logout */}
-      <div className="pt-4 border-t border-slate-200 space-y-3">
+      <div className="pt-4 border-t border-white/[0.08] space-y-3">
         {/* PWA Install Button */}
         <button
           type="button"

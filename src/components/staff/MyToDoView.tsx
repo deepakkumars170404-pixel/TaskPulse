@@ -368,10 +368,10 @@ export const MyToDoView: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-extrabold font-['Outfit'] text-slate-900 tracking-tight">
               My Routine & To-Do
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-xs">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
               {orgSettings.orgName} Staff
             </span>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
               {totalTasks} Total Tasks
             </span>
           </div>
@@ -386,7 +386,7 @@ export const MyToDoView: React.FC = () => {
           <button
             type="button"
             onClick={completeAllTasks}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer active:scale-95 transition-all self-start sm:self-auto"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-bold shadow-[0_0_15px_rgba(99,102,241,0.4)] flex items-center gap-2 cursor-pointer active:scale-95 transition-all self-start sm:self-auto border border-white/10"
             title="Mark all pending tasks completed in 1 click"
           >
             <CheckCircle2 className="w-4 h-4" />
@@ -532,12 +532,12 @@ export const MyToDoView: React.FC = () => {
           ROUTINE HORIZON SWITCHER: Multi-Month Switcher & Week Navigator
           Allows staff to easily view and switch tasks 2+ months in advance
           ========================================================================= */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-4">
+      <div className="bg-[#0F172A]/80 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-white/[0.08] shadow-[0_4px_25px_rgba(0,0,0,0.4)] space-y-4">
         {/* Month Switcher Bar (Easily jump +1 Mo, +2 Mo, +3 Mo etc.) */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
           <div className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-indigo-600 shrink-0" />
-            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
               Month Horizon (View up to 2+ months advance):
             </span>
           </div>
@@ -555,8 +555,8 @@ export const MyToDoView: React.FC = () => {
                   onClick={() => handleSelectMonth(m.date)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
                     isSelected
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)] border-transparent'
+                      : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/[0.08]'
                   }`}
                   title={`View routine schedule for ${m.fullLabel}`}
                 >
@@ -579,8 +579,8 @@ export const MyToDoView: React.FC = () => {
               onClick={() => setViewScope('all')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 viewScope === 'all'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.5)] border-transparent'
+                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/[0.08]'
               }`}
               title="View all assigned tasks across all dates"
             >
@@ -595,21 +595,21 @@ export const MyToDoView: React.FC = () => {
             <button
               type="button"
               onClick={handlePrevWeek}
-              className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-all cursor-pointer active:scale-95"
+              className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-300 transition-all cursor-pointer active:scale-95"
               title="Previous Week"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm font-extrabold text-slate-900 font-['Outfit']">
+              <span className="text-sm font-extrabold text-white font-['Outfit']">
                 Week: {weekRangeLabel}
               </span>
               {!isCurrentCalendarWeek && (
                 <button
                   type="button"
                   onClick={handleResetToCurrentWeek}
-                  className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all cursor-pointer"
                   title="Snap back to current week"
                 >
                   This Week
@@ -620,7 +620,7 @@ export const MyToDoView: React.FC = () => {
             <button
               type="button"
               onClick={handleNextWeek}
-              className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-all cursor-pointer active:scale-95"
+              className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] text-slate-300 transition-all cursor-pointer active:scale-95"
               title="Next Week"
             >
               <ChevronRight className="w-4 h-4" />
@@ -644,8 +644,8 @@ export const MyToDoView: React.FC = () => {
                 onClick={() => setSelectedDay('all')}
                 className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                   selectedDay === 'all'
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    ? 'bg-gradient-to-br from-indigo-600 to-cyan-600 text-white border-transparent shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                    : 'bg-[#131B2E]/90 hover:bg-[#18233D] text-slate-300 border-white/[0.08]'
                 }`}
               >
                 <div className="text-[11px] font-bold uppercase tracking-wider">All Days</div>
@@ -671,12 +671,12 @@ export const MyToDoView: React.FC = () => {
                     onClick={() => setSelectedDay(day.dayName)}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
                       isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                        ? 'bg-gradient-to-br from-indigo-600 to-cyan-600 text-white border-transparent shadow-[0_0_15px_rgba(6,182,212,0.4)]'
                         : day.isAllDone
-                        ? 'bg-emerald-50/60 hover:bg-emerald-50 border-emerald-300 text-emerald-950'
+                        ? 'bg-emerald-950/40 hover:bg-emerald-900/40 border-emerald-500/30 text-emerald-300'
                         : day.isToday
-                        ? 'bg-indigo-50/70 hover:bg-indigo-50 border-indigo-300 text-indigo-950'
-                        : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                        ? 'bg-indigo-950/50 hover:bg-indigo-900/50 border-indigo-500/40 text-indigo-300'
+                        : 'bg-[#131B2E]/90 hover:bg-[#18233D] border-white/[0.08] text-slate-300'
                     }`}
                   >
                     {/* Today indicator dot */}
@@ -762,12 +762,12 @@ export const MyToDoView: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Task Cards (2 cols on xl) */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs">
+          <div className="bg-[#0F172A]/80 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/[0.08] shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
             {/* List Header with Click-to-Strike Notice & Show Completed Toggle */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-white/[0.08]">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit']">
+                  <h2 className="text-sm sm:text-base font-bold text-white font-['Outfit']">
                     {viewScope === 'all'
                       ? 'All Assigned Tasks'
                       : selectedDay === 'all'
@@ -787,14 +787,14 @@ export const MyToDoView: React.FC = () => {
               <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
                 {/* Source Filter Pills: All / Assigned to Me / Sent to Colleagues */}
                 {delegatedByMeCount > 0 && (
-                  <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
+                  <div className="flex items-center bg-slate-900/90 p-0.5 rounded-xl border border-white/[0.08] text-xs">
                     <button
                       type="button"
                       onClick={() => setTaskSourceFilter('all')}
                       className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                         taskSourceFilter === 'all'
-                          ? 'bg-white text-indigo-700 shadow-2xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-xs'
+                          : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       All ({myTasks.length})
@@ -804,8 +804,8 @@ export const MyToDoView: React.FC = () => {
                       onClick={() => setTaskSourceFilter('assigned')}
                       className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                         taskSourceFilter === 'assigned'
-                          ? 'bg-white text-indigo-700 shadow-2xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-xs'
+                          : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       <span className="sm:hidden">Mine ({assignedToMeCount})</span><span className="hidden sm:inline">Assigned to Me ({assignedToMeCount})</span>
@@ -815,8 +815,8 @@ export const MyToDoView: React.FC = () => {
                       onClick={() => setTaskSourceFilter('delegated')}
                       className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
                         taskSourceFilter === 'delegated'
-                          ? 'bg-white text-purple-700 shadow-2xs'
-                          : 'text-slate-600 hover:text-slate-900'
+                          ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-xs'
+                          : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       <span className="sm:hidden">Sent ({delegatedByMeCount})</span><span className="hidden sm:inline">Sent to Colleagues ({delegatedByMeCount})</span>
@@ -824,8 +824,8 @@ export const MyToDoView: React.FC = () => {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                  <span className="text-[11px] sm:text-xs font-semibold text-slate-700">Completed</span>
+                <div className="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-white/[0.08]">
+                  <span className="text-[11px] sm:text-xs font-semibold text-slate-300">Completed</span>
                   <button
                     type="button"
                     onClick={() => setShowCompleted(!showCompleted)}
@@ -887,14 +887,14 @@ export const MyToDoView: React.FC = () => {
                       }}
                       className={`relative rounded-xl border transition-colors duration-150 select-none group ${
                         isRejected
-                          ? 'bg-rose-50/40 border-rose-200 cursor-not-allowed opacity-80'
+                          ? 'bg-rose-950/20 border-rose-500/30 cursor-not-allowed opacity-75'
                           : !canStrike
-                          ? (isDone ? 'bg-slate-50/60 border-slate-200 opacity-85 cursor-default' : 'bg-white border-slate-200 shadow-2xs cursor-default')
+                          ? (isDone ? 'bg-[#0D1424]/60 border-white/[0.04] opacity-70 cursor-default' : 'bg-[#131B2E]/90 border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.2)] cursor-default')
                           : isDone
-                          ? 'bg-slate-50/60 border-slate-200 opacity-75 cursor-pointer'
+                          ? 'bg-[#0D1424]/60 border-white/[0.04] opacity-70 cursor-pointer'
                           : isCompulsory
-                          ? 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-indigo-400 shadow-xs cursor-pointer'
-                          : 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-slate-300 shadow-xs cursor-pointer'
+                          ? 'bg-[#131B2E]/90 hover:bg-[#16223A] border-white/[0.08] hover:border-cyan-500/40 shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_4px_25px_rgba(6,182,212,0.15)] cursor-pointer'
+                          : 'bg-[#131B2E]/90 hover:bg-[#16223A] border-white/[0.08] hover:border-cyan-500/40 shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:shadow-[0_4px_25px_rgba(6,182,212,0.15)] cursor-pointer'
                       }`}
                     >
                       {/* Left status indicator accent line */}
@@ -927,10 +927,10 @@ export const MyToDoView: React.FC = () => {
                                 }}
                                 className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-150 shrink-0 mt-0.5 ${
                                   isRejected
-                                    ? 'bg-rose-100 text-rose-600 border border-rose-300 cursor-not-allowed'
+                                    ? 'bg-rose-950/60 text-rose-400 border border-rose-500/40 cursor-not-allowed'
                                     : isDone
-                                    ? 'bg-emerald-600 text-white cursor-pointer'
-                                    : 'border-2 border-slate-300 hover:border-indigo-600 hover:bg-indigo-50/40 bg-white cursor-pointer'
+                                    ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.7)] cursor-pointer'
+                                    : 'border-2 border-slate-600 hover:border-cyan-400 hover:shadow-[0_0_10px_rgba(6,182,212,0.5)] bg-slate-900/90 cursor-pointer'
                                 }`}
                                 aria-label={
                                   isRejected
@@ -960,10 +960,10 @@ export const MyToDoView: React.FC = () => {
                               <h3
                                 className={`text-sm sm:text-base font-bold transition-colors duration-150 ${
                                   isDone
-                                    ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
+                                    ? 'line-through text-slate-500 font-medium decoration-cyan-400 decoration-2'
                                     : isRejected
-                                    ? 'line-through text-slate-400 font-medium decoration-rose-400'
-                                    : 'text-slate-900 group-hover:text-indigo-950'
+                                    ? 'line-through text-slate-500 font-medium decoration-rose-400'
+                                    : 'text-slate-100 group-hover:text-cyan-300'
                                 }`}
                               >
                                 {task.title}
@@ -982,7 +982,7 @@ export const MyToDoView: React.FC = () => {
                               {/* Prominent Metadata Badges */}
                               <div className="flex flex-wrap items-center gap-2 mt-2.5">
                                 {/* Clear Due Date & Time */}
-                                <div className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-800">
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-900/90 border border-white/[0.08] text-slate-300 font-mono">
                                   <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                                   <span>{task.dueDate}</span>
                                   {task.dueTime && (
@@ -996,17 +996,17 @@ export const MyToDoView: React.FC = () => {
 
                                 {/* Who it is FROM or Sent TO */}
                                 {isDelegatedByMe ? (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-200">
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">
                                     <Send className="w-3.5 h-3.5 text-purple-600" />
                                     <span>Sent to: {task.assignedToName || 'Colleague'}</span>
                                   </span>
                                 ) : task.type === 'admin' ? (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
                                     <ShieldAlert className="w-3.5 h-3.5 text-indigo-600" />
                                     <span>From Admin ({orgSettings.orgName})</span>
                                   </span>
                                 ) : task.type === 'staff' ? (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 border border-white/[0.08]">
                                     <Users className="w-3.5 h-3.5 text-slate-600" />
                                     <span>
                                       From Colleague:{' '}
@@ -1022,7 +1022,7 @@ export const MyToDoView: React.FC = () => {
 
                                 {/* Priority Pill */}
                                 {task.priority === 'High' && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-300 border border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.3)]">
                                     <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                                     <span>High Priority</span>
                                   </span>
@@ -1097,7 +1097,7 @@ export const MyToDoView: React.FC = () => {
                                       e.stopPropagation();
                                       snoozeTask(task.id, 30);
                                     }}
-                                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition-all cursor-pointer"
                                     title="Snooze deadline by +30 minutes"
                                   >
                                     +30m Snooze
@@ -1113,8 +1113,8 @@ export const MyToDoView: React.FC = () => {
                                     }}
                                     className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
                                       task.pendingReason
-                                        ? 'bg-amber-50 text-amber-900 border-amber-300'
-                                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                                        : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-white/[0.08]'
                                     }`}
                                   >
                                     <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
@@ -1262,7 +1262,7 @@ export const MyToDoView: React.FC = () => {
         {/* Right Column: Progress & Special Duty Notice */}
         <div className="space-y-5 sm:space-y-6">
           {/* Progress Card - Crisp Clean Light Design */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs">
+          <div className="bg-[#0F172A]/80 backdrop-blur-xl rounded-2xl p-5 sm:p-6 border border-white/[0.08] shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-slate-600" />
@@ -1272,15 +1272,15 @@ export const MyToDoView: React.FC = () => {
                 {completedTasks}/{totalTasks} done
               </span>
             </div>
-            <div className="text-3xl sm:text-4xl font-extrabold font-['Outfit'] text-slate-900 tracking-tight">
+            <div className="text-3xl sm:text-4xl font-extrabold font-['Outfit'] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 tracking-tight">
               {progressPercent}%
             </div>
 
             {/* Clean Progress Bar */}
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-4">
+            <div className="w-full bg-slate-900/90 h-2.5 rounded-full overflow-hidden mt-4 p-0.5 border border-white/[0.05]">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
-                  progressPercent === 100 ? 'bg-emerald-600' : 'bg-indigo-600'
+                  progressPercent === 100 ? 'bg-gradient-to-r from-emerald-500 to-cyan-400 shadow-[0_0_12px_rgba(16,185,129,0.7)]' : 'bg-gradient-to-r from-indigo-500 to-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.6)]'
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />

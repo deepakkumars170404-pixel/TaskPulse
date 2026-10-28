@@ -88,10 +88,10 @@ export const AssignTaskView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-white tracking-tight">
               Assign Work to Team
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-2xs">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
               {orgSettings.orgName} Workspace
             </span>
           </div>
@@ -113,7 +113,7 @@ export const AssignTaskView: React.FC = () => {
       {/* Responsive Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Assignment Form (2 cols on xl) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-xs">
+        <div className="xl:col-span-2 bg-[#0F172A]/80 backdrop-blur-xl rounded-2xl p-5 sm:p-8 border border-white/[0.08] shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Assignment Target Switcher (Staff Target Tasks vs Admin Personal Daily Task) */}
             <div>
