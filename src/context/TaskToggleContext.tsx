@@ -440,9 +440,16 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
   const currentTabIdRef = useRef<string>(Math.random().toString(36).substring(2));
   const tasksRef = useRef<Task[]>(tasks);
+  const usersRef = useRef<User[]>(users);
+  const recentlyUpdatedTasksRef = useRef<Map<string, number>>(new Map());
+
   useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
+
+  useEffect(() => {
+    usersRef.current = users;
+  }, [users]);
 
   const broadcastEvent = useCallback((eventData: any) => {
     try {
@@ -513,14 +520,27 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ]);
 
       if (fetchedUsers && fetchedUsers.length > 0) {
-        setUsers(fetchedUsers);
-        // Ensure active currentUser profile name stays updated with Supabase
-        setCurrentUser((curr) => {
-          const match = fetchedUsers.find((u) => u.id === curr.id || (curr.role === 'admin' && u.role === 'admin'));
-          return match || curr;
-        });
+        const usersChanged =
+          fetchedUsers.length !== usersRef.current.length ||
+          fetchedUsers.some((u, i) => {
+            const curr = usersRef.current[i];
+            return !curr || curr.id !== u.id || curr.name !== u.name || curr.role !== u.role;
+          });
+
+        if (usersChanged) {
+          usersRef.current = fetchedUsers;
+          setUsers(fetchedUsers);
+          setCurrentUser((curr) => {
+            const match = fetchedUsers.find((u) => u.id === curr.id || (curr.role === 'admin' && u.role === 'admin'));
+            return match || curr;
+          });
+        }
       }
+
       if (fetchedTasks) {
+        const now = Date.now();
+        const currentTasks = tasksRef.current;
+
         // Detect newly allotted tasks for the active user and trigger prominent visual popup
         if (initialTasksLoadedRef.current) {
           fetchedTasks.forEach((t) => {
@@ -549,25 +569,70 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           initialTasksLoadedRef.current = true;
         }
 
-        setTasks(fetchedTasks);
+        // Avoid re-rendering if tasks haven't meaningfully changed
+        let hasDiff = fetchedTasks.length !== currentTasks.length;
+        if (!hasDiff) {
+          for (const ft of fetchedTasks) {
+            const ct = currentTasks.find((t) => t.id === ft.id);
+            if (!ct) {
+              hasDiff = true;
+              break;
+            }
+            const lastUpdated = recentlyUpdatedTasksRef.current.get(ft.id);
+            if (lastUpdated && now - lastUpdated < 4000) {
+              continue;
+            }
+            if (
+              ct.status !== ft.status ||
+              (ct.completedAt || undefined) !== (ft.completedAt || undefined) ||
+              (ct.pendingReason || undefined) !== (ft.pendingReason || undefined) ||
+              (ct.rejectReason || undefined) !== (ft.rejectReason || undefined) ||
+              ct.title !== ft.title ||
+              ct.dueDate !== ft.dueDate ||
+              ct.dueTime !== ft.dueTime ||
+              ct.assignedTo !== ft.assignedTo
+            ) {
+              hasDiff = true;
+              break;
+            }
+          }
+        }
+
+        if (hasDiff) {
+          const mergedTasks = fetchedTasks.map((ft) => {
+            const lastUpdated = recentlyUpdatedTasksRef.current.get(ft.id);
+            if (lastUpdated && now - lastUpdated < 4000) {
+              const localTask = currentTasks.find((t) => t.id === ft.id);
+              return localTask || ft;
+            }
+            return ft;
+          });
+
+          tasksRef.current = mergedTasks;
+          setTasks(mergedTasks);
+        }
       }
-      if (fetchedOffice) setOfficeTiming(fetchedOffice);
-      if (fetchedEvent) setEventTiming(fetchedEvent);
+
+      if (fetchedOffice) {
+        setOfficeTiming((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedOffice) ? fetchedOffice : curr));
+      }
+      if (fetchedEvent) {
+        setEventTiming((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedEvent) ? fetchedEvent : curr));
+      }
       if (fetchedOrg && !new URLSearchParams(window.location.search).get('org')) {
-        setOrgSettings(fetchedOrg);
+        setOrgSettings((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedOrg) ? fetchedOrg : curr));
       }
     } catch (err) {
       console.warn('[TaskToggleContext] Initial sync error:', err);
     }
   }, [currentUser, triggerTaskAlert]);
 
-  // Fetch initial data on mount + periodic cloud sync poll (every 6 seconds)
-  // Guarantees cross-device sync even if mobile browser suspends WebSockets
+  // Fetch initial data on mount + periodic cloud sync poll (every 30 seconds fallback)
   useEffect(() => {
     refreshData();
     const pollInterval = setInterval(() => {
       refreshData();
-    }, 6000);
+    }, 30000);
     return () => clearInterval(pollInterval);
   }, [refreshData]);
 
@@ -598,24 +663,31 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
       } else if (payload.eventType === 'UPDATE') {
         const updatedTask = mapDbTaskToFrontend(payload.new);
+
+        // Deduplication: If this task was updated by the current client in the last 4 seconds, ignore server echo
+        const lastUpdated = recentlyUpdatedTasksRef.current.get(updatedTask.id);
+        if (lastUpdated && Date.now() - lastUpdated < 4000) {
+          return;
+        }
+
         const prevTask = tasksRef.current.find((t) => t.id === updatedTask.id);
 
         // Deduplication: Only trigger re-render if the incoming update differs from local state
         const hasChange =
           !prevTask ||
           prevTask.status !== updatedTask.status ||
-          prevTask.completedAt !== updatedTask.completedAt ||
-          prevTask.pendingReason !== updatedTask.pendingReason ||
-          prevTask.rejectReason !== updatedTask.rejectReason ||
+          (prevTask.completedAt || undefined) !== (updatedTask.completedAt || undefined) ||
+          (prevTask.pendingReason || undefined) !== (updatedTask.pendingReason || undefined) ||
+          (prevTask.rejectReason || undefined) !== (updatedTask.rejectReason || undefined) ||
           prevTask.title !== updatedTask.title ||
           prevTask.dueDate !== updatedTask.dueDate ||
           prevTask.dueTime !== updatedTask.dueTime ||
           prevTask.assignedTo !== updatedTask.assignedTo;
 
         if (hasChange) {
-          setTasks((prev) =>
-            prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-          );
+          const next = tasksRef.current.map((t) => (t.id === updatedTask.id ? updatedTask : t));
+          tasksRef.current = next;
+          setTasks(next);
         }
 
         const isCreator = updatedTask.createdBy === currentUser.id;
@@ -1065,24 +1137,27 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       : 'done';
     const updatedCompletedAt = isDone ? undefined : nowTimeStr;
 
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId
-          ? {
-              ...t,
-              status: updatedStatus,
-              completedAt: updatedCompletedAt,
-            }
-          : t
-      )
+    // Mark as recently updated to eliminate duplicate re-renders and echo flickers
+    recentlyUpdatedTasksRef.current.set(taskId, Date.now());
+
+    const nextTasks = tasks.map((t) =>
+      t.id === taskId
+        ? {
+            ...t,
+            status: updatedStatus,
+            completedAt: updatedCompletedAt,
+          }
+        : t
     );
+
+    tasksRef.current = nextTasks;
+    setTasks(nextTasks);
 
     // Play pleasant dopamine chime when task is marked done
     if (updatedStatus === 'done') {
       setActiveDueReminder((prev) => (prev?.task.id === taskId ? null : prev));
-      const target = tasks.find((t) => t.id === taskId);
-      const taskTitle = target?.title || 'Assigned Task';
-      const staffName = target?.assignedToName || currentUser.name;
+      const taskTitle = target.title || 'Assigned Task';
+      const staffName = target.assignedToName || currentUser.name;
       sendTaskCompletedNotification(taskTitle, staffName);
     }
 
@@ -1096,11 +1171,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     broadcastEvent({
       type: 'TASKS_UPDATE',
       action: 'TOGGLE',
-      tasks: tasks.map((t) =>
-        t.id === taskId
-          ? { ...t, status: updatedStatus, completedAt: updatedCompletedAt }
-          : t
-      ),
+      tasks: nextTasks,
       taskId,
       status: updatedStatus,
       completedBy: currentUser.name,
@@ -1115,21 +1186,24 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Productivity Feature: 1-Click Strike All Finished
   const completeAllTasks = () => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const now = Date.now();
 
-    setTasks((prev) =>
-      prev.map((t) => {
-        const isEligible = currentUser.role === 'admin' || t.assignedTo === currentUser.id;
-        if (isEligible && t.status !== 'done' && t.status !== 'rejected') {
-          backendApi.updateTask(t.id, { status: 'done', completedAt: nowTimeStr }).catch(() => {});
-          return {
-            ...t,
-            status: 'done',
-            completedAt: nowTimeStr,
-          };
-        }
-        return t;
-      })
-    );
+    const nextTasks: Task[] = tasks.map((t) => {
+      const isEligible = currentUser.role === 'admin' || t.assignedTo === currentUser.id;
+      if (isEligible && t.status !== 'done' && t.status !== 'rejected') {
+        recentlyUpdatedTasksRef.current.set(t.id, now);
+        backendApi.updateTask(t.id, { status: 'done', completedAt: nowTimeStr }).catch(() => {});
+        return {
+          ...t,
+          status: 'done' as const,
+          completedAt: nowTimeStr,
+        };
+      }
+      return t;
+    });
+
+    tasksRef.current = nextTasks;
+    setTasks(nextTasks);
 
     sendTaskCompletedNotification('All Assigned Tasks Batch', currentUser.name);
   };
@@ -1137,40 +1211,36 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Productivity Feature: Quick 1-Tap Snooze / Reschedule
   const snoozeTask = (taskId: string, minutes: number) => {
     setActiveDueReminder((prev) => (prev?.task.id === taskId ? null : prev));
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          const now = new Date();
-          now.setMinutes(now.getMinutes() + minutes);
-          const newDueTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + minutes);
+    const newDueTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-          backendApi.updateTask(taskId, { dueTime: newDueTime }).catch(() => {});
-          return {
-            ...t,
-            dueTime: newDueTime,
-          };
-        }
-        return t;
-      })
-    );
+    recentlyUpdatedTasksRef.current.set(taskId, Date.now());
+    backendApi.updateTask(taskId, { dueTime: newDueTime }).catch(() => {});
+
+    const nextTasks = tasks.map((t) => (t.id === taskId ? { ...t, dueTime: newDueTime } : t));
+    tasksRef.current = nextTasks;
+    setTasks(nextTasks);
   };
 
   // Rule 4: Accept incoming staff-to-staff task request
   const acceptTaskRequest = (taskId: string) => {
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    recentlyUpdatedTasksRef.current.set(taskId, Date.now());
 
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          return {
-            ...t,
-            status: 'accepted',
-            acceptedAt: nowTimeStr,
-          };
-        }
-        return t;
-      })
-    );
+    const nextTasks = tasks.map((t) => {
+      if (t.id === taskId) {
+        return {
+          ...t,
+          status: 'accepted' as const,
+          acceptedAt: nowTimeStr,
+        };
+      }
+      return t;
+    });
+
+    tasksRef.current = nextTasks;
+    setTasks(nextTasks);
 
     // Backend database update
     backendApi.updateTask(taskId, {
@@ -1330,6 +1400,8 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const trimmed = reason.trim();
     const target = tasks.find((t) => t.id === taskId);
 
+    recentlyUpdatedTasksRef.current.set(taskId, Date.now());
+
     const updatedTasks = tasks.map((t) => {
       if (t.id === taskId) {
         return {
@@ -1341,6 +1413,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return t;
     });
 
+    tasksRef.current = updatedTasks;
     setTasks(updatedTasks);
 
     // Backend database update

@@ -731,7 +731,7 @@ export const MyToDoView: React.FC = () => {
 
         {/* Routine Cycle Completion Notice (Sunday complete -> Roll over to next Monday) */}
         {(isSundayCompleted || isEntireWeekCompleted) && (
-          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-900 animate-in fade-in">
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-emerald-900">
             <div className="flex items-center gap-2.5">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
               <div>
@@ -925,7 +925,7 @@ export const MyToDoView: React.FC = () => {
                                   if (isRejected) return;
                                   toggleTaskStatus(task.id);
                                 }}
-                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-150 shrink-0 mt-0.5 ${
                                   isRejected
                                     ? 'bg-rose-100 text-rose-600 border border-rose-300 cursor-not-allowed'
                                     : isDone
@@ -958,7 +958,7 @@ export const MyToDoView: React.FC = () => {
                             {/* Title & Details */}
                             <div className="min-w-0 flex-1">
                               <h3
-                                className={`text-sm sm:text-base font-bold transition-all ${
+                                className={`text-sm sm:text-base font-bold transition-colors duration-150 ${
                                   isDone
                                     ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
                                     : isRejected
@@ -971,7 +971,7 @@ export const MyToDoView: React.FC = () => {
 
                               {task.description && (
                                 <p
-                                  className={`text-xs mt-1 leading-relaxed font-normal transition-all ${
+                                  className={`text-xs mt-1 leading-relaxed font-normal transition-colors duration-150 ${
                                     isDone ? 'line-through text-slate-400/80' : 'text-slate-500'
                                   }`}
                                 >

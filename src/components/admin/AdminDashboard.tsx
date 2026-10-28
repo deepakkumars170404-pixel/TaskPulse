@@ -749,7 +749,7 @@ export const AdminDashboard: React.FC = () => {
                       <div
                         key={task.id}
                         onClick={() => toggleTaskStatus(task.id)}
-                        className={`p-4 sm:p-4.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-all cursor-pointer select-none ${
+                        className={`p-4 sm:p-4.5 flex items-center justify-between gap-3 hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer select-none ${
                           isDone ? 'bg-slate-50/50 opacity-80' : ''
                         }`}
                         title="Click to strike or unstrike this personal task"
@@ -761,7 +761,7 @@ export const AdminDashboard: React.FC = () => {
                               e.stopPropagation();
                               toggleTaskStatus(task.id);
                             }}
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-150 shrink-0 cursor-pointer ${
                               isDone
                                 ? 'bg-indigo-600 text-white shadow-2xs'
                                 : 'border-2 border-slate-300 hover:border-indigo-500'
@@ -772,7 +772,7 @@ export const AdminDashboard: React.FC = () => {
 
                           <div className="min-w-0">
                             <div
-                              className={`text-sm font-bold transition-all ${
+                              className={`text-sm font-bold transition-colors duration-150 ${
                                 isDone
                                   ? 'line-through text-slate-400 font-medium decoration-indigo-600 decoration-2'
                                   : 'text-slate-900'
