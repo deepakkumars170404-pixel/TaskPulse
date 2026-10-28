@@ -438,6 +438,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Cross-Tab & Cross-Window Instant Real-Time Sync Channel
   const broadcastChannelRef = React.useRef<BroadcastChannel | null>(null);
+  const currentTabIdRef = useRef<string>(Math.random().toString(36).substring(2));
   const tasksRef = useRef<Task[]>(tasks);
   useEffect(() => {
     tasksRef.current = tasks;
@@ -446,7 +447,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const broadcastEvent = useCallback((eventData: any) => {
     try {
       if (broadcastChannelRef.current) {
-        broadcastChannelRef.current.postMessage(eventData);
+        broadcastChannelRef.current.postMessage({ ...eventData, senderTabId: currentTabIdRef.current });
       }
     } catch (e) {}
   }, []);
@@ -599,9 +600,23 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const updatedTask = mapDbTaskToFrontend(payload.new);
         const prevTask = tasksRef.current.find((t) => t.id === updatedTask.id);
 
-        setTasks((prev) =>
-          prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-        );
+        // Deduplication: Only trigger re-render if the incoming update differs from local state
+        const hasChange =
+          !prevTask ||
+          prevTask.status !== updatedTask.status ||
+          prevTask.completedAt !== updatedTask.completedAt ||
+          prevTask.pendingReason !== updatedTask.pendingReason ||
+          prevTask.rejectReason !== updatedTask.rejectReason ||
+          prevTask.title !== updatedTask.title ||
+          prevTask.dueDate !== updatedTask.dueDate ||
+          prevTask.dueTime !== updatedTask.dueTime ||
+          prevTask.assignedTo !== updatedTask.assignedTo;
+
+        if (hasChange) {
+          setTasks((prev) =>
+            prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+          );
+        }
 
         const isCreator = updatedTask.createdBy === currentUser.id;
         const newReasonReported =
@@ -680,6 +695,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       channel.onmessage = (event) => {
         const data = event.data;
         if (!data) return;
+        if (data.senderTabId && data.senderTabId === currentTabIdRef.current) return;
 
         if (data.type === 'TASKS_UPDATE' && Array.isArray(data.tasks)) {
           setTasks(data.tasks);

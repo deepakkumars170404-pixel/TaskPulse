@@ -885,7 +885,7 @@ export const MyToDoView: React.FC = () => {
                         if (isRejected || !canStrike) return;
                         toggleTaskStatus(task.id);
                       }}
-                      className={`relative rounded-xl border transition-all duration-150 select-none group ${
+                      className={`relative rounded-xl border transition-colors duration-150 select-none group ${
                         isRejected
                           ? 'bg-rose-50/40 border-rose-200 cursor-not-allowed opacity-80'
                           : !canStrike
