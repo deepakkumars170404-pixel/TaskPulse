@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { Clock, Calendar, Check, CheckCircle2, Bell } from 'lucide-react';
+import { Clock, Calendar, Check, CheckCircle2, Bell, Sparkles } from 'lucide-react';
+import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
 import { getTodayDateString } from '../../utils/dateUtils';
+
+// Helper to parse timing range strings e.g. "8:00 AM - 6:00 PM" or "4:00 AM - 7:00 PM"
+const parseTimingRange = (timingStr?: string) => {
+  if (!timingStr) return { start: '8:00 AM', end: '6:00 PM' };
+  const parts = timingStr.split('-').map((s) => s.trim());
+  return {
+    start: parts[0] || '8:00 AM',
+    end: parts[1] || '6:00 PM',
+  };
+};
 
 export const TimingSettingsView: React.FC = () => {
   const {
@@ -14,16 +25,18 @@ export const TimingSettingsView: React.FC = () => {
     triggerTaskAlert,
   } = useTaskToggle();
 
-  // General Timing Form state
+  // General Timing Form state (Clock settings)
   const [openTime, setOpenTime] = useState(officeTiming.openTime);
   const [closeTime, setCloseTime] = useState(officeTiming.closeTime);
   const [workingDays, setWorkingDays] = useState<string[]>(officeTiming.workingDays);
   const [generalToast, setGeneralToast] = useState(false);
 
-  // Event Timing Form state
+  // Event Timing Form state (Calendar + Clock settings)
+  const initialRange = parseTimingRange(eventTiming?.newTiming);
   const [eventName, setEventName] = useState(eventTiming?.eventName || 'Annual Day Preparation');
   const [eventDate, setEventDate] = useState(() => eventTiming?.date || getTodayDateString());
-  const [newEventTiming, setNewEventTiming] = useState(eventTiming?.newTiming || '8:00 AM - 6:00 PM');
+  const [eventStartTime, setEventStartTime] = useState(initialRange.start);
+  const [eventEndTime, setEventEndTime] = useState(initialRange.end);
   const [allottedStaffIds, setAllottedStaffIds] = useState<string[]>(
     eventTiming?.allottedStaffIds || []
   );
@@ -58,11 +71,12 @@ export const TimingSettingsView: React.FC = () => {
   // Save Event Timing & Staff Allotment
   const handleSaveEventTiming = (e: React.FormEvent) => {
     e.preventDefault();
+    const finalTiming = `${eventStartTime} - ${eventEndTime}`;
     updateEventTiming({
       id: eventTiming?.id || `evt_${Date.now()}`,
       eventName,
       date: eventDate,
-      newTiming: newEventTiming,
+      newTiming: finalTiming,
       allottedStaffIds,
       isActive: true,
     });
@@ -84,7 +98,7 @@ export const TimingSettingsView: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
-            Control general office hours and event-day staff timings across the organization
+            Configure general office hours and special event dates/timings using interactive calendar and clock controls
           </p>
         </div>
       </div>
@@ -94,7 +108,7 @@ export const TimingSettingsView: React.FC = () => {
         <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-center gap-3 animate-in fade-in shadow-2xs">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span className="text-xs sm:text-sm font-semibold">
-            General office timing updated! Changes reflected immediately across all pages and staff chips.
+            General office timing updated! Opens at {openTime}, closes at {closeTime}. Changes reflected across all pages.
           </span>
         </div>
       )}
@@ -109,51 +123,46 @@ export const TimingSettingsView: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-        {/* General Office Timing Card */}
+        {/* =========================================================================
+            CARD 1: GENERAL OFFICE TIMING (CLOCK PICKERS FOR OPENS & CLOSES AT)
+            ========================================================================= */}
         <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200 shadow-2xs">
-          <form onSubmit={handleSaveGeneralTiming} className="space-y-3.5">
+          <form onSubmit={handleSaveGeneralTiming} className="space-y-4">
             <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
               <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4 text-primary-500" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-slate-900 font-['Outfit']">General Office Timing</h2>
-                <p className="text-[11px] text-slate-400 font-medium">Standard operating hours for regular days</p>
+                <p className="text-[11px] text-slate-400 font-medium">Standard operating hours with interactive clock picker</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Opens at
-                </label>
-                <input
-                  type="text"
-                  value={openTime}
-                  onChange={(e) => setOpenTime(e.target.value)}
-                  placeholder="9:00 AM"
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Closes at
-                </label>
-                <input
-                  type="text"
-                  value={closeTime}
-                  onChange={(e) => setCloseTime(e.target.value)}
-                  placeholder="5:00 PM"
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
-                />
-              </div>
+            {/* Interactive Clock Pickers for Office Hours */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <QuickTimePicker
+                label="Office Opens At"
+                value={openTime}
+                onChange={(newTime) => setOpenTime(newTime)}
+              />
+              <QuickTimePicker
+                label="Office Closes At"
+                value={closeTime}
+                onChange={(newTime) => setCloseTime(newTime)}
+              />
             </div>
 
+            {/* Configured Hours Display */}
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
+              <Clock className="w-4 h-4 text-primary-500 shrink-0" />
+              <span>
+                Standard Operating Hours: <strong className="text-slate-900">{openTime} – {closeTime}</strong>
+              </span>
+            </div>
+
+            {/* Working Days Selector */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                 Working Days (Toggle active days)
               </label>
               <div className="flex flex-wrap gap-2">
@@ -188,68 +197,77 @@ export const TimingSettingsView: React.FC = () => {
           </form>
         </div>
 
-        {/* Event Timing Change Card */}
+        {/* =========================================================================
+            CARD 2: SPECIAL EVENT SCHEDULE (CALENDAR & CLOCK PICKERS)
+            ========================================================================= */}
         <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200 shadow-2xs">
-          <form onSubmit={handleSaveEventTiming} className="space-y-3.5">
+          <form onSubmit={handleSaveEventTiming} className="space-y-4">
             <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
               <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 text-primary-500" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-900 font-['Outfit']">Special Event Hours</h2>
-                <p className="text-[11px] text-slate-400 font-medium">Overriding schedule for organization events</p>
+                <h2 className="text-base font-bold text-slate-900 font-['Outfit']">Special Event Schedule</h2>
+                <p className="text-[11px] text-slate-400 font-medium">Overriding date & shift schedule with calendar and clock controls</p>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                 Event Name
               </label>
               <input
                 type="text"
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
-                placeholder="e.g. Annual Day Preparation"
+                placeholder="e.g. Annual Day Preparation or Hackathon"
                 required
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Event Date
-                </label>
-                <input
-                  type="text"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  placeholder="e.g. 28 Oct 2026"
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
-                  Special Timing
-                </label>
-                <input
-                  type="text"
-                  value={newEventTiming}
-                  onChange={(e) => setNewEventTiming(e.target.value)}
-                  placeholder="8:00 AM - 6:00 PM"
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
-                />
-              </div>
+            {/* Event Date: Interactive Mini Calendar Picker */}
+            <div>
+              <QuickDatePicker
+                label="Event Date (Interactive Calendar)"
+                value={eventDate}
+                onChange={(newDate) => setEventDate(newDate)}
+              />
             </div>
 
+            {/* Special Timing: Interactive Clock Pickers (Start & End) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <QuickTimePicker
+                label="Special Shift Starts At"
+                value={eventStartTime}
+                onChange={(newStart) => setEventStartTime(newStart)}
+              />
+              <QuickTimePicker
+                label="Special Shift Ends At"
+                value={eventEndTime}
+                onChange={(newEnd) => setEventEndTime(newEnd)}
+              />
+            </div>
+
+            {/* Configured Event Range Preview */}
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-primary-50/70 border border-primary-200 text-xs font-semibold text-primary-950">
+              <Clock className="w-4 h-4 text-primary-600 shrink-0" />
+              <span>
+                Configured Event Shift: <strong className="text-primary-950 font-black">{eventDate}</strong> · <strong className="text-primary-950 font-black">{eventStartTime} – {eventEndTime}</strong>
+              </span>
+            </div>
+
+            {/* Staff Allotment Checkboxes */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2.5">
-                Allot Staff to Event
-              </label>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Allot Staff to Event
+                </label>
+                <span className="text-[11px] font-bold text-primary-700">
+                  {allottedStaffIds.length} staff selected
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1 border border-slate-100 rounded-xl bg-slate-50/50">
                 {users
                   .filter((u) => u.role === 'staff')
                   .map((staff) => {
@@ -259,20 +277,21 @@ export const TimingSettingsView: React.FC = () => {
                         type="button"
                         key={staff.id}
                         onClick={() => toggleStaffAllotment(staff.id)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`p-2 rounded-xl text-xs font-bold transition-all text-left flex items-center gap-1.5 cursor-pointer ${
                           isAllotted
-                            ? 'bg-primary-500 text-white shadow-xs'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+                            ? 'bg-primary-500 text-white shadow-2xs'
+                            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
                         }`}
                       >
                         {isAllotted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                        <span>{staff.name}</span>
+                        <span className="truncate">{staff.name}</span>
                       </button>
                     );
                   })}
               </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <button
                 type="submit"
@@ -284,14 +303,15 @@ export const TimingSettingsView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
+                  const finalTiming = `${eventStartTime} - ${eventEndTime}`;
                   triggerTaskAlert({
                     id: `test_event_${Date.now()}`,
                     title: `🗓️ Special Schedule Allotted by ${orgSettings.orgName} (Admin)`,
                     taskTitle: eventName,
-                    message: `Special Office Hours: ${newEventTiming} on ${eventDate}`,
+                    message: `Special Office Hours: ${finalTiming} on ${eventDate}`,
                     senderName: `${orgSettings.orgName} (Admin)`,
                     dueDate: eventDate,
-                    dueTime: newEventTiming,
+                    dueTime: finalTiming,
                     priority: 'High',
                     type: 'event',
                   });
@@ -308,10 +328,10 @@ export const TimingSettingsView: React.FC = () => {
       </div>
 
       {/* Live Preview Line for Staff */}
-      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-700 font-medium shadow-2xs">
+      <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-700 font-medium shadow-2xs">
         <Clock className="w-4 h-4 text-primary-500 shrink-0" />
         <span>
-          Live staff notification preview: *Scheduled for {eventDate} · {eventName} ({newEventTiming}) for {allottedStaffIds.length} allotted team members.*
+          Live staff notification preview: *Scheduled for {eventDate} · {eventName} ({eventStartTime} – {eventEndTime}) for {allottedStaffIds.length} allotted team members.*
         </span>
       </div>
     </div>

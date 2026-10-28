@@ -426,38 +426,126 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Grid: Tasks Table & Analytics Column */}
-          <div className={`grid grid-cols-1 ${activeTab === 'dual' ? 'xl:grid-cols-1' : 'xl:grid-cols-3'} gap-3 sm:gap-4 w-full`}>
-            {/* Main Task Column Table */}
-            <div className={`${activeTab === 'dual' ? '' : 'xl:col-span-2'} bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden`}>
-              {/* Table Header */}
-              <div className="p-2.5 sm:p-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50">
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit'] flex items-center gap-2">
-                    <span>{activeTab === 'all' ? '📋 All Assigned Tasks' : '👥 Staff Target Tasks'}</span>
-                    <span className="text-xs font-semibold text-slate-500">
-                      ({displayedTableTasks.length} tasks scheduled)
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    {activeTab === 'all'
-                      ? 'Live feed of Admin personal agenda items & staff team target deliverables'
-                      : 'Live feed of tasks allotted to staff members across departments'}
-                  </p>
+          {/* Standalone Executive Overview Row: Staff Delivery & Special Event Schedule (Completely Separate from Tasks Table) */}
+          {activeTab !== 'dual' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 w-full">
+              {/* Box 1: Staff Team Delivery Rate */}
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs relative overflow-hidden flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                      <Zap className="w-4 h-4 fill-emerald-600 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Staff Team Delivery Rate
+                      </h3>
+                      <p className="text-[10px] text-slate-400 font-medium">Automatic live calculation from staff completed strikes</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    {staffCompleted}/{staffTotal} tasks
+                  </span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight mt-1">
+                  {staffTeamRate}%
+                </div>
+                <div className="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden p-0.5">
+                  <div
+                    className="bg-emerald-600 h-1.5 rounded-full transition-all duration-500"
+                    style={{ width: `${staffTeamRate}%` }}
+                  />
+                </div>
+                <div className="text-xs text-slate-500 mt-2.5 font-medium flex items-center justify-between">
+                  <span className="text-emerald-700 font-semibold">✓ Delivered: <strong>{staffCompleted}</strong></span>
+                  <span className="text-amber-700 font-semibold">⏳ In Queue: <strong>{staffPending}</strong></span>
+                  {staffDeclined > 0 && <span className="text-rose-600 font-semibold">❌ Declined: <strong>{staffDeclined}</strong></span>}
                 </div>
               </div>
 
-              <div className="overflow-x-auto no-scrollbar">
-                <table className="w-full text-left text-xs min-w-[640px]">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                      <th className="py-2.5 px-3 sm:px-4">Task Details</th>
-                      <th className="py-2.5 px-3">Assigned To</th>
-                      <th className="py-2.5 px-3">Priority</th>
-                      <th className="py-2.5 px-3">Deadline</th>
-                      <th className="py-2.5 px-3 sm:px-4 text-right">Status & Action</th>
-                    </tr>
-                  </thead>
+              {/* Box 2: Special Event Schedule */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-primary-100 text-primary-700 flex items-center justify-center font-bold">
+                      <Calendar className="w-4 h-4 text-primary-500" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Special Event Schedule
+                      </h4>
+                      <p className="text-[10px] text-slate-400 font-medium">Shift timing override for organization events</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage('timing')}
+                    className="text-[11px] font-bold text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition-all cursor-pointer"
+                  >
+                    Timing Settings →
+                  </button>
+                </div>
+
+                {eventTiming ? (
+                  <div>
+                    <div className="text-sm font-bold text-slate-900 truncate">
+                      {eventTiming.eventName}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700 mt-1.5 bg-slate-50 border border-slate-200 p-2 rounded-xl">
+                      <span className="inline-flex items-center gap-1 text-primary-700 font-bold">
+                        <Calendar className="w-3.5 h-3.5 text-primary-500 shrink-0" />
+                        <span>{eventTiming.date}</span>
+                      </span>
+                      <span className="text-slate-300">·</span>
+                      <span className="inline-flex items-center gap-1 text-slate-900 font-bold">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{eventTiming.newTiming}</span>
+                      </span>
+                      <span className="text-slate-300">·</span>
+                      <span className="text-[11px] text-slate-600">
+                        {eventTiming.allottedStaffIds?.length || 0} staff allotted
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-400 italic py-2">
+                    No special event schedule currently active.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Standalone Full-Width Tasks Table: Completely Separate from Staff Delivery Box, No Scroll */}
+          <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            {/* Table Header */}
+            <div className="p-3 sm:p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit'] flex items-center gap-2">
+                  <span>{activeTab === 'all' ? '📋 All Assigned Tasks' : '👥 Staff Target Tasks'}</span>
+                  <span className="text-xs font-semibold text-slate-500">
+                    ({displayedTableTasks.length} tasks scheduled)
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {activeTab === 'all'
+                    ? 'Live feed of Admin personal agenda items & staff team target deliverables'
+                    : 'Live feed of tasks allotted to staff members across departments'}
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto no-scrollbar">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="py-3 px-3 sm:px-4">Task Details</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Assigned To</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Priority</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Deadline</th>
+                    <th className="py-3 px-3 sm:px-4 text-right whitespace-nowrap">Status & Action</th>
+                  </tr>
+                </thead>
                   <tbody className="divide-y divide-slate-100">
                     {displayedTableTasks.length === 0 ? (
                       <tr>
@@ -717,58 +805,6 @@ export const AdminDashboard: React.FC = () => {
                 </table>
               </div>
             </div>
-
-            {/* Right Column: Staff Team Delivery Analytics & Event Card */}
-            {activeTab !== 'dual' && (
-              <div className="space-y-4">
-                {/* Team Delivery Card */}
-                <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs relative overflow-hidden">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                      Staff Delivery Rate
-                    </h3>
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
-                      {staffCompleted}/{staffTotal} tasks
-                    </span>
-                  </div>
-                  <div className="text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
-                    {staffTeamRate}%
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 mt-2.5 overflow-hidden p-0.5">
-                    <div
-                      className="bg-emerald-600 h-1.5 rounded-full transition-all duration-500"
-                      style={{ width: `${staffTeamRate}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-slate-500 mt-2 font-medium flex items-center justify-between">
-                    <span className="text-emerald-700 font-semibold">Delivered: <strong>{staffCompleted}</strong></span>
-                    <span className="text-slate-600">Pending: <strong>{staffPending}</strong></span>
-                  </p>
-                </div>
-
-                {/* Upcoming event card */}
-                {eventTiming && (
-                  <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      <Clock className="w-4 h-4 text-primary-500" />
-                      <span>Special Event Schedule</span>
-                    </div>
-                    <h4 className="text-sm font-bold text-slate-900 mt-1">{eventTiming.eventName}</h4>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mt-2 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
-                      <Calendar className="w-3.5 h-3.5 text-primary-500 shrink-0" />
-                      <span>{eventTiming.date} · {eventTiming.newTiming}</span>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-medium">
-                      <span>Staff Allotted:</span>
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 font-bold border border-slate-200">
-                        {eventTiming.allottedStaffIds.length} members
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       )}
 
