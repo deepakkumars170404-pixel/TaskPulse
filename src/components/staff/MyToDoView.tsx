@@ -291,6 +291,7 @@ export const MyToDoView: React.FC = () => {
   const completedTasks = myTasks.filter((t) => t.status === 'done').length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const pendingCountInView = filteredTasks.filter((t) => t.status !== 'done').length;
+  const strikablePendingCountInView = filteredTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected' && (currentUser.role === 'admin' || t.assignedTo === currentUser.id)).length;
 
   // Sunday routine status check
   const sundayInfo = weekDays.find((d) => d.dayName === 'Sunday');
@@ -381,7 +382,7 @@ export const MyToDoView: React.FC = () => {
         </div>
 
         {/* Header Action: Strike All Finished */}
-        {pendingCountInView > 0 && (
+        {strikablePendingCountInView > 0 && (
           <button
             type="button"
             onClick={completeAllTasks}
@@ -389,7 +390,7 @@ export const MyToDoView: React.FC = () => {
             title="Mark all pending tasks completed in 1 click"
           >
             <CheckCircle2 className="w-4 h-4" />
-            <span>Strike All Finished ({pendingCountInView})</span>
+            <span>Strike All Finished ({strikablePendingCountInView})</span>
           </button>
         )}
       </div>
