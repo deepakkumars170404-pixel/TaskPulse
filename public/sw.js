@@ -1,5 +1,5 @@
 // TaskToggle Progressive Web App (PWA) Service Worker
-const CACHE_NAME = 'tasktoggle-v1';
+const CACHE_NAME = 'tasktoggle-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

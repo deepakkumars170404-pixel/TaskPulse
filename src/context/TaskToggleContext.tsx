@@ -442,6 +442,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const tasksRef = useRef<Task[]>(tasks);
   const usersRef = useRef<User[]>(users);
   const recentlyUpdatedTasksRef = useRef<Map<string, number>>(new Map());
+  const inFlightTogglesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     tasksRef.current = tasks;
@@ -666,7 +667,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         // Deduplication: If this task was updated by the current client in the last 4 seconds, ignore server echo
         const lastUpdated = recentlyUpdatedTasksRef.current.get(updatedTask.id);
-        if (lastUpdated && Date.now() - lastUpdated < 4000) {
+        if (lastUpdated && Date.now() - lastUpdated < 6000) {
           return;
         }
 
@@ -770,6 +771,13 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (data.senderTabId && data.senderTabId === currentTabIdRef.current) return;
 
         if (data.type === 'TASKS_UPDATE' && Array.isArray(data.tasks)) {
+          if (data.taskId) {
+            const lastUpdated = recentlyUpdatedTasksRef.current.get(data.taskId);
+            if (lastUpdated && Date.now() - lastUpdated < 6000) {
+              return;
+            }
+          }
+          tasksRef.current = data.tasks;
           setTasks(data.tasks);
 
           // If a new task was assigned to the currently logged-in user in this tab
@@ -813,21 +821,8 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       };
     }
 
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === `${STORAGE_KEY_PREFIX}tasks` && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed)) {
-            setTasks(parsed);
-          }
-        } catch (err) {}
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-
     return () => {
       if (channel) channel.close();
-      window.removeEventListener('storage', handleStorage);
     };
   }, [currentUser, sendTaskAssignmentNotification]);
 
@@ -1108,10 +1103,20 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
-  // Rule 3: Toggle task completed / pending with audio reward chime
+  // Rule 3: Toggle task completed / pending with audio reward chime (single-click strike & revoke lock)
   const toggleTaskStatus = (taskId: string) => {
+    // Fast in-flight debouncing lock: prevent accidental double-clicks or duplicate browser events
+    if (inFlightTogglesRef.current.has(taskId)) {
+      return;
+    }
+    inFlightTogglesRef.current.add(taskId);
+    setTimeout(() => {
+      inFlightTogglesRef.current.delete(taskId);
+    }, 600);
+
     const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const target = tasks.find((t) => t.id === taskId);
+    const currentTasks = tasksRef.current;
+    const target = currentTasks.find((t) => t.id === taskId);
     if (!target) return;
 
     // STRICT USER REQUIREMENT:
@@ -1137,10 +1142,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       : 'done';
     const updatedCompletedAt = isDone ? undefined : nowTimeStr;
 
-    // Mark as recently updated to eliminate duplicate re-renders and echo flickers
+    // Stamp with timestamp to block all incoming server echo updates for 6 seconds
     recentlyUpdatedTasksRef.current.set(taskId, Date.now());
 
-    const nextTasks = tasks.map((t) =>
+    const nextTasks: Task[] = currentTasks.map((t) =>
       t.id === taskId
         ? {
             ...t,
