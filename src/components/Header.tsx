@@ -100,11 +100,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         </button>
 
         {/* Office Hours Chip */}
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-50 border border-slate-200 text-slate-800 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-medium">
+        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium">
           <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <span className="text-[11px] sm:text-xs">
-            <span className="hidden lg:inline text-slate-500">Office: </span>
-            <strong className="font-bold text-slate-900">{officeTiming.openTime} – {officeTiming.closeTime}</strong>
+          <span className="text-[11px] sm:text-xs font-bold text-slate-900">
+            <span className="hidden md:inline font-normal text-slate-500">Office: </span>
+            {officeTiming.openTime} – {officeTiming.closeTime}
           </span>
         </div>
 

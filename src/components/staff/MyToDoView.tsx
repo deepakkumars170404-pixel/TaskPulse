@@ -637,7 +637,7 @@ export const MyToDoView: React.FC = () => {
             ========================================================================= */}
         {viewScope === 'routine' && (
           <div className="pt-2">
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
+            <div className="flex sm:grid sm:grid-cols-4 md:grid-cols-8 gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
               {/* All Days in Routine Week */}
               <button
                 type="button"
@@ -808,7 +808,7 @@ export const MyToDoView: React.FC = () => {
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      Assigned to Me ({assignedToMeCount})
+                      <span className="sm:hidden">Mine ({assignedToMeCount})</span><span className="hidden sm:inline">Assigned to Me ({assignedToMeCount})</span>
                     </button>
                     <button
                       type="button"
@@ -819,13 +819,13 @@ export const MyToDoView: React.FC = () => {
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      Sent to Colleagues ({delegatedByMeCount})
+                      <span className="sm:hidden">Sent ({delegatedByMeCount})</span><span className="hidden sm:inline">Sent to Colleagues ({delegatedByMeCount})</span>
                     </button>
                   </div>
                 )}
 
                 <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                  <span className="text-xs font-semibold text-slate-700">Show completed</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-slate-700">Completed</span>
                   <button
                     type="button"
                     onClick={() => setShowCompleted(!showCompleted)}
@@ -912,7 +912,7 @@ export const MyToDoView: React.FC = () => {
                         }`}
                       />
 
-                      <div className="p-4 sm:p-4.5 pl-5">
+                      <div className="p-3.5 sm:p-4.5 pl-4 sm:pl-5">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div className="flex items-start gap-3.5 min-w-0 flex-1">
                             {/* Strike Checkbox - ONLY rendered if the current user has permission to strike this task */}
