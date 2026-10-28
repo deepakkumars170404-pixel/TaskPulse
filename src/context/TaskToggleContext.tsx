@@ -1400,11 +1400,13 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
 
     setUsers((prev) => [...prev, newStaff]);
+    backendApi.createUser(newStaff).catch((err) => console.warn('[Backend] createUser error:', err));
   };
 
   const deleteStaffUser = (userId: string) => {
     setUsers((prev) => prev.filter((u) => u.id !== userId));
     setTasks((prev) => prev.filter((t) => t.assignedTo !== userId));
+    backendApi.deleteUser(userId).catch((err) => console.warn('[Backend] deleteUser error:', err));
   };
 
   const clearAllTasks = () => {

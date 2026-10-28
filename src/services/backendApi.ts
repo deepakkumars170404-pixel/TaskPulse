@@ -41,6 +41,51 @@ class BackendApiService {
     return saved ? JSON.parse(saved) : INITIAL_USERS;
   }
 
+  async createUser(user: User): Promise<User> {
+    if (this.hasSupabase && supabase) {
+      try {
+        const { data, error } = await supabase.from('users').insert([
+          {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            initials: user.initials,
+            avatar_bg: user.avatarBg,
+          },
+        ]).select();
+        if (error) {
+          console.warn('[BackendAPI] Error inserting user into Supabase:', error);
+        } else if (data && data[0]) {
+          return {
+            id: data[0].id,
+            name: data[0].name,
+            email: data[0].email,
+            role: data[0].role,
+            initials: data[0].initials,
+            avatarBg: data[0].avatar_bg,
+          };
+        }
+      } catch (err) {
+        console.warn('[BackendAPI] Error creating user in Supabase:', err);
+      }
+    }
+    return user;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    if (this.hasSupabase && supabase) {
+      try {
+        const { error } = await supabase.from('users').delete().eq('id', userId);
+        if (error) {
+          console.warn('[BackendAPI] Error deleting user in Supabase:', error);
+        }
+      } catch (err) {
+        console.warn('[BackendAPI] Error deleting user in Supabase:', err);
+      }
+    }
+  }
+
   // --- TASKS ---
   async getTasks(): Promise<Task[]> {
     if (this.hasSupabase && supabase) {
