@@ -875,17 +875,20 @@ export const MyToDoView: React.FC = () => {
                   const isEditingReason = editingReasonTaskId === task.id;
                   const senderUser = users.find((u) => u.id === task.createdBy);
                   const isDelegatedByMe = task.createdBy === currentUser.id && task.assignedTo !== currentUser.id;
+                  const canStrike = currentUser.role === 'admin' || task.assignedTo === currentUser.id;
 
                   return (
                     <div
                       key={task.id}
                       onClick={() => {
-                        if (isRejected) return;
+                        if (isRejected || !canStrike) return;
                         toggleTaskStatus(task.id);
                       }}
                       className={`relative rounded-xl border transition-all duration-150 select-none group ${
                         isRejected
                           ? 'bg-rose-50/40 border-rose-200 cursor-not-allowed opacity-80'
+                          : !canStrike
+                          ? (isDone ? 'bg-slate-50/60 border-slate-200 opacity-85 cursor-default' : 'bg-white border-slate-200 shadow-2xs cursor-default')
                           : isDone
                           ? 'bg-slate-50/60 border-slate-200 opacity-75 cursor-pointer'
                           : isCompulsory
@@ -911,24 +914,37 @@ export const MyToDoView: React.FC = () => {
                       <div className="p-4 sm:p-4.5 pl-5">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            {/* Checkbox toggle */}
+                            {/* Checkbox toggle - Only the assigned staff member can strike the task */}
                             <button
                               type="button"
-                              disabled={isRejected}
+                              disabled={isRejected || !canStrike}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (isRejected) return;
+                                if (isRejected || !canStrike) return;
                                 toggleTaskStatus(task.id);
                               }}
                               className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 ${
                                 isRejected
                                   ? 'bg-rose-100 text-rose-600 border border-rose-300 cursor-not-allowed'
                                   : isDone
-                                  ? 'bg-emerald-600 text-white cursor-pointer'
+                                  ? 'bg-emerald-600 text-white ' + (canStrike ? 'cursor-pointer' : 'cursor-default')
+                                  : !canStrike
+                                  ? 'border-2 border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed opacity-80'
                                   : 'border-2 border-slate-300 hover:border-indigo-600 hover:bg-indigo-50/40 bg-white cursor-pointer'
                               }`}
                               aria-label={
-                                isRejected
+                                !canStrike
+                                  ? `Only ${task.assignedToName} can strike this task`
+                                  : isRejected
+                                  ? 'Declined task cannot be struck'
+                                  : isDone
+                                  ? 'Mark task as pending'
+                                  : 'Mark task as done'
+                              }
+                              title={
+                                !canStrike
+                                  ? `Assigned to ${task.assignedToName} — only they can strike it complete`
+                                  : isRejected
                                   ? 'Declined task cannot be struck'
                                   : isDone
                                   ? 'Mark task as pending'

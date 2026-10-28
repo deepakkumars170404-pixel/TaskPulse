@@ -1031,6 +1031,13 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return;
     }
 
+    // STRICT PERMISSION RULE:
+    // Only the staff member assigned to complete the work (or Admin) can strike the task done!
+    // A staff member who gave/delegated the task cannot strike it for someone else.
+    if (currentUser.role === 'staff' && target.assignedTo !== currentUser.id) {
+      return;
+    }
+
     const isDone = target.status === 'done';
     const updatedStatus: 'pending' | 'accepted' | 'done' = isDone
       ? target.type === 'staff' && !target.acceptedAt
