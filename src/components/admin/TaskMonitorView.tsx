@@ -83,94 +83,94 @@ export const TaskMonitorView: React.FC = () => {
   }, [staffMembers, tasks, searchQuery]);
 
   return (
-    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
+    <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Central Task Monitor
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-500 text-white shadow-xs">
-              {orgSettings.orgName} Live Staff Feed
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-500 text-white shadow-2xs">
+              {orgSettings.orgName} Live Feed
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-            Staff-first directory: View each staff member's pending workload count, then click to drill down into their tasks
+          <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
+            Staff-first directory: Monitor staff workloads, completion rates, and active deliverables
           </p>
         </div>
 
         {/* Search & Actions */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search staff name or task title..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-xs placeholder:text-slate-400 font-medium"
+              placeholder="Search staff or task title..."
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-2xs placeholder:text-slate-400 font-medium"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setShowAddStaffModal(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
+            className="px-3 py-1.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-2xs cursor-pointer active:scale-95 transition-all flex items-center gap-1 shrink-0"
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className="w-3.5 h-3.5" />
             <span>+ Add Staff</span>
           </button>
         </div>
       </div>
 
       {/* KPI Overview Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+        <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Assigned Tasks</div>
-            <div className="text-2xl font-black text-slate-900 font-['Outfit'] mt-0.5">{totalTasksCount}</div>
+            <div className="text-xl sm:text-2xl font-black text-slate-900 font-['Outfit'] mt-0.5">{totalTasksCount}</div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-            <Layers className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+            <Layers className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Staff Members</div>
-            <div className="text-2xl font-black text-primary-600 font-['Outfit'] mt-0.5">{staffMembers.length}</div>
+            <div className="text-xl sm:text-2xl font-black text-primary-600 font-['Outfit'] mt-0.5">{staffMembers.length}</div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-500">
-            <Users className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center text-primary-500">
+            <Users className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pending Tasks</div>
-            <div className="text-2xl font-black text-amber-700 font-['Outfit'] mt-0.5">{pendingCount}</div>
+            <div className="text-xl sm:text-2xl font-black text-amber-700 font-['Outfit'] mt-0.5">{pendingCount}</div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-            <Clock className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+            <Clock className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Finished by Staff</div>
-            <div className="text-2xl font-black text-emerald-700 font-['Outfit'] mt-0.5">{completedCount}</div>
+            <div className="text-xl sm:text-2xl font-black text-emerald-700 font-['Outfit'] mt-0.5">{completedCount}</div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
         </div>
       </div>
 
       {/* Staff Directory Bar & Controls */}
-      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center">
             <Users className="w-4 h-4" />
           </div>
           <h2 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit']">
@@ -197,7 +197,7 @@ export const TaskMonitorView: React.FC = () => {
       </div>
 
       {/* Staff Accordion Cards List */}
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-2.5">
         {filteredStaff.length === 0 ? (
           <div className="p-10 sm:p-14 text-center bg-white rounded-2xl border border-dashed border-slate-300 space-y-4 shadow-xs">
             <div className="w-14 h-14 rounded-2xl bg-primary-50 text-primary-500 flex items-center justify-center mx-auto shadow-2xs">
@@ -242,17 +242,17 @@ export const TaskMonitorView: React.FC = () => {
             return (
               <div
                 key={staff.id}
-                className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all duration-200"
+                className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden transition-all duration-150"
               >
                 {/* Staff Member Card Header (Click to Expand / Collapse) */}
                 <div
                   onClick={() => toggleStaffExpand(staff.id)}
-                  className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/70 select-none transition-colors border-b border-transparent"
+                  className="p-2.5 sm:p-3 flex flex-col md:flex-row md:items-center justify-between gap-2.5 cursor-pointer hover:bg-slate-50/70 select-none transition-colors border-b border-transparent"
                 >
                   {/* Left: Staff Avatar & Identity */}
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-sm font-bold shadow-xs shrink-0 ${
+                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-xs shrink-0 ${
                         staff.avatarBg || 'bg-primary-500'
                       }`}
                     >

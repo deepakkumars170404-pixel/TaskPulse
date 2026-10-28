@@ -104,58 +104,58 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
+    <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 sm:pb-3 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Executive Dashboard
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90">
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90">
               {orgSettings.orgName} Workspace
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+          <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
             Dedicated separation: Admin personal daily tasks vs. staff team target deliverables
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <button
             onClick={() => setCurrentPage('assign')}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
+            <Plus className="w-3.5 h-3.5 stroke-[3]" />
             <span>Assign New Task</span>
           </button>
         </div>
       </div>
 
       {/* Date Navigation Bar */}
-      <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-          <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 ml-1 border border-slate-200">
-            <Calendar className="w-4 h-4 text-primary-500" />
+      <div className="bg-white p-1.5 sm:p-2 rounded-xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 ml-0.5 border border-slate-200">
+            <Calendar className="w-3.5 h-3.5 text-primary-500" />
           </div>
-          <span className="text-xs font-bold text-slate-700 mr-1.5 shrink-0 hidden xs:inline">
-            Timeline View:
+          <span className="text-xs font-bold text-slate-700 mr-1 shrink-0 hidden sm:inline">
+            Timeline:
           </span>
 
           {(
             [
               { id: 'today', label: 'Today (27 Oct)' },
-              { id: 'upcoming', label: 'Upcoming Deadlines' },
-              { id: 'previous', label: 'Previous Records' },
-              { id: 'all', label: 'All Tasks Directory' },
+              { id: 'upcoming', label: 'Upcoming' },
+              { id: 'previous', label: 'Previous' },
+              { id: 'all', label: 'All Tasks' },
             ] as const
           ).map((filter) => (
             <button
               key={filter.id}
               onClick={() => setDateFilter(filter.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 dateFilter === filter.id
-                  ? 'bg-primary-500 text-white shadow-xs'
+                  ? 'bg-primary-500 text-white shadow-2xs'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
@@ -164,112 +164,110 @@ export const AdminDashboard: React.FC = () => {
           ))}
         </div>
 
-        <div className="text-[11px] sm:text-xs text-slate-600 font-medium px-2 flex items-center gap-2">
+        <div className="text-[10px] sm:text-xs text-slate-600 font-medium px-2 flex items-center gap-1.5 shrink-0">
           <span className="w-2 h-2 rounded-full bg-primary-500 ring-2 ring-primary-200" />
-          <span>Active Timeline: <strong>{filteredAdminTasks.length}</strong> Admin · <strong>{filteredStaffTasks.length}</strong> Staff</span>
+          <span><strong>{filteredAdminTasks.length}</strong> Admin · <strong>{filteredStaffTasks.length}</strong> Staff</span>
         </div>
       </div>
 
       {/* =========================================================================
           EXECUTIVE STAT CARDS: COMPLETELY SEPARATE ADMIN SCORE & STAFF RATE
           ========================================================================= */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         {/* Card 1: 👑 ADMIN PERSONAL DAILY SCORE */}
-        <div className="bg-gradient-to-br from-primary-50/60 via-white to-white border-2 border-primary-200 rounded-2xl p-3 sm:p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-gradient-to-br from-primary-50/60 via-white to-white border border-primary-300 rounded-xl p-2.5 sm:p-3.5 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-primary-600 bg-primary-100/70 px-2.5 py-1 rounded-lg">
-              <span>👑 Admin Personal Score</span>
+            <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-primary-700 bg-primary-100/70 px-2 py-0.5 rounded-md">
+              👑 Admin Score
             </span>
-            <div className="w-7 h-7 rounded-lg bg-primary-500 text-white flex items-center justify-center text-xs font-bold shadow-2xs">
+            <div className="w-6 h-6 rounded-md bg-primary-500 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs">
               AD
             </div>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <div className="text-3xl font-black font-['Outfit'] text-primary-950">
+          <div className="mt-1.5 flex items-baseline justify-between">
+            <div className="text-xl sm:text-2xl font-black font-['Outfit'] text-primary-950">
               {adminPersonalScore}%
             </div>
-            <span className="text-xs font-bold text-primary-600">
-              {adminCompleted}/{adminTotal} Finished
+            <span className="text-[11px] font-bold text-primary-600">
+              {adminCompleted}/{adminTotal} Done
             </span>
           </div>
-          {/* Dedicated Admin Progress Bar */}
-          <div className="w-full bg-primary-100/80 rounded-full h-2 mt-2.5 overflow-hidden p-0.5">
+          <div className="w-full bg-primary-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
             <div
-              className="bg-primary-500 h-1 rounded-full transition-all duration-500"
+              className="bg-primary-500 h-full rounded-full transition-all duration-500"
               style={{ width: `${adminPersonalScore}%` }}
             />
           </div>
-          <div className="text-[11px] text-slate-600 font-medium mt-2 flex items-center justify-between">
+          <div className="text-[10px] text-slate-500 font-medium mt-1.5 flex items-center justify-between">
             <span>Admin Checklist</span>
             <span className="text-primary-600 font-bold">{adminPending} Pending</span>
           </div>
         </div>
 
         {/* Card 2: 👥 STAFF TEAM TARGET DELIVERY RATE (AUTO-CALCULATED) */}
-        <div className="bg-gradient-to-br from-emerald-50/60 via-white to-white border-2 border-emerald-200 rounded-2xl p-3 sm:p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-gradient-to-br from-emerald-50/60 via-white to-white border border-emerald-300 rounded-xl p-2.5 sm:p-3.5 shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
+            <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-md">
               <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600" />
-              <span>Staff Team Delivery</span>
+              <span>Team Delivery</span>
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
-              Auto-Synced
+            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Auto
             </span>
           </div>
-          <div className="mt-3 flex items-baseline justify-between">
-            <div className="text-3xl font-black font-['Outfit'] text-emerald-950">
+          <div className="mt-1.5 flex items-baseline justify-between">
+            <div className="text-xl sm:text-2xl font-black font-['Outfit'] text-emerald-950">
               {staffTeamRate}%
             </div>
-            <span className="text-xs font-bold text-emerald-700">
-              {staffCompleted}/{staffTotal} Delivered
+            <span className="text-[11px] font-bold text-emerald-700">
+              {staffCompleted}/{staffTotal} Done
             </span>
           </div>
-          {/* Dedicated Staff Progress Bar */}
-          <div className="w-full bg-emerald-100/80 rounded-full h-2 mt-2.5 overflow-hidden p-0.5">
+          <div className="w-full bg-emerald-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
             <div
-              className="bg-emerald-600 h-1 rounded-full transition-all duration-500"
+              className="bg-emerald-600 h-full rounded-full transition-all duration-500"
               style={{ width: `${staffTeamRate}%` }}
             />
           </div>
-          <div className="text-[11px] text-slate-600 font-medium mt-2 flex items-center justify-between">
-            <span>Struck automatically by staff</span>
-            <span className="text-emerald-700 font-bold">{staffPending} In Progress</span>
+          <div className="text-[10px] text-slate-500 font-medium mt-1.5 flex items-center justify-between">
+            <span>By Staff Strikes</span>
+            <span className="text-emerald-700 font-bold">{staffPending} Active</span>
           </div>
         </div>
 
         {/* Card 3: Staff Active Pending Workload */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-5 shadow-xs hover:border-slate-300 transition-all">
+        <div className="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3.5 shadow-2xs hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
-              Pending Staff Queue
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Staff Queue
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-200">
-              <Clock className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-md bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-200">
+              <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 mt-2">
+          <div className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 mt-1">
             {staffPending}
           </div>
-          <div className="text-[11px] text-slate-500 font-medium mt-1">
-            Tasks currently being executed by staff
+          <div className="text-[10px] text-slate-400 font-medium mt-1 truncate">
+            Active staff tasks in queue
           </div>
         </div>
 
         {/* Card 4: Active Staff Team Members */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition-all">
+        <div className="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3.5 shadow-2xs hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
-              Active Team Roster
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Team Roster
             </span>
-            <div className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center text-primary-500 border border-primary-200">
-              <Users className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-md bg-primary-50 flex items-center justify-center text-primary-500 border border-primary-200">
+              <Users className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 mt-2">
+          <div className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 mt-1">
             {staffCount}
           </div>
-          <div className="text-[11px] text-slate-500 font-medium mt-1">
-            Operating under {orgSettings.orgName}
+          <div className="text-[10px] text-slate-400 font-medium mt-1 truncate">
+            Staff in {orgSettings.orgName}
           </div>
         </div>
       </div>
@@ -277,21 +275,21 @@ export const AdminDashboard: React.FC = () => {
       {/* =========================================================================
           CATEGORY TABS: COMPLETELY SEPARATE STAFF TARGET TASKS VS ADMIN TASKS
           ========================================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab('staff')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               activeTab === 'staff'
-                ? 'bg-primary-500 text-white shadow-xs'
+                ? 'bg-primary-500 text-white shadow-2xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
-            <Users className="w-4 h-4" />
-            <span>👥 Staff Target Tasks</span>
+            <Users className="w-3.5 h-3.5" />
+            <span>Staff Tasks</span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                 activeTab === 'staff'
                   ? 'bg-white/20 text-white'
                   : 'bg-slate-100 text-slate-700'
@@ -304,16 +302,16 @@ export const AdminDashboard: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('admin')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               activeTab === 'admin'
-                ? 'bg-primary-500 text-white shadow-xs'
+                ? 'bg-primary-500 text-white shadow-2xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
-            <ShieldCheck className="w-4 h-4" />
-            <span>👑 Admin Personal Daily Tasks</span>
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Admin Agenda</span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
                 activeTab === 'admin'
                   ? 'bg-white/20 text-white'
                   : 'bg-primary-50 text-primary-600 border border-primary-200'
@@ -326,23 +324,23 @@ export const AdminDashboard: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('dual')}
-            className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               activeTab === 'dual'
-                ? 'bg-primary-500 text-white shadow-xs'
+                ? 'bg-primary-500 text-white shadow-2xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
-            <Layers className="w-4 h-4" />
-            <span>📊 Dual Split View</span>
+            <Layers className="w-3.5 h-3.5" />
+            <span>Split View</span>
           </button>
         </div>
 
         <button
           onClick={() => setCurrentPage('monitor')}
-          className="text-xs font-bold text-primary-500 hover:text-primary-700 flex items-center gap-1 cursor-pointer self-start sm:self-auto bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs transition-all shrink-0"
+          className="text-xs font-bold text-primary-600 hover:text-primary-800 flex items-center gap-1 cursor-pointer self-start sm:self-auto bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs transition-all shrink-0"
         >
-          <span>Open Staff Monitor</span>
-          <ArrowUpRight className="w-3.5 h-3.5" />
+          <span>Staff Monitor</span>
+          <ArrowUpRight className="w-3 h-3" />
         </button>
       </div>
 
@@ -354,35 +352,30 @@ export const AdminDashboard: React.FC = () => {
       {(activeTab === 'staff' || activeTab === 'dual') && (
         <div className="space-y-4">
           {/* Informative Live Synchronization Banner */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <Zap className="w-4 h-4 fill-white" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <Zap className="w-3.5 h-3.5 fill-white" />
               </div>
-              <div>
-                <div className="text-xs sm:text-sm font-bold text-emerald-950 flex items-center gap-2">
-                  <span>⚡ Real-Time Staff Execution Sync Active</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    Auto-Calculated
-                  </span>
-                </div>
-                <div className="text-[11px] sm:text-xs text-emerald-900 font-medium mt-0.5">
-                  Admin does not need to strike staff target tasks. When staff strike tasks in their login, they automatically strike and update here in real time.
-                </div>
+              <div className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+                <span>⚡ Real-Time Sync</span>
+                <span className="text-[10px] text-emerald-800 font-medium hidden md:inline">
+                  When staff strike tasks in their login, updates reflect here automatically.
+                </span>
               </div>
             </div>
 
-            <div className="text-xs font-bold text-emerald-800 bg-white px-3 py-1.5 rounded-xl border border-emerald-200 shrink-0 self-start sm:self-auto shadow-2xs">
-              Staff Delivery Rate: <strong>{staffTeamRate}%</strong> ({staffCompleted}/{staffTotal})
+            <div className="text-xs font-bold text-emerald-800 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto shadow-2xs">
+              Delivery Rate: <strong>{staffTeamRate}%</strong> ({staffCompleted}/{staffTotal})
             </div>
           </div>
 
           {/* Grid: Staff Tasks Table (2 cols) & Analytics / Event (1 col) */}
-          <div className={`grid grid-cols-1 ${activeTab === 'dual' ? 'xl:grid-cols-1' : 'xl:grid-cols-3'} gap-6 sm:gap-8 w-full`}>
+          <div className={`grid grid-cols-1 ${activeTab === 'dual' ? 'xl:grid-cols-1' : 'xl:grid-cols-3'} gap-3 sm:gap-4 w-full`}>
             {/* Staff Tasks Table */}
             <div className={`${activeTab === 'dual' ? '' : 'xl:col-span-2'} bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden`}>
               {/* Table Header */}
-              <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50">
+              <div className="p-2.5 sm:p-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50">
                 <div>
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit'] flex items-center gap-2">
                     <span>👥 Staff Target Tasks</span>
@@ -400,11 +393,11 @@ export const AdminDashboard: React.FC = () => {
                 <table className="w-full text-left text-xs min-w-[620px]">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                      <th className="py-3 px-4 sm:px-5">Task Details</th>
-                      <th className="py-3 px-4">Allotted Staff</th>
-                      <th className="py-3 px-4">Priority</th>
-                      <th className="py-3 px-4">Deadline</th>
-                      <th className="py-3 px-4 sm:px-5 text-right">Staff Execution Status</th>
+                      <th className="py-2 px-3 sm:px-4">Task Details</th>
+                      <th className="py-2 px-3">Allotted Staff</th>
+                      <th className="py-2 px-3">Priority</th>
+                      <th className="py-2 px-3">Deadline</th>
+                      <th className="py-2 px-3 sm:px-4 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -427,7 +420,7 @@ export const AdminDashboard: React.FC = () => {
                             }`}
                           >
                             {/* Task Title */}
-                            <td className="py-3.5 px-4 sm:px-5">
+                            <td className="py-2 px-3 sm:px-4">
                               <div className="min-w-0 flex-1">
                                 <div
                                   className={`font-bold truncate text-[13px] transition-all ${
@@ -447,7 +440,7 @@ export const AdminDashboard: React.FC = () => {
                             </td>
 
                             {/* Assigned Staff */}
-                            <td className="py-3.5 px-4">
+                            <td className="py-2 px-3">
                               <div className="flex items-center gap-2">
                                 <div className="w-7 h-7 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
                                   {task.assignedToName
@@ -463,7 +456,7 @@ export const AdminDashboard: React.FC = () => {
                             </td>
 
                             {/* Priority Badge */}
-                            <td className="py-3.5 px-4">
+                            <td className="py-2 px-3">
                               <span
                                 className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap ${
                                   task.priority === 'High'
@@ -478,7 +471,7 @@ export const AdminDashboard: React.FC = () => {
                             </td>
 
                             {/* Prominent Target Deadline */}
-                            <td className="py-3.5 px-4">
+                            <td className="py-2 px-3">
                               <div className="inline-flex flex-col gap-0.5 items-start bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
                                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 whitespace-nowrap">
                                   <Calendar className="w-3.5 h-3.5 text-primary-500 shrink-0" />
@@ -492,7 +485,7 @@ export const AdminDashboard: React.FC = () => {
                             </td>
 
                             {/* Status Column: Staff Execution Status */}
-                            <td className="py-3.5 px-4 sm:px-5 text-right">
+                            <td className="py-2 px-3 sm:px-4 text-right">
                               <div className="flex flex-col items-end gap-1.5">
                                 <div
                                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold ${

@@ -352,7 +352,7 @@ export const MyToDoView: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
+    <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Toast Notification */}
       {reasonToast && (
         <div className="p-3.5 sm:p-4 rounded-xl bg-primary-500 text-white flex items-center gap-3 animate-in fade-in shadow-md">
@@ -362,19 +362,19 @@ export const MyToDoView: React.FC = () => {
       )}
 
       {/* Header - Mobile-Clean Responsive Architecture */}
-      <div className="flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-200">
+      <div className="flex items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-slate-200">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight truncate">
+            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight truncate">
               My Routine & To-Do
             </h1>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90 shrink-0">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90 shrink-0">
               {completedTasks}/{totalTasks} Done
             </span>
           </div>
-          <p className="hidden sm:flex text-xs sm:text-sm text-slate-500 mt-1 font-medium items-center gap-2">
+          <p className="hidden sm:flex text-xs text-slate-500 mt-0.5 font-medium items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span>Weekly routine filter · Tap anywhere on your assigned cards to strike & complete</span>
+            <span>Weekly routine · Click anywhere on a card to strike & complete</span>
           </p>
         </div>
 
@@ -547,7 +547,7 @@ export const MyToDoView: React.FC = () => {
           ROUTINE HORIZON SWITCHER: Multi-Month Switcher & Week Navigator
           Allows staff to easily view and switch tasks 2+ months in advance
           ========================================================================= */}
-      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200 shadow-xs space-y-2.5 sm:space-y-4">
+      <div className="bg-white rounded-xl p-2.5 sm:p-3.5 border border-slate-200 shadow-2xs space-y-2 sm:space-y-2.5">
         {/* Month Switcher Bar (Easily jump +1 Mo, +2 Mo, +3 Mo etc.) */}
         <div className="hidden md:flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">

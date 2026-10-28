@@ -62,19 +62,19 @@ export const TimingSettingsView: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
+    <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Clean Corporate Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Timing & Office Hours
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-500 text-white shadow-2xs">
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-500 text-white shadow-2xs">
               {orgSettings.orgName} Executive
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+          <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
             Control general office hours and event-day staff timings across the organization
           </p>
         </div>
@@ -99,10 +99,10 @@ export const TimingSettingsView: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         {/* General Office Timing Card */}
-        <div className="bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-xs">
-          <form onSubmit={handleSaveGeneralTiming} className="space-y-6">
+        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200 shadow-2xs">
+          <form onSubmit={handleSaveGeneralTiming} className="space-y-3.5">
             <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
               <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200">
                 <Clock className="w-4 h-4" />
@@ -180,8 +180,8 @@ export const TimingSettingsView: React.FC = () => {
         </div>
 
         {/* Event Timing Change Card */}
-        <div className="bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-xs">
-          <form onSubmit={handleSaveEventTiming} className="space-y-5">
+        <div className="bg-white rounded-xl p-3.5 sm:p-5 border border-slate-200 shadow-2xs">
+          <form onSubmit={handleSaveEventTiming} className="space-y-3.5">
             <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
               <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200">
                 <Calendar className="w-4 h-4" />

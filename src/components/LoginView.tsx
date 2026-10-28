@@ -25,9 +25,9 @@ export const LoginView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-3.5 sm:p-6">
-      <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-2">
+      <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-2">
         {/* Left Hero Panel */}
-        <div className="bg-primary-500 text-white p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-primary-500 text-white p-5 sm:p-7 flex flex-col justify-between relative overflow-hidden">
           {/* Logo & Org Badge */}
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2.5">
@@ -43,7 +43,7 @@ export const LoginView: React.FC = () => {
           </div>
 
           {/* Center Pitch */}
-          <div className="my-8 sm:my-10 relative z-10">
+          <div className="my-4 sm:my-6 relative z-10">
             <h1 className="font-['Outfit'] text-2xl sm:text-3xl font-black tracking-tight leading-tight mb-3">
               Plan the day.<br />Track the work.
             </h1>
@@ -75,14 +75,14 @@ export const LoginView: React.FC = () => {
         </div>
 
         {/* Right Form Panel */}
-        <div className="p-6 sm:p-10 flex flex-col justify-center">
-          <div className="mb-6">
+        <div className="p-5 sm:p-7 flex flex-col justify-center">
+          <div className="mb-4">
             <h2 className="font-['Outfit'] text-xl sm:text-2xl font-black text-slate-900">Sign in to TaskToggle</h2>
             <p className="text-xs text-slate-500 mt-1 font-medium">Access your daily schedule and assigned tasks</p>
           </div>
 
           {/* Role switcher toggle */}
-          <div className="grid grid-cols-2 gap-1.5 bg-slate-100 p-1.5 rounded-2xl mb-6 border border-slate-200">
+          <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl mb-4 border border-slate-200">
             <button
               type="button"
               onClick={() => handleRoleChange('admin')}

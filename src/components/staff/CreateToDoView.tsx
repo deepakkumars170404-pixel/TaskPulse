@@ -66,19 +66,19 @@ export const CreateToDoView: React.FC = () => {
   }).slice(0, 8);
 
   return (
-    <div className="w-full p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5">
+    <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Clean Corporate Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Create New Task
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90">
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90">
               {orgSettings.orgName} Workspace
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+          <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
             Add a to-do item for yourself or delegate a task to a colleague
           </p>
         </div>
@@ -95,10 +95,10 @@ export const CreateToDoView: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 w-full">
         {/* Main Form (2 cols on xl) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-3.5 sm:p-8 border border-slate-200 shadow-xs">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="xl:col-span-2 bg-white rounded-xl p-3 sm:p-4.5 border border-slate-200 shadow-2xs">
+          <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
             {/* Task title */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
@@ -110,7 +110,7 @@ export const CreateToDoView: React.FC = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Share call notes template with team"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-xs sm:text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
               />
             </div>
 
@@ -124,7 +124,7 @@ export const CreateToDoView: React.FC = () => {
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Send the template used for client calls to the team with updated questions."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-xs sm:text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
               />
             </div>
 
@@ -171,7 +171,7 @@ export const CreateToDoView: React.FC = () => {
             </div>
 
             {/* Target Deadline (Interactive Mini Calendar & Fast Clock Picker) */}
-            <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
+            <div className="space-y-2.5 bg-slate-50/80 p-2.5 sm:p-3 rounded-xl border border-slate-200">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-primary-500" />
