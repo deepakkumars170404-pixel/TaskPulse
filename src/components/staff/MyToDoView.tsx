@@ -361,21 +361,18 @@ export const MyToDoView: React.FC = () => {
         </div>
       )}
 
-      {/* Header - Light Crisp Professional Architecture (No Black) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold font-['Outfit'] text-slate-900 tracking-tight">
+      {/* Header - Mobile-Clean Responsive Architecture */}
+      <div className="flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-200">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight truncate">
               My Routine & To-Do
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90">
-              {orgSettings.orgName} Staff
-            </span>
-            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
-              {totalTasks} Total Tasks
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90 shrink-0">
+              {completedTasks}/{totalTasks} Done
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium flex items-center gap-2">
+          <p className="hidden sm:flex text-xs sm:text-sm text-slate-500 mt-1 font-medium items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span>Weekly routine filter · Tap anywhere on your assigned cards to strike & complete</span>
           </p>
@@ -386,13 +383,31 @@ export const MyToDoView: React.FC = () => {
           <button
             type="button"
             onClick={completeAllTasks}
-            className="px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer active:scale-95 transition-all self-start sm:self-auto"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shrink-0"
             title="Mark all pending tasks completed in 1 click"
           >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Strike All Finished ({strikablePendingCountInView})</span>
+            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>Strike All ({strikablePendingCountInView})</span>
           </button>
         )}
+      </div>
+
+      {/* Mobile Top Progress Strip */}
+      <div className="sm:hidden bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
+            <span>Overall Routine: {progressPercent}%</span>
+            <span className="text-slate-500 font-medium">{completedTasks}/{totalTasks} done</span>
+          </div>
+          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                progressPercent === 100 ? 'bg-emerald-600' : 'bg-primary-500'
+              }`}
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       {/* =========================================================================
@@ -532,9 +547,9 @@ export const MyToDoView: React.FC = () => {
           ROUTINE HORIZON SWITCHER: Multi-Month Switcher & Week Navigator
           Allows staff to easily view and switch tasks 2+ months in advance
           ========================================================================= */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-4">
+      <div className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200 shadow-xs space-y-2.5 sm:space-y-4">
         {/* Month Switcher Bar (Easily jump +1 Mo, +2 Mo, +3 Mo etc.) */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div className="hidden md:flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-primary-500 shrink-0" />
             <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -642,7 +657,7 @@ export const MyToDoView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedDay('all')}
-                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                className={`min-w-[62px] sm:min-w-0 p-2 sm:p-2.5 rounded-xl border text-center sm:text-left transition-all cursor-pointer shrink-0 flex flex-col justify-between ${
                   selectedDay === 'all'
                     ? 'bg-primary-500 text-white border-primary-500 shadow-xs'
                     : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
@@ -669,7 +684,7 @@ export const MyToDoView: React.FC = () => {
                     key={day.dayName}
                     type="button"
                     onClick={() => setSelectedDay(day.dayName)}
-                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                    className={`min-w-[62px] sm:min-w-0 p-2 sm:p-2.5 rounded-xl border text-center sm:text-left transition-all cursor-pointer relative shrink-0 flex flex-col justify-between ${
                       isSelected
                         ? 'bg-primary-500 text-white border-primary-500 shadow-xs'
                         : day.isAllDone
@@ -762,9 +777,9 @@ export const MyToDoView: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Task Cards (2 cols on xl) */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs">
+          <div className="bg-white rounded-2xl p-3 sm:p-6 border border-slate-200 shadow-xs">
             {/* List Header with Click-to-Strike Notice & Show Completed Toggle */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 sm:pb-4 mb-3 sm:mb-4 border-b border-slate-100">
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit']">
@@ -779,7 +794,7 @@ export const MyToDoView: React.FC = () => {
                     <span>Click anywhere on card to strike</span>
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                <p className="hidden sm:block text-[11px] text-slate-400 font-medium mt-0.5">
                   Clicking anywhere on a task strikes it through as completed and notifies Admin
                 </p>
               </div>
@@ -912,53 +927,42 @@ export const MyToDoView: React.FC = () => {
                         }`}
                       />
 
-                      <div className="p-3.5 sm:p-4.5 pl-4 sm:pl-5">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                          <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            {/* Strike Checkbox - ONLY rendered if the current user has permission to strike this task */}
-                            {canStrike && (
-                              <button
-                                type="button"
-                                disabled={isRejected}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (isRejected) return;
-                                  toggleTaskStatus(task.id);
-                                }}
-                                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-150 shrink-0 mt-0.5 ${
-                                  isRejected
-                                    ? 'bg-rose-100 text-rose-600 border border-rose-300 cursor-not-allowed'
-                                    : isDone
-                                    ? 'bg-emerald-600 text-white cursor-pointer'
-                                    : 'border-2 border-slate-300 hover:border-primary-500 hover:bg-primary-50/40 bg-white cursor-pointer'
-                                }`}
-                                aria-label={
-                                  isRejected
-                                    ? 'Declined task cannot be struck'
-                                    : isDone
-                                    ? 'Mark task as pending'
-                                    : 'Mark task as done'
-                                }
-                                title={
-                                  isRejected
-                                    ? 'Declined task cannot be struck'
-                                    : isDone
-                                    ? 'Mark task as pending'
-                                    : 'Mark task as done'
-                                }
-                              >
-                                {isRejected ? (
-                                  <XCircle className="w-4 h-4 stroke-[2.5]" />
-                                ) : isDone ? (
-                                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                ) : null}
-                              </button>
-                            )}
+                      <div className="p-3 sm:p-4 pl-3.5 sm:pl-4.5">
+                        <div className="flex items-start gap-3">
+                          {/* Strike Checkbox */}
+                          {canStrike && (
+                            <button
+                              type="button"
+                              disabled={isRejected}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isRejected) return;
+                                toggleTaskStatus(task.id);
+                              }}
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all shrink-0 mt-0.5 ${
+                                isRejected
+                                  ? 'bg-rose-100 text-rose-600 border border-rose-300 cursor-not-allowed'
+                                  : isDone
+                                  ? 'bg-emerald-600 text-white cursor-pointer shadow-2xs'
+                                  : 'border-2 border-slate-300 hover:border-primary-500 hover:bg-primary-50/40 bg-white cursor-pointer'
+                              }`}
+                              aria-label={isDone ? 'Mark task as pending' : 'Mark task as done'}
+                              title={isDone ? 'Mark task as pending' : 'Mark task as done'}
+                            >
+                              {isRejected ? (
+                                <XCircle className="w-4 h-4 stroke-[2.5]" />
+                              ) : isDone ? (
+                                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              ) : null}
+                            </button>
+                          )}
 
-                            {/* Title & Details */}
-                            <div className="min-w-0 flex-1">
+                          {/* Content Area */}
+                          <div className="min-w-0 flex-1">
+                            {/* Row 1: Title & Action Chips */}
+                            <div className="flex items-start justify-between gap-2">
                               <h3
-                                className={`text-sm sm:text-base font-bold transition-colors duration-150 ${
+                                className={`text-sm sm:text-base font-bold leading-snug ${
                                   isDone
                                     ? 'line-through text-slate-400 font-medium decoration-emerald-500 decoration-2'
                                     : isRejected
@@ -969,163 +973,125 @@ export const MyToDoView: React.FC = () => {
                                 {task.title}
                               </h3>
 
-                              {task.description && (
-                                <p
-                                  className={`text-xs mt-1 leading-relaxed font-normal transition-colors duration-150 ${
-                                    isDone ? 'line-through text-slate-400/80' : 'text-slate-500'
-                                  }`}
-                                >
-                                  {task.description}
-                                </p>
-                              )}
-
-                              {/* Prominent Metadata Badges */}
-                              <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                                {/* Clear Due Date & Time */}
-                                <div className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-800">
-                                  <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                                  <span>{task.dueDate}</span>
-                                  {task.dueTime && (
-                                    <>
-                                      <span className="text-slate-300">•</span>
-                                      <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                                      <span>{task.dueTime}</span>
-                                    </>
-                                  )}
-                                </div>
-
-                                {/* Who it is FROM or Sent TO */}
+                              {/* Clean Quick Actions on Top Right */}
+                              <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
                                 {isDelegatedByMe ? (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-purple-50 text-purple-800 border border-purple-200">
-                                    <Send className="w-3.5 h-3.5 text-purple-600" />
-                                    <span>Sent to: {task.assignedToName || 'Colleague'}</span>
-                                  </span>
-                                ) : task.type === 'admin' ? (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-primary-50 text-primary-700 border border-primary-200">
-                                    <ShieldAlert className="w-3.5 h-3.5 text-primary-500" />
-                                    <span>From Admin ({orgSettings.orgName})</span>
-                                  </span>
-                                ) : task.type === 'staff' ? (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
-                                    <Users className="w-3.5 h-3.5 text-slate-600" />
-                                    <span>
-                                      From Colleague:{' '}
-                                      {senderUser?.name || task.createdByName || 'Staff'}
-                                    </span>
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 border border-slate-200">
-                                    <User className="w-3.5 h-3.5 text-slate-400" />
-                                    <span>Self Created</span>
-                                  </span>
-                                )}
-
-                                {/* Priority Pill */}
-                                {task.priority === 'High' && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                    <span>High Priority</span>
-                                  </span>
-                                )}
-
-                                {isDelegatedByMe ? (
-                                  isDone ? (
-                                    <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                      <span>✓ Completed by {task.assignedToName?.split(' ')[0]} {task.completedAt ? `(${task.completedAt})` : ''}</span>
-                                    </span>
-                                  ) : isRejected ? (
-                                    <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200">
-                                      <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                      <span>Declined by {task.assignedToName?.split(' ')[0]}</span>
-                                    </span>
-                                  ) : task.pendingReason ? (
-                                    <span className="text-[11px] font-bold text-amber-900 flex items-center gap-1 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200">
-                                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                                      <span>Issue Reported</span>
-                                    </span>
-                                  ) : (
-                                    <span className="text-[11px] font-bold text-purple-700 flex items-center gap-1 bg-purple-50 px-2.5 py-0.5 rounded-lg border border-purple-200">
-                                      <Clock className="w-3.5 h-3.5 text-purple-600" />
-                                      <span>In Progress with {task.assignedToName?.split(' ')[0]}</span>
-                                    </span>
-                                  )
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setReassigningTaskId(task.id);
+                                      const firstOther = users.find((u) => u.role === 'staff' && u.id !== currentUser.id && u.id !== task.assignedTo);
+                                      setReassignTargetUserId(firstOther?.id || '');
+                                    }}
+                                    className="px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                                    title="Reassign to another colleague"
+                                  >
+                                    <RotateCcw className="w-3 h-3 text-slate-500" />
+                                    <span className="hidden sm:inline">Reassign</span>
+                                  </button>
                                 ) : (
                                   <>
-                                    {isRejected && (
-                                      <span className="text-[11px] font-bold text-rose-700 flex items-center gap-1 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200">
-                                        <XCircle className="w-3.5 h-3.5 text-rose-600" />
-                                        <span>Declined {task.rejectedAt ? `(${task.rejectedAt})` : ''}</span>
-                                      </span>
+                                    {!isDone && !isRejected && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          snoozeTask(task.id, 30);
+                                        }}
+                                        className="px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer whitespace-nowrap active:scale-95"
+                                        title="Snooze deadline by +30 minutes"
+                                      >
+                                        +30m
+                                      </button>
                                     )}
 
-                                    {isDone && task.completedAt && (
-                                      <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                        <span>Done at {task.completedAt}</span>
-                                      </span>
+                                    {!isDone && !isRejected && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenReasonBox(task.id, task.pendingReason);
+                                        }}
+                                        className={`p-1 sm:px-2 sm:py-0.5 rounded-lg text-[10px] sm:text-xs font-bold border transition-all cursor-pointer flex items-center gap-1 ${
+                                          task.pendingReason
+                                            ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                            : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                                        }`}
+                                        title={task.pendingReason ? `Reason: ${task.pendingReason}` : 'Report Note / Issue'}
+                                      >
+                                        <MessageSquare className="w-3.5 h-3.5" />
+                                        <span className="hidden md:inline">{task.pendingReason ? 'Reason' : 'Note'}</span>
+                                      </button>
                                     )}
                                   </>
                                 )}
                               </div>
                             </div>
-                          </div>
 
-                          {/* Quick Snooze, Issue Reporting, or Delegated Reassign */}
-                          <div className="flex items-center gap-2 shrink-0 pl-10 sm:pl-0 flex-wrap">
-                            {isDelegatedByMe ? (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setReassigningTaskId(task.id);
-                                  const firstOther = users.find((u) => u.role === 'staff' && u.id !== currentUser.id && u.id !== task.assignedTo);
-                                  setReassignTargetUserId(firstOther?.id || '');
-                                }}
-                                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer flex items-center gap-1"
-                                title="Reassign to another colleague"
+                            {/* Description if present */}
+                            {task.description && (
+                              <p
+                                className={`text-xs mt-0.5 leading-relaxed line-clamp-1 sm:line-clamp-2 ${
+                                  isDone ? 'line-through text-slate-400/80' : 'text-slate-500'
+                                }`}
                               >
-                                <RotateCcw className="w-3.5 h-3.5 text-slate-600" />
-                                <span>Reassign</span>
-                              </button>
-                            ) : (
-                              <>
-                                {!isDone && !isRejected && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      snoozeTask(task.id, 30);
-                                    }}
-                                    className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all cursor-pointer"
-                                    title="Snooze deadline by +30 minutes"
-                                  >
-                                    +30m Snooze
-                                  </button>
-                                )}
-
-                                {!isDone && !isRejected && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleOpenReasonBox(task.id, task.pendingReason);
-                                    }}
-                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                                      task.pendingReason
-                                        ? 'bg-amber-50 text-amber-900 border-amber-300'
-                                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
-                                    }`}
-                                  >
-                                    <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
-                                    <span>{task.pendingReason ? 'Reason Sent' : 'Report Issue'}</span>
-                                  </button>
-                                )}
-                              </>
+                                {task.description}
+                              </p>
                             )}
+
+                            {/* Row 2: Metadata Line (Due Time, Priority, Source, Status) */}
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2 text-xs">
+                              {/* Due Time */}
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
+                                <Clock className="w-3 h-3 text-slate-500" />
+                                <span>{task.dueTime || task.dueDate}</span>
+                              </span>
+
+                              {/* Priority Pill */}
+                              {task.priority === 'High' && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                  <span>High</span>
+                                </span>
+                              )}
+
+                              {/* Source Pill */}
+                              {task.type === 'admin' ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-primary-50 text-primary-700 border border-primary-200">
+                                  <ShieldAlert className="w-3 h-3 text-primary-500" />
+                                  <span>Compulsory</span>
+                                </span>
+                              ) : isDelegatedByMe ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">
+                                  <Send className="w-3 h-3 text-purple-600" />
+                                  <span>Sent to {task.assignedToName?.split(' ')[0]}</span>
+                                </span>
+                              ) : task.type === 'staff' ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                                  <Users className="w-3 h-3 text-slate-500" />
+                                  <span>From {senderUser?.name?.split(' ')[0] || 'Colleague'}</span>
+                                </span>
+                              ) : null}
+
+                              {/* Status Pills */}
+                              {isDone && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                  <span>Done</span>
+                                </span>
+                              )}
+
+                              {isRejected && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                                  <XCircle className="w-3 h-3 text-rose-600" />
+                                  <span>Declined</span>
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-
+                      </div>
                         {/* Reported Pending / Decline / Issue Reason Display */}
                         {task.pendingReason && !isEditingReason && (
                           <div className={`mt-3 p-3 rounded-xl border text-xs flex items-start justify-between gap-3 ${
@@ -1251,7 +1217,6 @@ export const MyToDoView: React.FC = () => {
                           </div>
                         )}
                       </div>
-                    </div>
                   );
                 })}
               </div>

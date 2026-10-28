@@ -134,7 +134,7 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Date Navigation Bar */}
       <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
           <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 ml-1 border border-slate-200">
             <Calendar className="w-4 h-4 text-primary-500" />
           </div>
@@ -173,9 +173,9 @@ export const AdminDashboard: React.FC = () => {
       {/* =========================================================================
           EXECUTIVE STAT CARDS: COMPLETELY SEPARATE ADMIN SCORE & STAFF RATE
           ========================================================================= */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5">
         {/* Card 1: 👑 ADMIN PERSONAL DAILY SCORE */}
-        <div className="bg-gradient-to-br from-primary-50/60 via-white to-white border-2 border-primary-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-gradient-to-br from-primary-50/60 via-white to-white border-2 border-primary-200 rounded-2xl p-3 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-primary-600 bg-primary-100/70 px-2.5 py-1 rounded-lg">
               <span>👑 Admin Personal Score</span>
@@ -206,7 +206,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Card 2: 👥 STAFF TEAM TARGET DELIVERY RATE (AUTO-CALCULATED) */}
-        <div className="bg-gradient-to-br from-emerald-50/60 via-white to-white border-2 border-emerald-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-gradient-to-br from-emerald-50/60 via-white to-white border-2 border-emerald-200 rounded-2xl p-3 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
               <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600" />
@@ -238,7 +238,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Card 3: Staff Active Pending Workload */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition-all">
+        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-5 shadow-xs hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Pending Staff Queue

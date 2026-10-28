@@ -97,7 +97,7 @@ export const CreateToDoView: React.FC = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Form (2 cols on xl) */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-xs">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-3.5 sm:p-8 border border-slate-200 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task title */}
             <div>

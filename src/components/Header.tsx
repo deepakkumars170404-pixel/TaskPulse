@@ -104,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         </button>
 
         {/* Office Hours Chip */}
-        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium">
+        <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium">
           <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
           <span className="text-[11px] sm:text-xs font-bold text-slate-900">
             <span className="hidden md:inline font-normal text-slate-500">Office: </span>
@@ -117,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           <button
             type="button"
             onClick={() => setShowThemeDropdown(!showThemeDropdown)}
-            className={`flex items-center gap-1.5 border px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+            className={`flex items-center gap-1.5 border p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs ${
               showThemeDropdown
                 ? 'bg-primary-50 border-primary-300 text-primary-800'
                 : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
