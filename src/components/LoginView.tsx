@@ -42,8 +42,8 @@ export const LoginView: React.FC = () => {
             </span>
           </div>
 
-          {/* Center Pitch */}
-          <div className="my-4 sm:my-6 relative z-10">
+          {/* Center Pitch (Visible on desktop; collapsed on mobile for fast instant login) */}
+          <div className="hidden md:block my-4 sm:my-6 relative z-10">
             <h1 className="font-['Outfit'] text-2xl sm:text-3xl font-black tracking-tight leading-tight mb-3">
               Plan the day.<br />Track the work.
             </h1>

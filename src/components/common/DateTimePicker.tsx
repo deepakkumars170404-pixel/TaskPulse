@@ -117,7 +117,7 @@ export const QuickDatePicker: React.FC<QuickDatePickerProps> = ({
 
       {/* Mini Calendar Popover */}
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 z-50 w-72 bg-white rounded-2xl border border-slate-200 shadow-xl p-3.5 animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute top-full mt-2 left-0 sm:left-0 z-50 w-72 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl border border-slate-200 shadow-xl p-3.5 animate-in fade-in zoom-in-95 duration-100">
           {/* Quick Presets */}
           <div className="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-slate-100 overflow-x-auto no-scrollbar">
             <button
@@ -325,7 +325,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
 
       {/* Clock Popup */}
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto z-50 w-76 bg-white rounded-2xl border border-slate-200 shadow-xl p-4 animate-in fade-in zoom-in-95 duration-100">
+        <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto z-50 w-76 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl border border-slate-200 shadow-xl p-3.5 sm:p-4 animate-in fade-in zoom-in-95 duration-100">
           {/* Header & Fast Presets */}
           <div className="pb-3 border-b border-slate-100 space-y-2">
             <div className="flex items-center justify-between">

@@ -656,7 +656,201 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto no-scrollbar">
+            {/* 1. Mobile Responsive Cards (< md screens) - Zero horizontal scroll, touch-first cards */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {displayedTableTasks.length === 0 ? (
+                <div className="py-10 px-4 text-center text-slate-400 font-medium italic text-xs">
+                  No tasks found for this selected timeline filter.
+                </div>
+              ) : (
+                displayedTableTasks.map((task) => {
+                  const isAdminTask =
+                    task.assignedTo === currentUser.id ||
+                    task.assignedTo === 'admin_deepak' ||
+                    task.assignedTo === 'admin_1' ||
+                    task.assignedTo === 'admin' ||
+                    task.type === 'self' ||
+                    Boolean(task.assignedToName?.toLowerCase().includes('admin'));
+                  const isDone = task.status === 'done';
+                  const isRejected = task.status === 'rejected';
+
+                  return (
+                    <div
+                      key={task.id}
+                      className={`p-3 space-y-2 transition-all ${
+                        isDone
+                          ? 'bg-slate-50/60 opacity-80'
+                          : isRejected
+                          ? 'bg-rose-50/20'
+                          : isAdminTask
+                          ? 'bg-amber-50/20'
+                          : 'hover:bg-slate-50/60'
+                      }`}
+                    >
+                      {/* Top Row: Checkbox/Icon + Title + Action */}
+                      <div className="flex items-start gap-2.5">
+                        {isAdminTask ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleTaskStatus(task.id);
+                            }}
+                            className={`w-5 h-5 rounded-md flex items-center justify-center transition-all shrink-0 mt-0.5 cursor-pointer ${
+                              isDone
+                                ? 'bg-primary-500 text-white shadow-2xs'
+                                : 'border-2 border-slate-300 hover:border-primary-500 bg-white'
+                            }`}
+                            title="Click to strike or unstrike this personal task"
+                          >
+                            {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </button>
+                        ) : (
+                          <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5">
+                            {isDone ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            ) : isRejected ? (
+                              <XCircle className="w-4 h-4 text-rose-500" />
+                            ) : (
+                              <Clock className="w-4 h-4 text-slate-300" />
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className={`text-xs font-bold leading-snug break-words ${
+                              isDone
+                                ? 'line-through text-slate-400 font-medium decoration-primary-500 decoration-2'
+                                : isRejected
+                                ? 'line-through text-slate-400 font-medium decoration-rose-400'
+                                : 'text-slate-900'
+                            }`}
+                          >
+                            {task.title}
+                          </div>
+
+                          <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 font-medium">
+                            {isAdminTask ? (
+                              <span className="inline-flex items-center gap-1 font-bold text-amber-800">
+                                👑 Admin Personal Task
+                              </span>
+                            ) : (
+                              <span>
+                                {task.type === 'admin' ? 'Staff Delegation' : `By ${task.createdByName}`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Status / Strike Action Button */}
+                        <div className="shrink-0">
+                          {isAdminTask ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => toggleTaskStatus(task.id)}
+                                className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                                  isDone
+                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                    : 'bg-amber-50 text-amber-800 border border-amber-200'
+                                }`}
+                              >
+                                {isDone ? '✓ Done' : '⏳ Pending'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteTask(task.id);
+                                }}
+                                className="w-6 h-6 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer"
+                                title="Delete task"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                isDone
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : isRejected
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              }`}
+                            >
+                              {isDone ? '✓ Delivered' : isRejected ? '❌ Declined' : '⏳ In Queue'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Bottom Meta Row: Assignee, Priority, Deadline */}
+                      <div className="flex items-center justify-between gap-1.5 flex-wrap pt-1 border-t border-slate-100 text-[10px]">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {/* Assignee */}
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">
+                            <span className="w-3.5 h-3.5 rounded-full bg-primary-600 text-white text-[8px] font-bold flex items-center justify-center">
+                              {isAdminTask ? '👑' : task.assignedToName?.charAt(0) || 'S'}
+                            </span>
+                            <span className="truncate max-w-[100px]">
+                              {isAdminTask ? 'Admin (Myself)' : task.assignedToName}
+                            </span>
+                          </span>
+
+                          {/* Priority */}
+                          <span
+                            className={`px-1.5 py-0.2 rounded font-bold ${
+                              task.priority === 'High'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : task.priority === 'Medium'
+                                ? 'bg-primary-50 text-primary-700 border border-primary-200'
+                                : 'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {task.priority}
+                          </span>
+
+                          {/* Deadline */}
+                          <span className="inline-flex items-center gap-1 text-slate-600 font-medium">
+                            <Calendar className="w-3 h-3 text-primary-500" />
+                            <span>{task.dueDate}</span>
+                            <span className="text-slate-400">·</span>
+                            <span>{task.dueTime}</span>
+                          </span>
+                        </div>
+
+                        {/* Reported Issue button on mobile if exists */}
+                        {!isDone && !isRejected && task.pendingReason && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTaskForIssue(task);
+                            }}
+                            className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 text-[9px] font-bold flex items-center gap-1 cursor-pointer max-w-[130px] truncate"
+                          >
+                            <AlertTriangle className="w-2.5 h-2.5 text-amber-600 shrink-0" />
+                            <span className="truncate">Issue</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Declined reason banner on mobile if exists */}
+                      {isRejected && (
+                        <div className="p-1.5 rounded-lg bg-rose-50 text-rose-900 border border-rose-200 text-[10px] font-medium leading-tight">
+                          <strong>Why Declined:</strong> "{getTaskDeclineReason(task) || 'No message provided'}"
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* 2. Desktop Table (>= md screens) */}
+            <div className="hidden md:block overflow-x-auto no-scrollbar">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
