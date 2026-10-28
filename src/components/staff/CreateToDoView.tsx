@@ -71,10 +71,10 @@ export const CreateToDoView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Create New Task
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-2xs">
               {orgSettings.orgName} Workspace
             </span>
           </div>
@@ -97,11 +97,11 @@ export const CreateToDoView: React.FC = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8 w-full">
         {/* Main Form (2 cols on xl) */}
-        <div className="xl:col-span-2 bg-[#0F172A]/80 backdrop-blur-xl rounded-2xl p-5 sm:p-8 border border-white/[0.08] shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
+        <div className="xl:col-span-2 bg-white rounded-2xl p-5 sm:p-8 border border-slate-200 shadow-xs">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task title */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                 Task Title
               </label>
               <input
@@ -110,13 +110,13 @@ export const CreateToDoView: React.FC = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Share call notes template with team"
                 required
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-white/[0.1] focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 text-sm font-semibold text-white transition-all placeholder:text-slate-500 shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
               />
             </div>
 
             {/* Details */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
                 Task Details & Context
               </label>
               <textarea
@@ -124,13 +124,13 @@ export const CreateToDoView: React.FC = () => {
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Send the template used for client calls to the team with updated questions."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-white/[0.1] focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 text-sm font-medium text-white transition-all placeholder:text-slate-500 resize-none shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
               />
             </div>
 
             {/* Assignee Selection */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2.5">
                 Assignee (Who should perform this task?)
               </label>
               <div className="flex flex-wrap gap-2.5">
@@ -140,8 +140,8 @@ export const CreateToDoView: React.FC = () => {
                   onClick={() => setTargetUserId(currentUser.id)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                     targetUserId === currentUser.id
-                      ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)] border border-white/10'
-                      : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-white/[0.08]'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 border border-slate-200'
                   }`}
                 >
                   <User className="w-3.5 h-3.5" />
@@ -158,8 +158,8 @@ export const CreateToDoView: React.FC = () => {
                       onClick={() => setTargetUserId(staff.id)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         isSelected
-                          ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)] border border-white/10'
-                          : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 border border-white/[0.08]'
+                          ? 'bg-indigo-600 text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 border border-slate-200'
                       }`}
                     >
                       <Users className="w-3.5 h-3.5" />
@@ -171,9 +171,9 @@ export const CreateToDoView: React.FC = () => {
             </div>
 
             {/* Target Deadline (Interactive Mini Calendar & Fast Clock Picker) */}
-            <div className="space-y-4 bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-white/[0.08]">
+            <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-indigo-600" />
                   <span>Target Deadline (Mini Calendar & Fast Clock)</span>
                 </label>

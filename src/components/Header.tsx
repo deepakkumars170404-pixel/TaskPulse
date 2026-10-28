@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   }, [showSwitchDropdown]);
 
   return (
-    <header className="bg-[#090D16]/85 backdrop-blur-xl border-b border-white/[0.08] px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between sticky top-0 z-30 shadow-[0_4px_25px_rgba(0,0,0,0.5)] transition-all">
+    <header className="bg-white border-b border-slate-200 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between sticky top-0 z-30 shadow-xs transition-all">
       {/* Left: Mobile Menu Trigger + Brand logo & name */}
       <div className="flex items-center gap-2.5 sm:gap-3.5">
         {/* Hamburger Menu button for mobile */}
@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 hover:text-cyan-400 hover:bg-white/[0.06] border border-white/[0.1] transition-colors cursor-pointer"
+            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-700 hover:text-indigo-600 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
             aria-label="Open navigation drawer"
           >
             <Menu className="w-5 h-5" />
@@ -52,23 +52,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         )}
 
         {/* Brand Logo - Crisp Solid Royal Indigo */}
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(99,102,241,0.5)] shrink-0 border border-white/20">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs shrink-0">
           <CheckSquare className="w-5 h-5 stroke-[2.5]" />
         </div>
 
         {/* Brand name & Org tag */}
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-['Outfit'] font-black text-lg sm:text-xl tracking-tight text-white leading-none">
-              Task<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">Toggle</span>
+            <span className="font-['Outfit'] font-black text-lg sm:text-xl tracking-tight text-slate-900 leading-none">
+              Task<span className="text-indigo-600">Toggle</span>
             </span>
 
             {/* Organization Badge (Deepak) */}
-            <span className="hidden xs:inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+            <span className="hidden xs:inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-600 text-white shadow-2xs">
               {orgSettings.orgName}
             </span>
           </div>
-          <p className="hidden sm:block text-[11px] text-slate-500 font-medium">
+          <p className="hidden sm:block text-[11px] text-slate-400 font-medium">
             Daily Task Scheduling Platform
           </p>
         </div>
@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             // Immediately and synchronously trigger Document PiP to guarantee active user gesture
             window.dispatchEvent(new CustomEvent('open-pip-window'));
           }}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-bold shadow-[0_0_15px_rgba(99,102,241,0.35)] cursor-pointer active:scale-95 transition-all border border-white/10"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
           title="Float TaskToggle mini popup over all other apps and games"
         >
           <MonitorUp className="w-3.5 h-3.5 text-indigo-400" />
@@ -100,9 +100,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         </button>
 
         {/* Office Hours Chip */}
-        <div className="flex items-center gap-1.5 bg-slate-900/90 border border-white/[0.08] text-slate-300 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium shadow-2xs">
+        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-800 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-medium">
           <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <span className="text-[11px] sm:text-xs font-bold text-slate-200 font-mono">
+          <span className="text-[11px] sm:text-xs font-bold text-slate-900">
             <span className="hidden md:inline font-normal text-slate-500">Office: </span>
             {officeTiming.openTime} – {officeTiming.closeTime}
           </span>
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           <button
             type="button"
             onClick={() => setShowSwitchDropdown(!showSwitchDropdown)}
-            className="flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 border border-white/[0.1] text-slate-200 p-1 sm:pr-3 rounded-full transition-all cursor-pointer shadow-2xs"
+            className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 p-1 sm:pr-3 rounded-full transition-all cursor-pointer shadow-2xs"
             title="Click to switch persona (Admin vs Staff)"
             aria-expanded={showSwitchDropdown}
           >
@@ -125,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               {currentUser.initials}
             </div>
             <div className="hidden sm:block text-left text-xs">
-              <p className="font-bold text-slate-200 leading-tight flex items-center gap-1">
+              <p className="font-bold text-slate-900 leading-tight flex items-center gap-1">
                 {currentUser.name}
                 <span
                   className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
@@ -143,8 +143,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
 
           {/* User Switcher Dropdown (Allows 1-click switching to any staff or admin for presentation) */}
           {showSwitchDropdown && (
-            <div className="absolute right-0 mt-2 w-72 bg-[#0F172A]/95 backdrop-blur-2xl rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.7)] border border-white/[0.12] p-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-200">
-              <div className="px-3 py-2 border-b border-white/[0.08] flex items-center justify-between">
+            <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                     Team Members & Switcher
@@ -171,8 +171,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                       }}
                       className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all cursor-pointer ${
                         isCurrent
-                          ? 'bg-indigo-500/20 text-cyan-300 font-bold border border-cyan-500/40 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
-                          : 'hover:bg-white/[0.06] text-slate-300'
+                          ? 'bg-indigo-50/80 text-indigo-950 font-bold border border-indigo-200/60'
+                          : 'hover:bg-slate-50 text-slate-700'
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
@@ -184,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                           {u.initials}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-200 truncate flex items-center gap-1">
+                          <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
                             {u.name}
                             {u.role === 'admin' ? (
                               <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
@@ -215,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                     setShowSwitchDropdown(false);
                     logout();
                   }}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-xs font-bold transition-all cursor-pointer border border-white/[0.08]"
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-bold transition-all cursor-pointer border border-slate-200"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Sign Out</span>

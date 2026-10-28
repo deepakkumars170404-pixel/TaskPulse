@@ -109,10 +109,10 @@ export const AdminDashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Executive Dashboard
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-2xs">
               {orgSettings.orgName} Workspace
             </span>
           </div>
@@ -124,7 +124,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={() => setCurrentPage('assign')}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs sm:text-sm font-bold shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all cursor-pointer shrink-0 active:scale-95 border border-white/10"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>Assign New Task</span>
@@ -133,9 +133,9 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Date Navigation Bar */}
-      <div className="bg-[#0F172A]/80 backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl border border-white/[0.08] shadow-[0_4px_25px_rgba(0,0,0,0.3)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
-          <div className="w-8 h-8 rounded-xl bg-slate-900/90 flex items-center justify-center text-slate-300 shrink-0 ml-1 border border-white/[0.08]">
+          <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 ml-1 border border-slate-200">
             <Calendar className="w-4 h-4 text-indigo-600" />
           </div>
           <span className="text-xs font-bold text-slate-700 mr-1.5 shrink-0 hidden xs:inline">
@@ -155,8 +155,8 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => setDateFilter(filter.id)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 dateFilter === filter.id
-                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_12px_rgba(99,102,241,0.4)] border border-white/10'
-                  : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-200'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               {filter.label}
@@ -175,7 +175,7 @@ export const AdminDashboard: React.FC = () => {
           ========================================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         {/* Card 1: 👑 ADMIN PERSONAL DAILY SCORE */}
-        <div className="bg-gradient-to-br from-[#131B2E] via-[#0F172A] to-[#0A0E1A] border-2 border-indigo-500/30 rounded-2xl p-4 sm:p-5 shadow-[0_4px_25px_rgba(99,102,241,0.15)] relative overflow-hidden">
+        <div className="bg-gradient-to-br from-indigo-50/60 via-white to-white border-2 border-indigo-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-100/70 px-2.5 py-1 rounded-lg">
               <span>👑 Admin Personal Score</span>
@@ -185,7 +185,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <div className="text-3xl font-black font-['Outfit'] text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+            <div className="text-3xl font-black font-['Outfit'] text-indigo-950">
               {adminPersonalScore}%
             </div>
             <span className="text-xs font-bold text-indigo-700">
@@ -193,9 +193,9 @@ export const AdminDashboard: React.FC = () => {
             </span>
           </div>
           {/* Dedicated Admin Progress Bar */}
-          <div className="w-full bg-slate-900/90 rounded-full h-2.5 mt-2.5 overflow-hidden p-0.5 border border-white/[0.05]">
+          <div className="w-full bg-indigo-100/80 rounded-full h-2 mt-2.5 overflow-hidden p-0.5">
             <div
-              className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(6,182,212,0.6)]"
+              className="bg-indigo-600 h-1 rounded-full transition-all duration-500"
               style={{ width: `${adminPersonalScore}%` }}
             />
           </div>
@@ -206,7 +206,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Card 2: 👥 STAFF TEAM TARGET DELIVERY RATE (AUTO-CALCULATED) */}
-        <div className="bg-gradient-to-br from-[#131B2E] via-[#0F172A] to-[#0A0E1A] border-2 border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-[0_4px_25px_rgba(16,185,129,0.15)] relative overflow-hidden">
+        <div className="bg-gradient-to-br from-emerald-50/60 via-white to-white border-2 border-emerald-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100/70 px-2.5 py-1 rounded-lg">
               <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600" />
@@ -217,7 +217,7 @@ export const AdminDashboard: React.FC = () => {
             </span>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <div className="text-3xl font-black font-['Outfit'] text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+            <div className="text-3xl font-black font-['Outfit'] text-emerald-950">
               {staffTeamRate}%
             </div>
             <span className="text-xs font-bold text-emerald-700">
@@ -225,9 +225,9 @@ export const AdminDashboard: React.FC = () => {
             </span>
           </div>
           {/* Dedicated Staff Progress Bar */}
-          <div className="w-full bg-slate-900/90 rounded-full h-2.5 mt-2.5 overflow-hidden p-0.5 border border-white/[0.05]">
+          <div className="w-full bg-emerald-100/80 rounded-full h-2 mt-2.5 overflow-hidden p-0.5">
             <div
-              className="bg-gradient-to-r from-emerald-500 to-cyan-400 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(16,185,129,0.6)]"
+              className="bg-emerald-600 h-1 rounded-full transition-all duration-500"
               style={{ width: `${staffTeamRate}%` }}
             />
           </div>
@@ -238,7 +238,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Card 3: Staff Active Pending Workload */}
-        <div className="bg-[#0F172A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-amber-500/30 transition-all">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Pending Staff Queue
@@ -247,7 +247,7 @@ export const AdminDashboard: React.FC = () => {
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] text-amber-400 mt-2">
+          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 mt-2">
             {staffPending}
           </div>
           <div className="text-[11px] text-slate-500 font-medium mt-1">
@@ -256,7 +256,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Card 4: Active Staff Team Members */}
-        <div className="bg-[#0F172A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:border-cyan-500/30 transition-all">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Active Team Roster
@@ -265,7 +265,7 @@ export const AdminDashboard: React.FC = () => {
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] text-cyan-400 mt-2">
+          <div className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 mt-2">
             {staffCount}
           </div>
           <div className="text-[11px] text-slate-500 font-medium mt-1">
@@ -277,15 +277,15 @@ export const AdminDashboard: React.FC = () => {
       {/* =========================================================================
           CATEGORY TABS: COMPLETELY SEPARATE STAFF TARGET TASKS VS ADMIN TASKS
           ========================================================================= */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setActiveTab('staff')}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === 'staff'
-                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] border border-white/10'
-                : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-white/[0.08]'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -306,8 +306,8 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('admin')}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === 'admin'
-                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.35)] border border-white/10'
-                : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-white/[0.08]'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -670,7 +670,7 @@ export const AdminDashboard: React.FC = () => {
                 onChange={(e) => setQuickTitle(e.target.value)}
                 placeholder="What is your executive priority today, Admin? (e.g. Sign vendor contracts)"
                 required
-                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900/90 border border-white/[0.1] focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 text-xs sm:text-sm font-semibold text-white transition-all placeholder:text-slate-500 shadow-2xs"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 text-xs sm:text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
               />
 
               <div className="flex items-center gap-2">
@@ -763,8 +763,8 @@ export const AdminDashboard: React.FC = () => {
                             }}
                             className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-150 shrink-0 cursor-pointer ${
                               isDone
-                                ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.7)]'
-                                : 'border-2 border-slate-600 hover:border-cyan-400 hover:shadow-[0_0_10px_rgba(6,182,212,0.5)] bg-slate-900/90'
+                                ? 'bg-indigo-600 text-white shadow-2xs'
+                                : 'border-2 border-slate-300 hover:border-indigo-500'
                             }`}
                           >
                             {isDone && <Check className="w-4 h-4 stroke-[3]" />}
@@ -774,8 +774,8 @@ export const AdminDashboard: React.FC = () => {
                             <div
                               className={`text-sm font-bold transition-colors duration-150 ${
                                 isDone
-                                  ? 'line-through text-slate-500 font-medium decoration-cyan-400 decoration-2'
-                                  : 'text-slate-100 group-hover:text-cyan-300'
+                                  ? 'line-through text-slate-400 font-medium decoration-indigo-600 decoration-2'
+                                  : 'text-slate-900'
                               }`}
                             >
                               {task.title}
