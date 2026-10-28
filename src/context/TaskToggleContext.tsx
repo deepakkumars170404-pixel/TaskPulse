@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority, TaskAlert } from '../types';
+import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority, TaskAlert, ThemePreset, BgCanvas, FontFamily } from '../types';
 import {
   INITIAL_USERS,
   INITIAL_TASKS,
@@ -77,6 +77,12 @@ interface TaskToggleContextType {
   activeTaskAlert: TaskAlert | null;
   dismissTaskAlert: () => void;
   triggerTaskAlert: (alert: TaskAlert) => void;
+  themePreset: ThemePreset;
+  setThemePreset: (preset: ThemePreset) => void;
+  bgCanvas: BgCanvas;
+  setBgCanvas: (canvas: BgCanvas) => void;
+  fontFamily: FontFamily;
+  setFontFamily: (font: FontFamily) => void;
 }
 
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
@@ -393,6 +399,28 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}org_settings`);
     return saved ? JSON.parse(saved) : INITIAL_ORG_SETTINGS;
   });
+
+  // Executive Theme, Background & Font Customizer States
+  const [themePreset, setThemePreset] = useState<ThemePreset>(() => {
+    return (localStorage.getItem(`${STORAGE_KEY_PREFIX}theme_preset`) as ThemePreset) || 'navy';
+  });
+
+  const [bgCanvas, setBgCanvas] = useState<BgCanvas>(() => {
+    return (localStorage.getItem(`${STORAGE_KEY_PREFIX}bg_canvas`) as BgCanvas) || 'slate';
+  });
+
+  const [fontFamily, setFontFamily] = useState<FontFamily>(() => {
+    return (localStorage.getItem(`${STORAGE_KEY_PREFIX}font_family`) as FontFamily) || 'inter';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themePreset);
+    document.documentElement.setAttribute('data-bg', bgCanvas);
+    document.documentElement.setAttribute('data-font', fontFamily);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}theme_preset`, themePreset);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}bg_canvas`, bgCanvas);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}font_family`, fontFamily);
+  }, [themePreset, bgCanvas, fontFamily]);
 
   const [currentPage, setCurrentPage] = useState<string>(() => {
     return currentUser.role === 'admin' ? 'dashboard' : 'mytodo';
@@ -1567,6 +1595,12 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         activeTaskAlert,
         dismissTaskAlert,
         triggerTaskAlert,
+        themePreset,
+        setThemePreset,
+        bgCanvas,
+        setBgCanvas,
+        fontFamily,
+        setFontFamily,
       }}
     >
       {children}

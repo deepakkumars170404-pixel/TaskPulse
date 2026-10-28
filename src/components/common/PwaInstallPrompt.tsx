@@ -114,14 +114,14 @@ export const PwaInstallPrompt: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 right-4 sm:right-6 z-50 max-w-sm w-[calc(100vw-32px)] animate-in slide-in-from-bottom-5 duration-300">
-      <div className="bg-white rounded-2xl p-4 shadow-2xl border border-orange-200 shadow-orange-500/10 relative overflow-hidden">
+      <div className="bg-white rounded-2xl p-4 shadow-2xl border border-primary-200 shadow-primary-500/10 relative overflow-hidden">
         {/* Top subtle indigo highlight band */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-500 via-primary-500 to-primary-600" />
 
         <div className="flex items-start justify-between gap-3 pt-0.5">
           {/* Logo & App Info */}
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/30">
+            <div className="w-11 h-11 rounded-xl bg-primary-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-primary-500/30">
               <Download className="w-5 h-5 text-white animate-bounce" />
             </div>
 
@@ -130,7 +130,7 @@ export const PwaInstallPrompt: React.FC = () => {
                 <h3 className="text-sm font-black text-slate-900 tracking-tight font-['Outfit']">
                   Install TaskToggle
                 </h3>
-                <span className="text-[9px] font-black uppercase tracking-wider bg-orange-100 text-orange-600 px-1.5 py-0.2 rounded-full border border-orange-200">
+                <span className="text-[9px] font-black uppercase tracking-wider bg-primary-100 text-primary-600 px-1.5 py-0.2 rounded-full border border-primary-200">
                   App
                 </span>
               </div>
@@ -154,32 +154,32 @@ export const PwaInstallPrompt: React.FC = () => {
         {/* Features / Benefits Pills */}
         <div className="grid grid-cols-2 gap-1.5 mt-3 pt-3 border-t border-slate-100 text-[11px] font-semibold text-slate-600">
           <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-            <Laptop className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+            <Laptop className="w-3.5 h-3.5 text-primary-500 shrink-0" />
             <span className="truncate">Desktop & Mobile</span>
           </div>
           <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-            <Sparkles className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+            <Sparkles className="w-3.5 h-3.5 text-primary-500 shrink-0" />
             <span className="truncate">Instant 1-Click Launch</span>
           </div>
         </div>
 
         {/* iOS Step-by-Step Instructions Modal (if on iPhone/iPad) */}
         {showIosInstructions ? (
-          <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-800 space-y-1.5 animate-in fade-in duration-150">
+          <div className="mt-3 p-3 bg-primary-50 border border-primary-200 rounded-xl text-xs text-primary-800 space-y-1.5 animate-in fade-in duration-150">
             <p className="font-bold flex items-center gap-1.5">
               <span>📱 How to install on iOS Safari:</span>
             </p>
             <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-700">
               <li className="flex items-center gap-1.5">
                 <span>1. Tap the</span>
-                <span className="font-bold text-orange-600 inline-flex items-center gap-0.5">
+                <span className="font-bold text-primary-600 inline-flex items-center gap-0.5">
                   <Share className="w-3 h-3" /> Share
                 </span>
                 <span>button in Safari's menu.</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <span>2. Scroll down and tap</span>
-                <span className="font-bold text-orange-600 inline-flex items-center gap-0.5">
+                <span className="font-bold text-primary-600 inline-flex items-center gap-0.5">
                   <PlusSquare className="w-3 h-3" /> Add to Home Screen
                 </span>.
               </li>
@@ -192,7 +192,7 @@ export const PwaInstallPrompt: React.FC = () => {
             <button
               type="button"
               onClick={handleInstallClick}
-              className="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs shadow-orange-500/20 cursor-pointer active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              className="flex-1 py-2 px-3 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-xs shadow-primary-500/20 cursor-pointer active:scale-95 transition-all flex items-center justify-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Install App</span>

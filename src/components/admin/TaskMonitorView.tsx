@@ -91,7 +91,7 @@ export const TaskMonitorView: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Central Task Monitor
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-orange-500 text-white shadow-xs">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-500 text-white shadow-xs">
               {orgSettings.orgName} Live Staff Feed
             </span>
           </div>
@@ -109,14 +109,14 @@ export const TaskMonitorView: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search staff name or task title..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-xs placeholder:text-slate-400 font-medium"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-xs placeholder:text-slate-400 font-medium"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setShowAddStaffModal(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
+            className="px-3.5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 shrink-0"
           >
             <UserPlus className="w-4 h-4" />
             <span>+ Add Staff</span>
@@ -139,9 +139,9 @@ export const TaskMonitorView: React.FC = () => {
         <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Staff Members</div>
-            <div className="text-2xl font-black text-orange-600 font-['Outfit'] mt-0.5">{staffMembers.length}</div>
+            <div className="text-2xl font-black text-primary-600 font-['Outfit'] mt-0.5">{staffMembers.length}</div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+          <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-500">
             <Users className="w-5 h-5" />
           </div>
         </div>
@@ -170,7 +170,7 @@ export const TaskMonitorView: React.FC = () => {
       {/* Staff Directory Bar & Controls */}
       <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
             <Users className="w-4 h-4" />
           </div>
           <h2 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit']">
@@ -200,7 +200,7 @@ export const TaskMonitorView: React.FC = () => {
       <div className="space-y-4">
         {filteredStaff.length === 0 ? (
           <div className="p-10 sm:p-14 text-center bg-white rounded-2xl border border-dashed border-slate-300 space-y-4 shadow-xs">
-            <div className="w-14 h-14 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center mx-auto shadow-2xs">
+            <div className="w-14 h-14 rounded-2xl bg-primary-50 text-primary-500 flex items-center justify-center mx-auto shadow-2xs">
               <Users className="w-7 h-7" />
             </div>
             <div>
@@ -212,7 +212,7 @@ export const TaskMonitorView: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowAddStaffModal(true)}
-              className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all inline-flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all inline-flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
               <span>+ Add Your First Staff</span>
@@ -253,7 +253,7 @@ export const TaskMonitorView: React.FC = () => {
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div
                       className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white text-sm font-bold shadow-xs shrink-0 ${
-                        staff.avatarBg || 'bg-orange-500'
+                        staff.avatarBg || 'bg-primary-500'
                       }`}
                     >
                       {staff.initials}
@@ -309,7 +309,7 @@ export const TaskMonitorView: React.FC = () => {
                       <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
-                            progress === 100 ? 'bg-emerald-600' : 'bg-orange-500'
+                            progress === 100 ? 'bg-emerald-600' : 'bg-primary-500'
                           }`}
                           style={{ width: `${progress}%` }}
                         />
@@ -380,7 +380,7 @@ export const TaskMonitorView: React.FC = () => {
                             }
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                               activeFilter === tab.id
-                                ? 'bg-orange-500 text-white shadow-xs'
+                                ? 'bg-primary-500 text-white shadow-xs'
                                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                             }`}
                           >
@@ -460,7 +460,7 @@ export const TaskMonitorView: React.FC = () => {
                                   {/* Badges: Target Deadline & Sender */}
                                   <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-medium text-slate-600">
                                     <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-bold text-[11px]">
-                                      <Calendar className="w-3 h-3 text-orange-500 shrink-0" />
+                                      <Calendar className="w-3 h-3 text-primary-500 shrink-0" />
                                       <span>{task.dueDate}</span>
                                       <span className="text-slate-300">•</span>
                                       <Clock className="w-3 h-3 text-slate-400 shrink-0" />
@@ -468,7 +468,7 @@ export const TaskMonitorView: React.FC = () => {
                                     </div>
 
                                     {task.type === 'admin' ? (
-                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200">
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-lg border border-primary-200">
                                         <ShieldAlert className="w-3 h-3" />
                                         <span>From Admin ({orgSettings.orgName})</span>
                                       </span>

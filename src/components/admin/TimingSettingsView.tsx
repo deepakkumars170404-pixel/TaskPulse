@@ -70,7 +70,7 @@ export const TimingSettingsView: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Timing & Office Hours
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-orange-500 text-white shadow-2xs">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-500 text-white shadow-2xs">
               {orgSettings.orgName} Executive
             </span>
           </div>
@@ -91,8 +91,8 @@ export const TimingSettingsView: React.FC = () => {
       )}
 
       {eventToast && (
-        <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 text-orange-950 flex items-center gap-3 animate-in fade-in shadow-2xs">
-          <CheckCircle2 className="w-5 h-5 text-orange-500 shrink-0" />
+        <div className="p-4 rounded-xl bg-primary-50 border border-primary-200 text-primary-950 flex items-center gap-3 animate-in fade-in shadow-2xs">
+          <CheckCircle2 className="w-5 h-5 text-primary-500 shrink-0" />
           <span className="text-xs sm:text-sm font-semibold">
             Event timing and staff allotment applied! Allotted staff now see the revised schedule.
           </span>
@@ -124,7 +124,7 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setOpenTime(e.target.value)}
                   placeholder="9:00 AM"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-semibold text-slate-900 shadow-2xs"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
                 />
               </div>
 
@@ -138,7 +138,7 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setCloseTime(e.target.value)}
                   placeholder="5:00 PM"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-semibold text-slate-900 shadow-2xs"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
                 />
               </div>
             </div>
@@ -157,7 +157,7 @@ export const TimingSettingsView: React.FC = () => {
                       onClick={() => toggleDay(day)}
                       className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-orange-500 text-white shadow-xs'
+                          ? 'bg-primary-500 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
@@ -171,7 +171,7 @@ export const TimingSettingsView: React.FC = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer active:scale-95"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer active:scale-95"
               >
                 Save General Timing
               </button>
@@ -202,7 +202,7 @@ export const TimingSettingsView: React.FC = () => {
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="e.g. Annual Day Preparation"
                 required
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-semibold text-slate-900 shadow-2xs"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
               />
             </div>
 
@@ -217,7 +217,7 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setEventDate(e.target.value)}
                   placeholder="27 Oct 2026"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-semibold text-slate-900 shadow-2xs"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
                 />
               </div>
 
@@ -231,7 +231,7 @@ export const TimingSettingsView: React.FC = () => {
                   onChange={(e) => setNewEventTiming(e.target.value)}
                   placeholder="8:00 AM - 6:00 PM"
                   required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-semibold text-slate-900 shadow-2xs"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 shadow-2xs"
                 />
               </div>
             </div>
@@ -252,7 +252,7 @@ export const TimingSettingsView: React.FC = () => {
                         onClick={() => toggleStaffAllotment(staff.id)}
                         className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                           isAllotted
-                            ? 'bg-orange-500 text-white shadow-xs'
+                            ? 'bg-primary-500 text-white shadow-xs'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
                         }`}
                       >
@@ -267,7 +267,7 @@ export const TimingSettingsView: React.FC = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer active:scale-95"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer active:scale-95"
               >
                 Apply Event Schedule
               </button>
@@ -278,7 +278,7 @@ export const TimingSettingsView: React.FC = () => {
 
       {/* Live Preview Line for Staff */}
       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-700 font-medium shadow-2xs">
-        <Clock className="w-4 h-4 text-orange-500 shrink-0" />
+        <Clock className="w-4 h-4 text-primary-500 shrink-0" />
         <span>
           Live staff notification preview: *Scheduled for {eventDate} · {eventName} ({newEventTiming}) for {allottedStaffIds.length} allotted team members.*
         </span>

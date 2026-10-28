@@ -27,11 +27,11 @@ export const LoginView: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-3.5 sm:p-6">
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden grid grid-cols-1 md:grid-cols-2">
         {/* Left Hero Panel */}
-        <div className="bg-orange-500 text-white p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+        <div className="bg-primary-500 text-white p-6 sm:p-10 flex flex-col justify-between relative overflow-hidden">
           {/* Logo & Org Badge */}
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-primary-500 flex items-center justify-center text-white shadow-xs">
                 <CheckSquare className="w-5 h-5 stroke-[2.5]" />
               </div>
               <span className="font-['Outfit'] font-black text-xl tracking-tight">TaskToggle</span>
@@ -53,15 +53,15 @@ export const LoginView: React.FC = () => {
 
             <ul className="space-y-3 text-xs text-slate-300 font-medium">
               <li className="flex items-center gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-primary-400 shrink-0" />
                 <span>Admin dispatches compulsory tasks to staff</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-primary-400 shrink-0" />
                 <span>Staff accept colleague requests with agreed deadlines</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-orange-400 shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-primary-400 shrink-0" />
                 <span>Real-time instant task synchronization</span>
               </li>
             </ul>
@@ -88,7 +88,7 @@ export const LoginView: React.FC = () => {
               onClick={() => handleRoleChange('admin')}
               className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 role === 'admin'
-                  ? 'bg-orange-500 text-white shadow-xs'
+                  ? 'bg-primary-500 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -100,7 +100,7 @@ export const LoginView: React.FC = () => {
               onClick={() => handleRoleChange('staff')}
               className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 role === 'staff'
-                  ? 'bg-orange-500 text-white shadow-xs'
+                  ? 'bg-primary-500 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -120,7 +120,7 @@ export const LoginView: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-2xs"
               />
             </div>
 
@@ -133,13 +133,13 @@ export const LoginView: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-2xs"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center justify-center gap-2 mt-3 cursor-pointer active:scale-95"
+              className="w-full py-3.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all flex items-center justify-center gap-2 mt-3 cursor-pointer active:scale-95"
             >
               <span>Sign in as {role === 'admin' ? `Admin (${orgSettings.orgName})` : 'Staff Member'}</span>
               <ArrowRight className="w-4 h-4" />

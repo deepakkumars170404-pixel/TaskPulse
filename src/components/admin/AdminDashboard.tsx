@@ -112,7 +112,7 @@ export const AdminDashboard: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Executive Dashboard
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-orange-50 text-orange-800 border border-orange-200/90">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90">
               {orgSettings.orgName} Workspace
             </span>
           </div>
@@ -124,7 +124,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={() => setCurrentPage('assign')}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>Assign New Task</span>
@@ -136,7 +136,7 @@ export const AdminDashboard: React.FC = () => {
       <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
           <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0 ml-1 border border-slate-200">
-            <Calendar className="w-4 h-4 text-orange-500" />
+            <Calendar className="w-4 h-4 text-primary-500" />
           </div>
           <span className="text-xs font-bold text-slate-700 mr-1.5 shrink-0 hidden xs:inline">
             Timeline View:
@@ -155,7 +155,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => setDateFilter(filter.id)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 dateFilter === filter.id
-                  ? 'bg-orange-500 text-white shadow-xs'
+                  ? 'bg-primary-500 text-white shadow-xs'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
@@ -165,7 +165,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="text-[11px] sm:text-xs text-slate-600 font-medium px-2 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-orange-500 ring-2 ring-orange-200" />
+          <span className="w-2 h-2 rounded-full bg-primary-500 ring-2 ring-primary-200" />
           <span>Active Timeline: <strong>{filteredAdminTasks.length}</strong> Admin · <strong>{filteredStaffTasks.length}</strong> Staff</span>
         </div>
       </div>
@@ -175,33 +175,33 @@ export const AdminDashboard: React.FC = () => {
           ========================================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         {/* Card 1: 👑 ADMIN PERSONAL DAILY SCORE */}
-        <div className="bg-gradient-to-br from-orange-50/60 via-white to-white border-2 border-orange-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-gradient-to-br from-primary-50/60 via-white to-white border-2 border-primary-200 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-orange-600 bg-orange-100/70 px-2.5 py-1 rounded-lg">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-primary-600 bg-primary-100/70 px-2.5 py-1 rounded-lg">
               <span>👑 Admin Personal Score</span>
             </span>
-            <div className="w-7 h-7 rounded-lg bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-2xs">
+            <div className="w-7 h-7 rounded-lg bg-primary-500 text-white flex items-center justify-center text-xs font-bold shadow-2xs">
               AD
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <div className="text-3xl font-black font-['Outfit'] text-orange-950">
+            <div className="text-3xl font-black font-['Outfit'] text-primary-950">
               {adminPersonalScore}%
             </div>
-            <span className="text-xs font-bold text-orange-600">
+            <span className="text-xs font-bold text-primary-600">
               {adminCompleted}/{adminTotal} Finished
             </span>
           </div>
           {/* Dedicated Admin Progress Bar */}
-          <div className="w-full bg-orange-100/80 rounded-full h-2 mt-2.5 overflow-hidden p-0.5">
+          <div className="w-full bg-primary-100/80 rounded-full h-2 mt-2.5 overflow-hidden p-0.5">
             <div
-              className="bg-orange-500 h-1 rounded-full transition-all duration-500"
+              className="bg-primary-500 h-1 rounded-full transition-all duration-500"
               style={{ width: `${adminPersonalScore}%` }}
             />
           </div>
           <div className="text-[11px] text-slate-600 font-medium mt-2 flex items-center justify-between">
             <span>Admin Checklist</span>
-            <span className="text-orange-600 font-bold">{adminPending} Pending</span>
+            <span className="text-primary-600 font-bold">{adminPending} Pending</span>
           </div>
         </div>
 
@@ -261,7 +261,7 @@ export const AdminDashboard: React.FC = () => {
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
               Active Team Roster
             </span>
-            <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 border border-orange-200">
+            <div className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center text-primary-500 border border-primary-200">
               <Users className="w-4 h-4" />
             </div>
           </div>
@@ -284,7 +284,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('staff')}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === 'staff'
-                ? 'bg-orange-500 text-white shadow-xs'
+                ? 'bg-primary-500 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -306,7 +306,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('admin')}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === 'admin'
-                ? 'bg-orange-500 text-white shadow-xs'
+                ? 'bg-primary-500 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -316,7 +316,7 @@ export const AdminDashboard: React.FC = () => {
               className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                 activeTab === 'admin'
                   ? 'bg-white/20 text-white'
-                  : 'bg-orange-50 text-orange-600 border border-orange-200'
+                  : 'bg-primary-50 text-primary-600 border border-primary-200'
               }`}
             >
               {filteredAdminTasks.length}
@@ -328,7 +328,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('dual')}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === 'dual'
-                ? 'bg-orange-500 text-white shadow-xs'
+                ? 'bg-primary-500 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -339,7 +339,7 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setCurrentPage('monitor')}
-          className="text-xs font-bold text-orange-500 hover:text-orange-700 flex items-center gap-1 cursor-pointer self-start sm:self-auto bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs transition-all shrink-0"
+          className="text-xs font-bold text-primary-500 hover:text-primary-700 flex items-center gap-1 cursor-pointer self-start sm:self-auto bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs hover:shadow-xs transition-all shrink-0"
         >
           <span>Open Staff Monitor</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -449,7 +449,7 @@ export const AdminDashboard: React.FC = () => {
                             {/* Assigned Staff */}
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                                <div className="w-7 h-7 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
                                   {task.assignedToName
                                     .split(' ')
                                     .map((n) => n[0])
@@ -469,7 +469,7 @@ export const AdminDashboard: React.FC = () => {
                                   task.priority === 'High'
                                     ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                     : task.priority === 'Medium'
-                                    ? 'bg-orange-50 text-orange-600 border border-orange-200'
+                                    ? 'bg-primary-50 text-primary-600 border border-primary-200'
                                     : 'bg-slate-100 text-slate-700 border border-slate-200'
                                 }`}
                               >
@@ -481,7 +481,7 @@ export const AdminDashboard: React.FC = () => {
                             <td className="py-3.5 px-4">
                               <div className="inline-flex flex-col gap-0.5 items-start bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1">
                                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 whitespace-nowrap">
-                                  <Calendar className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                                  <Calendar className="w-3.5 h-3.5 text-primary-500 shrink-0" />
                                   <span>{task.dueDate}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-[11px] text-slate-500 whitespace-nowrap">
@@ -596,12 +596,12 @@ export const AdminDashboard: React.FC = () => {
                 {eventTiming && (
                   <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden">
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                      <Clock className="w-4 h-4 text-orange-500" />
+                      <Clock className="w-4 h-4 text-primary-500" />
                       <span>Special Event Schedule</span>
                     </div>
                     <h4 className="text-base font-bold text-slate-900 mt-1">{eventTiming.eventName}</h4>
                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mt-2 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
-                      <Calendar className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                      <Calendar className="w-3.5 h-3.5 text-primary-500 shrink-0" />
                       <span>{eventTiming.date} · {eventTiming.newTiming}</span>
                     </div>
                     <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-medium">
@@ -626,25 +626,25 @@ export const AdminDashboard: React.FC = () => {
       {(activeTab === 'admin' || activeTab === 'dual') && (
         <div className="space-y-4">
           {/* Informative Admin Personal Banner */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-orange-50/80 border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-primary-50/80 border border-primary-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-2xs font-bold text-xs">
+              <div className="w-8 h-8 rounded-xl bg-primary-500 text-white flex items-center justify-center shrink-0 shadow-2xs font-bold text-xs">
                 👑
               </div>
               <div>
-                <div className="text-xs sm:text-sm font-bold text-orange-950 flex items-center gap-2">
+                <div className="text-xs sm:text-sm font-bold text-primary-950 flex items-center gap-2">
                   <span>👑 Admin Personal Daily Agenda & Checklist</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 border border-orange-300">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary-100 text-primary-700 border border-primary-300">
                     Independent Score
                   </span>
                 </div>
-                <div className="text-[11px] sm:text-xs text-orange-800 font-medium mt-0.5">
+                <div className="text-[11px] sm:text-xs text-primary-800 font-medium mt-0.5">
                   Tasks assigned to yourself. Click the checkbox or row to strike off completed items and increase your Admin Personal Daily Score.
                 </div>
               </div>
             </div>
 
-            <div className="text-xs font-bold text-orange-700 bg-white px-3 py-1.5 rounded-xl border border-orange-200 shrink-0 self-start sm:self-auto shadow-2xs">
+            <div className="text-xs font-bold text-primary-700 bg-white px-3 py-1.5 rounded-xl border border-primary-200 shrink-0 self-start sm:self-auto shadow-2xs">
               Personal Daily Score: <strong>{adminPersonalScore}%</strong> ({adminCompleted}/{adminTotal})
             </div>
           </div>
@@ -653,7 +653,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-orange-500" />
+                <Sparkles className="w-3.5 h-3.5 text-primary-500" />
                 <span>Quick Add Admin Daily Task</span>
               </h4>
               {showQuickSuccess && (
@@ -670,14 +670,14 @@ export const AdminDashboard: React.FC = () => {
                 onChange={(e) => setQuickTitle(e.target.value)}
                 placeholder="What is your executive priority today, Admin? (e.g. Sign vendor contracts)"
                 required
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs sm:text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-xs sm:text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
               />
 
               <div className="flex items-center gap-2">
                 <select
                   value={quickPriority}
                   onChange={(e) => setQuickPriority(e.target.value as TaskPriority)}
-                  className="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white shadow-2xs cursor-pointer focus:outline-none focus:border-orange-500"
+                  className="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white shadow-2xs cursor-pointer focus:outline-none focus:border-primary-500"
                 >
                   <option value="High">High Priority</option>
                   <option value="Medium">Medium Priority</option>
@@ -687,7 +687,7 @@ export const AdminDashboard: React.FC = () => {
                 <select
                   value={quickTime}
                   onChange={(e) => setQuickTime(e.target.value)}
-                  className="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white shadow-2xs cursor-pointer focus:outline-none focus:border-orange-500"
+                  className="px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white shadow-2xs cursor-pointer focus:outline-none focus:border-primary-500"
                 >
                   <option value="12:00 PM">12:00 PM</option>
                   <option value="2:30 PM">2:30 PM</option>
@@ -699,7 +699,7 @@ export const AdminDashboard: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95"
+                  className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-xs transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:scale-95"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[3]" />
                   <span>+ Add to My Day</span>
@@ -725,14 +725,14 @@ export const AdminDashboard: React.FC = () => {
                   </p>
                 </div>
 
-                <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-3 py-1 rounded-xl">
+                <span className="text-xs font-bold text-primary-600 bg-primary-50 border border-primary-200 px-3 py-1 rounded-xl">
                   {adminCompleted} of {adminTotal} Finished
                 </span>
               </div>
 
               {filteredAdminTasks.length === 0 ? (
                 <div className="py-12 px-4 text-center">
-                  <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary-50 text-primary-500 flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-800">No Admin Personal Tasks Scheduled</h4>
@@ -763,8 +763,8 @@ export const AdminDashboard: React.FC = () => {
                             }}
                             className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors duration-150 shrink-0 cursor-pointer ${
                               isDone
-                                ? 'bg-orange-500 text-white shadow-2xs'
-                                : 'border-2 border-slate-300 hover:border-orange-500'
+                                ? 'bg-primary-500 text-white shadow-2xs'
+                                : 'border-2 border-slate-300 hover:border-primary-500'
                             }`}
                           >
                             {isDone && <Check className="w-4 h-4 stroke-[3]" />}
@@ -774,7 +774,7 @@ export const AdminDashboard: React.FC = () => {
                             <div
                               className={`text-sm font-bold transition-colors duration-150 ${
                                 isDone
-                                  ? 'line-through text-slate-400 font-medium decoration-orange-500 decoration-2'
+                                  ? 'line-through text-slate-400 font-medium decoration-primary-500 decoration-2'
                                   : 'text-slate-900'
                               }`}
                             >
@@ -805,7 +805,7 @@ export const AdminDashboard: React.FC = () => {
                               task.priority === 'High'
                                 ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                 : task.priority === 'Medium'
-                                ? 'bg-orange-50 text-orange-600 border border-orange-200'
+                                ? 'bg-primary-50 text-primary-600 border border-primary-200'
                                 : 'bg-slate-100 text-slate-700 border border-slate-200'
                             }`}
                           >
@@ -834,28 +834,28 @@ export const AdminDashboard: React.FC = () => {
             {/* Admin Personal Completion Score Analytics */}
             {activeTab !== 'dual' && (
               <div className="space-y-5 sm:space-y-6">
-                <div className="bg-gradient-to-br from-orange-50/50 via-white to-white rounded-2xl p-5 sm:p-6 border-2 border-orange-200 shadow-xs relative overflow-hidden">
+                <div className="bg-gradient-to-br from-primary-50/50 via-white to-white rounded-2xl p-5 sm:p-6 border-2 border-primary-200 shadow-xs relative overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-orange-700">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary-700">
                       👑 Admin Personal Score
                     </h3>
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 border border-orange-200">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-primary-100 text-primary-700 border border-primary-200">
                       {adminCompleted}/{adminTotal} items
                     </span>
                   </div>
 
-                  <div className="text-3xl sm:text-4xl font-black font-['Outfit'] text-orange-950 tracking-tight">
+                  <div className="text-3xl sm:text-4xl font-black font-['Outfit'] text-primary-950 tracking-tight">
                     {adminPersonalScore}%
                   </div>
 
-                  <div className="w-full bg-orange-100 rounded-full h-2.5 mt-3 overflow-hidden p-0.5">
+                  <div className="w-full bg-primary-100 rounded-full h-2.5 mt-3 overflow-hidden p-0.5">
                     <div
-                      className="bg-orange-500 h-1.5 rounded-full transition-all duration-500"
+                      className="bg-primary-500 h-1.5 rounded-full transition-all duration-500"
                       style={{ width: `${adminPersonalScore}%` }}
                     />
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-orange-100 text-xs font-medium text-slate-600 space-y-1.5">
+                  <div className="mt-4 pt-3 border-t border-primary-100 text-xs font-medium text-slate-600 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <span className="text-emerald-700 font-bold">Finished by Admin:</span>
                       <span className="font-bold text-slate-900">{adminCompleted} tasks</span>
@@ -866,11 +866,11 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 p-3 rounded-xl bg-white border border-orange-200 text-xs text-orange-950 font-medium">
+                  <div className="mt-4 p-3 rounded-xl bg-white border border-primary-200 text-xs text-primary-950 font-medium">
                     {adminPersonalScore === 100 ? (
                       <span className="text-emerald-800 font-bold">🎉 Outstanding! All personal daily targets completed!</span>
                     ) : adminPersonalScore >= 50 ? (
-                      <span className="text-orange-800 font-semibold">🚀 Solid executive pace! Keep up the daily momentum.</span>
+                      <span className="text-primary-800 font-semibold">🚀 Solid executive pace! Keep up the daily momentum.</span>
                     ) : (
                       <span className="text-slate-700 font-medium">🎯 Click any row to strike off completed daily goals.</span>
                     )}

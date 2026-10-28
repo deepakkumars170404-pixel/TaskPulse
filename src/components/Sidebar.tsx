@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
           <div className="flex items-center gap-3 min-w-0">
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-xs shrink-0 ${
-                currentUser.avatarBg || 'bg-orange-500'
+                currentUser.avatarBg || 'bg-primary-500'
               }`}
             >
               {currentUser.initials}
@@ -61,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
               </div>
               <div className="text-[10px] text-slate-500 capitalize font-medium flex items-center gap-1 mt-0.5">
                 {currentUser.role === 'admin' ? (
-                  <ShieldCheck className="w-3 h-3 text-orange-500" />
+                  <ShieldCheck className="w-3 h-3 text-primary-500" />
                 ) : (
                   <UserCheck className="w-3 h-3 text-slate-400" />
                 )}
@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
         {/* Panel label */}
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 flex items-center justify-between">
           <span>{currentUser.role === 'admin' ? 'Executive Panel' : 'Staff Workspace'}</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+          <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
         </div>
 
         {/* Navigation list */}
@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('dashboard')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'dashboard'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('assign')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'assign'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -122,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('monitor')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'monitor'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -135,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('timing')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'timing'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('calendar')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'calendar'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -163,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('mytodo')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'mytodo'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -176,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('create')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'create'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('requests')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'requests'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -201,10 +201,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                   <span
                     className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                       currentPage === 'requests'
-                        ? 'bg-white text-orange-600'
+                        ? 'bg-white text-primary-600'
                         : declinedRequestsCount > 0
                         ? 'bg-rose-600 text-white shadow-xs'
-                        : 'bg-orange-500 text-white shadow-xs'
+                        : 'bg-primary-500 text-white shadow-xs'
                     }`}
                   >
                     {declinedRequestsCount > 0
@@ -219,7 +219,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 onClick={() => handleNavClick('calendar')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
                   currentPage === 'calendar'
-                    ? 'bg-orange-500 text-white shadow-xs font-bold'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                 }`}
               >
@@ -240,21 +240,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
             if (onCloseMobile) onCloseMobile();
             window.dispatchEvent(new CustomEvent('open-pwa-install'));
           }}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-orange-600 bg-orange-50/80 hover:bg-orange-100 border border-orange-200/80 transition-all cursor-pointer shadow-2xs active:scale-95"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-primary-600 bg-primary-50/80 hover:bg-primary-100 border border-primary-200/80 transition-all cursor-pointer shadow-2xs active:scale-95"
           title="Install TaskToggle on desktop or mobile home screen"
         >
           <div className="flex items-center gap-2">
-            <Download className="w-3.5 h-3.5 text-orange-500" />
+            <Download className="w-3.5 h-3.5 text-primary-500" />
             <span>Install App</span>
           </div>
-          <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-white text-orange-600 rounded shadow-2xs">
+          <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-white text-primary-600 rounded shadow-2xs">
             PWA
           </span>
         </button>
 
         <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 text-[11px] text-slate-500 shadow-2xs">
           <div className="flex items-center gap-1.5 font-bold text-slate-800 mb-0.5">
-            <Clock className="w-3.5 h-3.5 text-orange-500" />
+            <Clock className="w-3.5 h-3.5 text-primary-500" />
             <span>Working Schedule</span>
           </div>
           <div className="font-semibold text-slate-700">{officeTiming.openTime} – {officeTiming.closeTime}</div>
@@ -288,7 +288,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
         <div className="fixed inset-0 z-50 md:hidden flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-orange-950/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            className="fixed inset-0 bg-primary-950/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
             onClick={onCloseMobile}
             aria-hidden="true"
           />

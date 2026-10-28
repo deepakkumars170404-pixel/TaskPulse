@@ -74,7 +74,7 @@ export const CreateToDoView: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
               Create New Task
             </h1>
-            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-orange-50 text-orange-800 border border-orange-200/90">
+            <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-primary-50 text-primary-800 border border-primary-200/90">
               {orgSettings.orgName} Workspace
             </span>
           </div>
@@ -110,7 +110,7 @@ export const CreateToDoView: React.FC = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Share call notes template with team"
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 transition-all placeholder:text-slate-400 shadow-2xs"
               />
             </div>
 
@@ -124,7 +124,7 @@ export const CreateToDoView: React.FC = () => {
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Send the template used for client calls to the team with updated questions."
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-medium text-slate-900 transition-all placeholder:text-slate-400 resize-none shadow-2xs"
               />
             </div>
 
@@ -140,7 +140,7 @@ export const CreateToDoView: React.FC = () => {
                   onClick={() => setTargetUserId(currentUser.id)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                     targetUserId === currentUser.id
-                      ? 'bg-orange-500 text-white shadow-xs'
+                      ? 'bg-primary-500 text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 border border-slate-200'
                   }`}
                 >
@@ -158,7 +158,7 @@ export const CreateToDoView: React.FC = () => {
                       onClick={() => setTargetUserId(staff.id)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                         isSelected
-                          ? 'bg-orange-500 text-white shadow-xs'
+                          ? 'bg-primary-500 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 border border-slate-200'
                       }`}
                     >
@@ -174,7 +174,7 @@ export const CreateToDoView: React.FC = () => {
             <div className="space-y-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-orange-500" />
+                  <Calendar className="w-4 h-4 text-primary-500" />
                   <span>Target Deadline (Mini Calendar & Fast Clock)</span>
                 </label>
               </div>
@@ -204,7 +204,7 @@ export const CreateToDoView: React.FC = () => {
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="submit"
-                className="px-6 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95"
+                className="px-6 py-3 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer flex items-center gap-2 active:scale-95"
               >
                 <Send className="w-4 h-4" />
                 <span>Create & Schedule Task</span>
@@ -225,7 +225,7 @@ export const CreateToDoView: React.FC = () => {
           {/* Rules Card */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 shadow-2xs">
             <div className="flex items-start gap-3">
-              <HelpCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+              <HelpCircle className="w-5 h-5 text-primary-500 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2">
                   Delegation Rules
@@ -246,7 +246,7 @@ export const CreateToDoView: React.FC = () => {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Delegated by You
               </h3>
-              <Users className="w-4 h-4 text-orange-500" />
+              <Users className="w-4 h-4 text-primary-500" />
             </div>
 
             {/* Filter Pills */}
@@ -256,7 +256,7 @@ export const CreateToDoView: React.FC = () => {
                 onClick={() => setDelegatedFilter('all')}
                 className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer truncate text-center ${
                   delegatedFilter === 'all'
-                    ? 'bg-white text-orange-600 shadow-2xs font-extrabold'
+                    ? 'bg-white text-primary-600 shadow-2xs font-extrabold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -289,7 +289,7 @@ export const CreateToDoView: React.FC = () => {
                 onClick={() => setDelegatedFilter('pending')}
                 className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer truncate text-center ${
                   delegatedFilter === 'pending'
-                    ? 'bg-white text-orange-600 shadow-2xs font-extrabold'
+                    ? 'bg-white text-primary-600 shadow-2xs font-extrabold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -334,7 +334,7 @@ export const CreateToDoView: React.FC = () => {
                             isDone
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : isAccepted
-                              ? 'bg-orange-50 text-orange-600 border border-orange-200'
+                              ? 'bg-primary-50 text-primary-600 border border-primary-200'
                               : isRejected
                               ? 'bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs'
                               : 'bg-amber-50 text-amber-800 border border-amber-200'
@@ -408,7 +408,7 @@ export const CreateToDoView: React.FC = () => {
                                 setDueDate(task.dueDate || '27 Oct 2026');
                                 setDueTime(task.dueTime || '5:00 PM');
                               }}
-                              className="px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95"
+                              className="px-2.5 py-1 rounded-lg bg-primary-50 hover:bg-primary-100 text-primary-600 border border-primary-200 text-[11px] font-bold cursor-pointer transition-all flex items-center gap-1 active:scale-95"
                               title="Pre-fill form to delegate this task to another colleague"
                             >
                               <RotateCcw className="w-3 h-3" />

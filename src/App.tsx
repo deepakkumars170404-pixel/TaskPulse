@@ -32,7 +32,7 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${isEmbedded ? 'bg-transparent' : 'bg-[#FAFAF9]'}`}>
+    <div className={`min-h-screen flex flex-col ${isEmbedded ? 'bg-transparent' : 'bg-[var(--bg-canvas)]'}`}>
       {/* Top Header */}
       {!isEmbedded && (
         <Header onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />

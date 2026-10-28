@@ -58,6 +58,10 @@ export interface OrgSettings {
   accentColor?: string;
 }
 
+export type ThemePreset = 'navy' | 'slate' | 'emerald' | 'orange';
+export type BgCanvas = 'slate' | 'white' | 'stone';
+export type FontFamily = 'inter' | 'jakarta' | 'system';
+
 export interface TaskAlert {
   id: string;
   title: string;
