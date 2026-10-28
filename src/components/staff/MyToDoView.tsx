@@ -377,7 +377,7 @@ export const MyToDoView: React.FC = () => {
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span>Weekly routine filter · Tap anywhere on any card to instantly strike & complete</span>
+            <span>Weekly routine filter · Tap anywhere on your assigned cards to strike & complete</span>
           </p>
         </div>
 
@@ -915,8 +915,8 @@ export const MyToDoView: React.FC = () => {
                       <div className="p-4 sm:p-4.5 pl-5">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                           <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            {/* Strike Checkbox (Only visible when staff can strike this task) */}
-                            {canStrike ? (
+                            {/* Strike Checkbox - ONLY rendered if the current user has permission to strike this task */}
+                            {canStrike && (
                               <button
                                 type="button"
                                 disabled={isRejected}
@@ -953,38 +953,6 @@ export const MyToDoView: React.FC = () => {
                                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                                 ) : null}
                               </button>
-                            ) : (
-                              /* Delegated Task: No clickable box structure! Shows clean non-box indicator instead */
-                              <div
-                                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                                  isDone
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : isRejected
-                                    ? 'bg-rose-100 text-rose-700'
-                                    : task.pendingReason
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : 'bg-purple-100 text-purple-700'
-                                }`}
-                                title={
-                                  isDone
-                                    ? `Completed by ${task.assignedToName}`
-                                    : isRejected
-                                    ? `Declined by ${task.assignedToName}`
-                                    : task.pendingReason
-                                    ? `Issue reported by ${task.assignedToName}`
-                                    : `Assigned to ${task.assignedToName} — awaiting their completion`
-                                }
-                              >
-                                {isDone ? (
-                                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                ) : isRejected ? (
-                                  <XCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-                                ) : task.pendingReason ? (
-                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                                ) : (
-                                  <Send className="w-3 h-3 text-purple-600" />
-                                )}
-                              </div>
                             )}
 
                             {/* Title & Details */}
