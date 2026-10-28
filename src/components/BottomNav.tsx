@@ -72,7 +72,7 @@ export const BottomNav: React.FC = () => {
                 <div
                   className={`w-10 h-7 flex items-center justify-center rounded-xl transition-all ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-xs scale-105'
+                      ? 'bg-orange-500 text-white shadow-xs scale-105'
                       : 'text-slate-500'
                   }`}
                 >
@@ -88,7 +88,7 @@ export const BottomNav: React.FC = () => {
 
               <span
                 className={`text-[10px] mt-0.5 tracking-tight ${
-                  isActive ? 'font-bold text-slate-900' : 'text-slate-500 font-medium'
+                  isActive ? 'font-bold text-orange-600' : 'text-slate-500 font-medium'
                 }`}
               >
                 {item.label}

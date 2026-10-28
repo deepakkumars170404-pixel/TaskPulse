@@ -312,7 +312,7 @@ export const FloatingTaskWidget: React.FC = () => {
                   className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all ${
                     isDone
                       ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : 'border-slate-300 bg-white group-hover:border-blue-600'
+                      : 'border-slate-300 bg-white group-hover:border-orange-500'
                   }`}
                 >
                   {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -323,7 +323,7 @@ export const FloatingTaskWidget: React.FC = () => {
                     className={`text-xs font-bold truncate transition-all ${
                       isDone
                         ? 'line-through decoration-emerald-500 decoration-2 text-slate-400 font-medium'
-                        : 'text-slate-900 group-hover:text-blue-950'
+                        : 'text-slate-900 group-hover:text-orange-950'
                     }`}
                   >
                     {task.title}
@@ -339,7 +339,7 @@ export const FloatingTaskWidget: React.FC = () => {
 
                     {/* Sender Provenance Badge */}
                     {task.type === 'admin' && (
-                      <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-800 font-bold text-[9px] border border-blue-200">
+                      <span className="px-1.5 py-0.2 rounded bg-orange-50 text-orange-700 font-bold text-[9px] border border-orange-200">
                         From Admin
                       </span>
                     )}
@@ -385,7 +385,7 @@ export const FloatingTaskWidget: React.FC = () => {
               /* PURE LOGO ONLY - Compact, centered, perfectly attached badge */
               <div
                 onClick={expandPiP}
-                className="w-full h-full relative flex items-center justify-center bg-blue-50/90 hover:bg-blue-100 transition-colors cursor-pointer select-none p-2 group"
+                className="w-full h-full relative flex items-center justify-center bg-orange-50/90 hover:bg-orange-100 transition-colors cursor-pointer select-none p-2 group"
                 title="TaskToggle · Click logo to open tasks"
               >
                 {/* Mini close button on logo mode */}
@@ -402,7 +402,7 @@ export const FloatingTaskWidget: React.FC = () => {
                 </button>
 
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xl ring-3 ring-white group-hover:scale-105 active:scale-95 transition-transform">
+                  <div className="w-16 h-16 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-xl ring-3 ring-white group-hover:scale-105 active:scale-95 transition-transform">
                     <CheckSquare className="w-8 h-8 stroke-[2.5]" />
                   </div>
                   {pendingTasks.length > 0 && (
@@ -416,9 +416,9 @@ export const FloatingTaskWidget: React.FC = () => {
               /* Expanded details inside PiP */
               <div className="w-full h-full flex flex-col overflow-hidden bg-white">
                 {/* Clean Professional Title Bar */}
-                <div className="bg-blue-600 text-white px-3.5 py-2.5 flex items-center justify-between border-b border-blue-700 shrink-0">
+                <div className="bg-orange-500 text-white px-3.5 py-2.5 flex items-center justify-between border-b border-orange-600 shrink-0">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-blue-600 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-lg bg-orange-500 flex items-center justify-center">
                       <CheckSquare className="w-3.5 h-3.5 stroke-[2.5]" />
                     </div>
                     <span className="text-xs font-bold">TaskToggle Float</span>
@@ -461,7 +461,7 @@ export const FloatingTaskWidget: React.FC = () => {
                         className={`w-full text-xs pl-2.5 pr-7 py-1.5 rounded-lg border bg-white font-medium focus:outline-none transition-all placeholder:text-slate-400 ${
                           isListening
                             ? 'border-rose-500 ring-2 ring-rose-200 bg-rose-50/50 animate-pulse text-rose-900'
-                            : 'border-slate-300 focus:border-blue-600 text-slate-800'
+                            : 'border-slate-300 focus:border-orange-500 text-slate-800'
                         }`}
                       />
                       <button
@@ -470,7 +470,7 @@ export const FloatingTaskWidget: React.FC = () => {
                         className={`absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-md transition-all cursor-pointer ${
                           isListening
                             ? 'bg-rose-600 text-white animate-bounce'
-                            : 'text-slate-400 hover:text-blue-600'
+                            : 'text-slate-400 hover:text-orange-500'
                         }`}
                         title="Voice dictation"
                       >
@@ -479,7 +479,7 @@ export const FloatingTaskWidget: React.FC = () => {
                     </div>
                     <button
                       type="submit"
-                      className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer transition-all"
+                      className="px-2.5 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold cursor-pointer transition-all"
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[3]" />
                     </button>
@@ -510,7 +510,7 @@ export const FloatingTaskWidget: React.FC = () => {
                         onClick={() => setFilter(tab)}
                         className={`px-2 py-0.5 rounded-md text-[10px] font-bold capitalize transition-all cursor-pointer ${
                           filter === tab
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-orange-500 text-white'
                             : 'text-slate-500 hover:bg-slate-100'
                         }`}
                       >
@@ -536,9 +536,9 @@ export const FloatingTaskWidget: React.FC = () => {
                     <button
                       type="button"
                       onClick={completeAllTasks}
-                      className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                      className="px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95"
                     >
-                      <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                      <CheckCircle2 className="w-3 h-3 text-orange-500" />
                       <span>Strike All ({pendingTasks.length})</span>
                     </button>
                   ) : (
@@ -548,7 +548,7 @@ export const FloatingTaskWidget: React.FC = () => {
                     <button
                       type="button"
                       onClick={shrinkPiPToLogo}
-                      className="text-blue-600 hover:text-blue-800 font-bold cursor-pointer hover:underline flex items-center gap-1"
+                      className="text-orange-500 hover:text-orange-700 font-bold cursor-pointer hover:underline flex items-center gap-1"
                       title="Display floating logo only"
                     >
                       <Minimize2 className="w-3 h-3" />
@@ -573,14 +573,14 @@ export const FloatingTaskWidget: React.FC = () => {
 
       {/* Mobile PWA & Desktop App Guide Modal */}
       {showMobilePwaGuide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-blue-950/40 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-orange-950/40 backdrop-blur-xs animate-in fade-in duration-150">
           <div
             className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 text-left space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center">
                   <Smartphone className="w-4 h-4" />
                 </div>
                 <div>
@@ -600,7 +600,7 @@ export const FloatingTaskWidget: React.FC = () => {
             <div className="space-y-3 text-xs text-slate-600 font-medium leading-relaxed">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900">
                 <div className="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
-                  <MonitorUp className="w-4 h-4 text-blue-600" />
+                  <MonitorUp className="w-4 h-4 text-orange-500" />
                   <span>On Desktop (PC / Laptop):</span>
                 </div>
                 <span>
@@ -610,7 +610,7 @@ export const FloatingTaskWidget: React.FC = () => {
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900">
                 <div className="font-bold text-slate-900 flex items-center gap-1.5 mb-1">
-                  <Smartphone className="w-4 h-4 text-blue-600" />
+                  <Smartphone className="w-4 h-4 text-orange-500" />
                   <span>On Mobile (Android / iPhone):</span>
                 </div>
                 <span>
@@ -623,7 +623,7 @@ export const FloatingTaskWidget: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowMobilePwaGuide(false)}
-                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+                className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
               >
                 Got It!
               </button>

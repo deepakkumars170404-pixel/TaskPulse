@@ -39,7 +39,7 @@ export const TaskAlertBanner: React.FC = () => {
             : isIssue
             ? 'border-amber-400 shadow-amber-500/15 ring-2 ring-amber-400/20'
             : isAdmin
-            ? 'border-blue-500 shadow-blue-500/15 ring-2 ring-blue-400/20'
+            ? 'border-orange-500 shadow-orange-500/15 ring-2 ring-orange-400/20'
             : 'border-sky-400 shadow-sky-500/10'
         }`}
       >
@@ -52,7 +52,7 @@ export const TaskAlertBanner: React.FC = () => {
                 : isIssue
                 ? 'bg-amber-50 text-amber-600 border border-amber-200 animate-pulse'
                 : isAdmin
-                ? 'bg-blue-600 text-white animate-bounce'
+                ? 'bg-orange-500 text-white animate-bounce'
                 : 'bg-sky-50 text-sky-600 border border-sky-200'
             }`}
           >
@@ -77,7 +77,7 @@ export const TaskAlertBanner: React.FC = () => {
                     : isIssue
                     ? 'bg-amber-100 text-amber-900 border-amber-300'
                     : isAdmin
-                    ? 'bg-blue-100 text-blue-900 border-blue-300'
+                    ? 'bg-orange-100 text-orange-800 border-orange-300'
                     : 'bg-sky-100 text-sky-800 border-sky-300'
                 }`}
               >
@@ -145,7 +145,7 @@ export const TaskAlertBanner: React.FC = () => {
                     ? 'bg-rose-600 hover:bg-rose-700'
                     : isIssue
                     ? 'bg-amber-600 hover:bg-amber-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-orange-500 hover:bg-orange-600'
                 }`}
               >
                 <span>{isDecline ? 'Review Rejection' : isIssue ? 'View Issue in My To-Do' : 'Open in My To-Do'}</span>

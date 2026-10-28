@@ -104,13 +104,13 @@ export const QuickDatePicker: React.FC<QuickDatePickerProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-blue-500 text-sm font-semibold text-slate-900 flex items-center justify-between cursor-pointer transition-all shadow-2xs"
+        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-orange-500 text-sm font-semibold text-slate-900 flex items-center justify-between cursor-pointer transition-all shadow-2xs"
       >
         <span className="flex items-center gap-2">
-          <CalendarIcon className="w-4 h-4 text-blue-600" />
+          <CalendarIcon className="w-4 h-4 text-orange-500" />
           <span>{value || 'Select Date'}</span>
         </span>
-        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+        <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-md">
           Pick
         </span>
       </button>
@@ -203,9 +203,9 @@ export const QuickDatePicker: React.FC<QuickDatePickerProps> = ({
                   onClick={() => selectDay(day)}
                   className={`w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-blue-600 text-white font-bold shadow-xs'
+                      ? 'bg-orange-500 text-white font-bold shadow-xs'
                       : isToday
-                      ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 hover:bg-blue-100'
+                      ? 'bg-orange-50 text-orange-600 font-bold border border-orange-200 hover:bg-orange-100'
                       : 'text-slate-700 hover:bg-slate-100'
                   }`}
                 >
@@ -312,13 +312,13 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-blue-500 text-sm font-semibold text-slate-900 flex items-center justify-between cursor-pointer transition-all shadow-2xs"
+        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:border-orange-500 text-sm font-semibold text-slate-900 flex items-center justify-between cursor-pointer transition-all shadow-2xs"
       >
         <span className="flex items-center gap-2">
-          <ClockIcon className="w-4 h-4 text-blue-600" />
+          <ClockIcon className="w-4 h-4 text-orange-500" />
           <span>{value || 'Select Time'}</span>
         </span>
-        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+        <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-md">
           Clock
         </span>
       </button>
@@ -330,7 +330,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
           <div className="pb-3 border-b border-slate-100 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <ClockIcon className="w-3.5 h-3.5 text-blue-600" />
+                <ClockIcon className="w-3.5 h-3.5 text-orange-500" />
                 <span>Fast Time Picker</span>
               </span>
               <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
@@ -339,7 +339,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
                   onClick={() => updateTime(selectedHour, selectedMinute, 'AM')}
                   className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
                     selectedPeriod === 'AM'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-orange-500 text-white'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -350,7 +350,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
                   onClick={() => updateTime(selectedHour, selectedMinute, 'PM')}
                   className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
                     selectedPeriod === 'PM'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-orange-500 text-white'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -406,7 +406,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
             </span>
             <div className="relative w-44 h-44 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center shadow-inner">
               {/* Center point */}
-              <div className="w-2.5 h-2.5 rounded-full bg-blue-600 z-10" />
+              <div className="w-2.5 h-2.5 rounded-full bg-orange-500 z-10" />
 
               {/* Clock Numbers 1-12 arranged in circle */}
               {clockHours.map((h, idx) => {
@@ -426,8 +426,8 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
                     style={{ left: `${x}px`, top: `${y}px` }}
                     className={`absolute w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-600 text-white shadow-xs scale-110 z-20'
-                        : 'text-slate-700 hover:bg-blue-100 hover:text-blue-900'
+                        ? 'bg-orange-500 text-white shadow-xs scale-110 z-20'
+                        : 'text-slate-700 hover:bg-orange-100 hover:text-orange-800'
                     }`}
                   >
                     {h}
@@ -448,7 +448,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
                   onClick={() => updateTime(selectedHour, m, selectedPeriod)}
                   className={`px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedMinute === m
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-orange-500 text-white'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -462,7 +462,7 @@ export const QuickTimePicker: React.FC<QuickTimePickerProps> = ({
           <button
             type="button"
             onClick={handleApply}
-            className="w-full mt-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            className="w-full mt-3 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Set Time ({selectedHour}:{String(selectedMinute).padStart(2, '0')} {selectedPeriod})</span>
