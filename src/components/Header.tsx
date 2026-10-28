@@ -143,28 +143,32 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           </button>
 
           {showThemeDropdown && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-3.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800 space-y-3.5">
+            <div className="absolute right-0 mt-2 w-84 sm:w-96 max-h-[82vh] overflow-y-auto no-scrollbar bg-white rounded-2xl shadow-2xl border border-slate-200 p-3.5 sm:p-4 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800 space-y-3.5">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div>
-                  <p className="text-xs font-bold text-slate-900 leading-tight">Executive Appearance</p>
-                  <p className="text-[10px] text-slate-500 font-medium">Palette, Canvas & Typography</p>
+                  <p className="text-xs font-bold text-slate-900 leading-tight">Executive Appearance Engine</p>
+                  <p className="text-[10px] text-slate-500 font-medium">Instant theme colors, canvases & typography</p>
                 </div>
                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200">
-                  Instant
+                  Live Preview
                 </span>
               </div>
 
-              {/* 1. Theme Palette */}
+              {/* 1. Theme Palette (8 Vibrant Palettes) */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  Executive Palette
+                  1. Color Palette ({8} Themes)
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { id: 'navy', label: 'Royal Navy', sub: 'Stripe / Corporate', color: 'bg-blue-600' },
-                    { id: 'slate', label: 'Titanium', sub: 'Linear / Minimalist', color: 'bg-slate-900' },
-                    { id: 'emerald', label: 'Emerald', sub: 'Enterprise SaaS', color: 'bg-emerald-600' },
-                    { id: 'orange', label: 'Terracotta', sub: 'Anthropic / Warm', color: 'bg-orange-500' },
+                    { id: 'navy', label: 'Royal Navy', sub: 'Classic Stripe Blue', color: 'bg-blue-600' },
+                    { id: 'violet', label: 'Violet Velvet', sub: 'Linear Radiant Purple', color: 'bg-purple-600' },
+                    { id: 'rose', label: 'Ruby Rose', sub: 'Vibrant Berry Crimson', color: 'bg-rose-600' },
+                    { id: 'emerald', label: 'Emerald Jade', sub: 'Fresh Enterprise Mint', color: 'bg-emerald-600' },
+                    { id: 'cyan', label: 'Electric Cyan', sub: 'Cyber Ocean Teal', color: 'bg-cyan-600' },
+                    { id: 'amber', label: 'Golden Amber', sub: 'Warm Honey Sunset', color: 'bg-amber-500' },
+                    { id: 'orange', label: 'Terracotta', sub: 'Anthropic Tangerine', color: 'bg-orange-500' },
+                    { id: 'slate', label: 'Obsidian Slate', sub: 'Minimalist Titanium', color: 'bg-slate-900' },
                   ].map((t) => (
                     <button
                       key={t.id}
@@ -172,74 +176,81 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                       onClick={() => setThemePreset(t.id as any)}
                       className={`p-2 rounded-xl text-left border transition-all cursor-pointer flex items-center justify-between ${
                         themePreset === t.id
-                          ? 'border-primary-500 bg-primary-50 text-slate-900 font-bold shadow-2xs'
+                          ? 'border-primary-500 bg-primary-50/70 text-slate-900 font-bold shadow-2xs ring-1 ring-primary-400'
                           : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className={`w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs ${t.color}`} />
-                        <div>
-                          <div className="text-[11px] leading-tight font-bold">{t.label}</div>
-                          <div className="text-[9px] text-slate-500">{t.sub}</div>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-4 h-4 rounded-full shrink-0 shadow-xs ring-1 ring-black/10 ${t.color}`} />
+                        <div className="min-w-0">
+                          <div className="text-[11px] leading-tight font-bold truncate">{t.label}</div>
+                          <div className="text-[9px] text-slate-500 truncate">{t.sub}</div>
                         </div>
                       </div>
-                      {themePreset === t.id && <Check className="w-3.5 h-3.5 text-primary-600 shrink-0" />}
+                      {themePreset === t.id && <Check className="w-3.5 h-3.5 text-primary-600 shrink-0 ml-1" />}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* 2. Background Canvas */}
+              {/* 2. Background Canvas (6 Distinct Backdrops) */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  Background Canvas
+                  2. Background Canvas ({6} Backdrops)
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {[
-                    { id: 'slate', label: 'Cool Slate', code: '#F8FAFC' },
-                    { id: 'white', label: 'Pure White', code: '#FFFFFF' },
-                    { id: 'stone', label: 'Warm Stone', code: '#FAFAF9' },
+                    { id: 'slate', label: 'Cool Slate', code: '#F8FAFC', preview: 'bg-slate-100' },
+                    { id: 'white', label: 'Pure White', code: '#FFFFFF', preview: 'bg-white border border-slate-200' },
+                    { id: 'cashmere', label: 'Cashmere', code: '#FAF7F2', preview: 'bg-[#FAF7F2] border border-amber-200/40' },
+                    { id: 'rose', label: 'Soft Rose', code: '#FFF5F6', preview: 'bg-[#FFF5F6] border border-rose-200/50' },
+                    { id: 'sage', label: 'Sage Mist', code: '#F2F8F4', preview: 'bg-[#F2F8F4] border border-emerald-200/50' },
+                    { id: 'dark', label: 'Eclipse', code: '#0B0F19', preview: 'bg-slate-950 text-white' },
                   ].map((b) => (
                     <button
                       key={b.id}
                       type="button"
                       onClick={() => setBgCanvas(b.id as any)}
-                      className={`p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
                         bgCanvas === b.id
-                          ? 'border-primary-500 bg-primary-50 text-slate-900 font-bold shadow-2xs'
-                          : 'border-slate-200 hover:bg-slate-50 text-slate-600 text-xs'
+                          ? 'border-primary-500 bg-primary-50/70 text-slate-900 font-bold shadow-2xs ring-1 ring-primary-400'
+                          : 'border-slate-200 hover:bg-slate-50 text-slate-700'
                       }`}
                     >
-                      <div className="text-[10px] font-bold">{b.label}</div>
-                      <div className="text-[9px] text-slate-400 font-mono mt-0.5">{b.code}</div>
+                      <span className={`w-full h-3 rounded-md ${b.preview}`} />
+                      <div className="text-[10px] font-bold leading-tight">{b.label}</div>
+                      <div className="text-[8px] text-slate-400 font-mono">{b.code}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* 3. Typography Stack */}
+              {/* 3. Typography Stack (6 Distinct Typefaces) */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  Typography Stack
+                  3. Typography Stack ({6} Typefaces)
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {[
+                    { id: 'outfit', label: 'Outfit', desc: 'Bold Geometric' },
+                    { id: 'jakarta', label: 'Plus Jakarta', desc: 'Editorial Tech' },
                     { id: 'inter', label: 'Inter', desc: 'Stripe SaaS' },
-                    { id: 'jakarta', label: 'Plus Jakarta', desc: 'Modern' },
-                    { id: 'system', label: 'Native OS', desc: 'Apple/Win' },
+                    { id: 'poppins', label: 'Poppins', desc: 'Warm Rounded' },
+                    { id: 'mono', label: 'JetBrains', desc: 'Developer Tech' },
+                    { id: 'system', label: 'Native OS', desc: 'Apple/Windows' },
                   ].map((f) => (
                     <button
                       key={f.id}
                       type="button"
                       onClick={() => setFontFamily(f.id as any)}
-                      className={`p-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                         fontFamily === f.id
-                          ? 'border-primary-500 bg-primary-50 text-slate-900 font-bold shadow-2xs'
+                          ? 'border-primary-500 bg-primary-50/70 text-slate-900 font-bold shadow-2xs ring-1 ring-primary-400'
                           : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                       }`}
                     >
-                      <div className="text-[10px] font-bold">{f.label}</div>
-                      <div className="text-[9px] text-slate-400">{f.desc}</div>
+                      <div className="text-[11px] font-bold leading-tight">{f.label}</div>
+                      <div className="text-[8px] text-slate-400 mt-0.5">{f.desc}</div>
                     </button>
                   ))}
                 </div>

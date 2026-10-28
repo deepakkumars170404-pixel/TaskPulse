@@ -58,9 +58,31 @@ export interface OrgSettings {
   accentColor?: string;
 }
 
-export type ThemePreset = 'navy' | 'slate' | 'emerald' | 'orange';
-export type BgCanvas = 'slate' | 'white' | 'stone';
-export type FontFamily = 'inter' | 'jakarta' | 'system';
+export type ThemePreset =
+  | 'navy'
+  | 'violet'
+  | 'rose'
+  | 'emerald'
+  | 'cyan'
+  | 'amber'
+  | 'orange'
+  | 'slate';
+
+export type BgCanvas =
+  | 'slate'
+  | 'white'
+  | 'cashmere'
+  | 'rose'
+  | 'sage'
+  | 'dark';
+
+export type FontFamily =
+  | 'outfit'
+  | 'jakarta'
+  | 'inter'
+  | 'poppins'
+  | 'mono'
+  | 'system';
 
 export interface TaskAlert {
   id: string;
