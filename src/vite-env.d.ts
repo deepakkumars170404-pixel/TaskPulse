@@ -8,6 +8,7 @@ interface DocumentPictureInPictureOptions {
   width?: number;
   height?: number;
   disallowReturnToOpener?: boolean;
+  preferInitialWindowPlacement?: boolean;
 }
 
 interface DocumentPictureInPicture {

@@ -87,6 +87,7 @@ export const FloatingTaskWidget: React.FC = () => {
       const pipWin = await window.documentPictureInPicture.requestWindow({
         width: initialWidth,
         height: initialHeight,
+        preferInitialWindowPlacement: false,
       });
 
       // 1. Instantly copy all compiled CSS rules directly from memory (0ms network delay, eliminates FOUC)
