@@ -520,21 +520,25 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return currentUser.role === 'admin' ? 'dashboard' : 'mytodo';
   });
 
-  // Navigate to a new page and record a browser history entry (so browser back button returns to the previous page inside localhost)
+  const currentPageRef = useRef<string>(currentPage);
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
+
+  // Navigate to a new page and record a browser history entry (guarantees exactly 1 history entry so browser back button returns to the previous page in 1 single click)
   const setCurrentPage = useCallback((newPage: string) => {
-    _setCurrentPage((prev) => {
-      if (prev === newPage) return prev;
-      if (typeof window !== 'undefined' && window.history?.pushState) {
-        try {
-          window.history.pushState(
-            { page: newPage },
-            '',
-            `/${newPage}${window.location.search}${window.location.hash}`
-          );
-        } catch (e) {}
-      }
-      return newPage;
-    });
+    if (currentPageRef.current === newPage) return;
+    currentPageRef.current = newPage;
+    _setCurrentPage(newPage);
+    if (typeof window !== 'undefined' && window.history?.pushState) {
+      try {
+        window.history.pushState(
+          { page: newPage },
+          '',
+          `/${newPage}${window.location.search}${window.location.hash}`
+        );
+      } catch (e) {}
+    }
   }, []);
 
   // Listen to browser Back and Forward navigation events (popstate)
@@ -544,6 +548,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const handlePopState = (event: PopStateEvent) => {
       // SECURITY GUARD: If user is logged out, strictly STAY on login! Never let back button go into internal pages!
       if (!isAuthenticated) {
+        currentPageRef.current = 'login';
         _setCurrentPage('login');
         try {
           if (window.location.pathname !== '/login') {
@@ -560,12 +565,14 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           : normalizePageFromUrl(window.location.pathname, currentUser.role, isAuthenticated);
 
       if (targetPage === 'login') {
+        currentPageRef.current = 'login';
         _setCurrentPage('login');
         setIsAuthenticated(false);
         localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'false');
         return;
       }
 
+      currentPageRef.current = targetPage;
       _setCurrentPage(targetPage);
     };
 
@@ -1240,6 +1247,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsAuthenticated(false);
     localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'false');
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}current_user_id`);
+    currentPageRef.current = 'login';
     _setCurrentPage('login');
 
     if (typeof window !== 'undefined' && window.history) {

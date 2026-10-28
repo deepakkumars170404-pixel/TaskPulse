@@ -59,10 +59,22 @@ export const AdminDashboard: React.FC = () => {
 
   // 1. Separate Tasks: Admin Own Tasks vs Staff Target Tasks
   const adminOwnTasks = tasks.filter(
-    (t) => t.assignedTo === currentUser.id || (t.type === 'self' && t.createdBy === currentUser.id)
+    (t) =>
+      t.type === 'self' ||
+      t.assignedTo === currentUser.id ||
+      t.assignedTo === 'admin_deepak' ||
+      t.assignedTo === 'admin_1' ||
+      t.assignedTo === 'admin' ||
+      Boolean(t.assignedToName?.toLowerCase().includes('admin'))
   );
   const staffTargetTasks = tasks.filter(
-    (t) => t.assignedTo !== currentUser.id
+    (t) =>
+      t.type !== 'self' &&
+      t.assignedTo !== currentUser.id &&
+      t.assignedTo !== 'admin_deepak' &&
+      t.assignedTo !== 'admin_1' &&
+      t.assignedTo !== 'admin' &&
+      !t.assignedToName?.toLowerCase().includes('admin')
   );
 
   // 2. Dynamic Real-Time Date Timeline Filter
@@ -99,6 +111,14 @@ export const AdminDashboard: React.FC = () => {
     if (Array.isArray(eventTiming.allottedStaffIds) && eventTiming.allottedStaffIds.length > 0) {
       const matched = users.filter((u) => eventTiming.allottedStaffIds.includes(u.id));
       if (matched.length > 0) return matched;
+      const matchedByName = users.filter((u) =>
+        eventTiming.allottedStaffIds.some(
+          (val) =>
+            u.id.toLowerCase().includes(val.toLowerCase()) ||
+            u.name.toLowerCase().includes(val.toLowerCase())
+        )
+      );
+      if (matchedByName.length > 0) return matchedByName;
     }
     // Fallback: list all staff team members if none explicitly allotted
     return users.filter((u) => u.role === 'staff');
@@ -121,8 +141,27 @@ export const AdminDashboard: React.FC = () => {
     setTimeout(() => setShowQuickSuccess(false), 2500);
   };
 
-  // Determine tasks to display in the main table
-  const displayedTableTasks = activeTab === 'staff' ? filteredStaffTasks : filteredAllTasks;
+  // Determine tasks to display in the main table with prioritized sort (pending first, newest created first)
+  const rawDisplayedTasks =
+    activeTab === 'staff'
+      ? filteredStaffTasks
+      : activeTab === 'admin'
+      ? filteredAdminTasks
+      : filteredAllTasks;
+
+  const displayedTableTasks = useMemo(() => {
+    return [...rawDisplayedTasks].sort((a, b) => {
+      const aDone = a.status === 'done' || a.status === 'rejected';
+      const bDone = b.status === 'done' || b.status === 'rejected';
+      if (aDone !== bDone) return aDone ? 1 : -1;
+
+      const timeA = new Date(a.createdAt || 0).getTime();
+      const timeB = new Date(b.createdAt || 0).getTime();
+      if (timeA !== timeB) return timeB - timeA;
+
+      return 0;
+    });
+  }, [rawDisplayedTasks]);
 
   return (
     <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
@@ -400,10 +439,10 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* =========================================================================
-          VIEW 1: TASK TABLE (ALL TASKS OR STAFF TASKS)
+          VIEW 1: TASK TABLE (ALL TASKS, ADMIN AGENDA, OR STAFF TASKS)
           Displays Admin personal tasks with 👑 crown badge + interactive strike checkbox
           ========================================================================= */}
-      {(activeTab === 'all' || activeTab === 'staff' || activeTab === 'dual') && (
+      {(activeTab === 'all' || activeTab === 'staff' || activeTab === 'admin' || activeTab === 'dual') && (
         <div className="space-y-4">
           {/* Informative Banner */}
           <div className="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
@@ -556,10 +595,16 @@ export const AdminDashboard: React.FC = () => {
           {/* Standalone Full-Width Tasks Table: Completely Separate from Staff Delivery Box, No Scroll */}
           <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
             {/* Table Header */}
-            <div className="p-3 sm:p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50">
+            <div className="p-3 sm:p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 font-['Outfit'] flex items-center gap-2">
-                  <span>{activeTab === 'all' ? '📋 All Assigned Tasks' : '👥 Staff Target Tasks'}</span>
+                  <span>
+                    {activeTab === 'all'
+                      ? '📋 All Assigned Tasks'
+                      : activeTab === 'admin'
+                      ? '👑 Admin Personal Tasks'
+                      : '👥 Staff Target Tasks'}
+                  </span>
                   <span className="text-xs font-semibold text-slate-500">
                     ({displayedTableTasks.length} tasks scheduled)
                   </span>
@@ -567,8 +612,47 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   {activeTab === 'all'
                     ? 'Live feed of Admin personal agenda items & staff team target deliverables'
+                    : activeTab === 'admin'
+                    ? 'Your personal tasks and executive daily milestones'
                     : 'Live feed of tasks allotted to staff members across departments'}
                 </p>
+              </div>
+
+              {/* Quick Filter Pill Buttons directly on the Table Header */}
+              <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs self-start sm:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('all')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'all'
+                      ? 'bg-primary-500 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  All ({filteredAllTasks.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('admin')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    activeTab === 'admin'
+                      ? 'bg-amber-500 text-white shadow-2xs'
+                      : 'text-amber-800 hover:bg-amber-50'
+                  }`}
+                >
+                  👑 Admin ({filteredAdminTasks.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('staff')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === 'staff'
+                      ? 'bg-primary-500 text-white shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  Staff ({filteredStaffTasks.length})
+                </button>
               </div>
             </div>
 
@@ -594,7 +678,11 @@ export const AdminDashboard: React.FC = () => {
                       displayedTableTasks.map((task) => {
                         const isAdminTask =
                           task.assignedTo === currentUser.id ||
-                          (task.type === 'self' && task.createdBy === currentUser.id);
+                          task.assignedTo === 'admin_deepak' ||
+                          task.assignedTo === 'admin_1' ||
+                          task.assignedTo === 'admin' ||
+                          task.type === 'self' ||
+                          Boolean(task.assignedToName?.toLowerCase().includes('admin'));
                         const isDone = task.status === 'done';
                         const isRejected = task.status === 'rejected';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { Clock, Calendar, Check, CheckCircle2, Bell, Sparkles } from 'lucide-react';
+import { Clock, Calendar, Check, CheckCircle2, Bell, Sparkles, ArrowLeft } from 'lucide-react';
 import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
 import { getTodayDateString } from '../../utils/dateUtils';
 
@@ -23,6 +23,7 @@ export const TimingSettingsView: React.FC = () => {
     updateEventTiming,
     orgSettings,
     triggerTaskAlert,
+    setCurrentPage,
   } = useTaskToggle();
 
   // General Timing Form state (Clock settings)
@@ -84,22 +85,41 @@ export const TimingSettingsView: React.FC = () => {
     setTimeout(() => setEventToast(false), 3000);
   };
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    } else {
+      setCurrentPage('dashboard');
+    }
+  };
+
   return (
     <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Clean Corporate Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
-              Timing & Office Hours
-            </h1>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-500 text-white shadow-2xs">
-              {orgSettings.orgName} Executive
-            </span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
+            title="1-click return to previous page"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back</span>
+          </button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+                Timing & Office Hours
+              </h1>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-500 text-white shadow-2xs">
+                {orgSettings.orgName} Executive
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
+              Configure general office hours and special event dates/timings using interactive calendar and clock controls
+            </p>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
-            Configure general office hours and special event dates/timings using interactive calendar and clock controls
-          </p>
         </div>
       </div>
 

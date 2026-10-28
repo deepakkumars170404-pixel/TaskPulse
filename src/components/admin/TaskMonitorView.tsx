@@ -18,13 +18,14 @@ import {
   FileText,
   UserPlus,
   Trash2,
+  ArrowLeft,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { AddStaffModal } from './AddStaffModal';
 import { Task, User, getTaskDeclineReason } from '../../types';
 
 export const TaskMonitorView: React.FC = () => {
-  const { tasks, users, orgSettings, deleteStaffUser } = useTaskToggle();
+  const { tasks, users, orgSettings, deleteStaffUser, setCurrentPage } = useTaskToggle();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTaskForIssue, setSelectedTaskForIssue] = useState<Task | null>(null);
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
@@ -82,22 +83,41 @@ export const TaskMonitorView: React.FC = () => {
     });
   }, [staffMembers, tasks, searchQuery]);
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    } else {
+      setCurrentPage('dashboard');
+    }
+  };
+
   return (
     <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
-              Central Task Monitor
-            </h1>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-500 text-white shadow-2xs">
-              {orgSettings.orgName} Live Feed
-            </span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
+            title="1-click return to previous page"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back</span>
+          </button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+                Central Task Monitor
+              </h1>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-500 text-white shadow-2xs">
+                {orgSettings.orgName} Live Feed
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
+              Staff-first directory: Monitor staff workloads, completion rates, and active deliverables
+            </p>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
-            Staff-first directory: Monitor staff workloads, completion rates, and active deliverables
-          </p>
         </div>
 
         {/* Search & Actions */}

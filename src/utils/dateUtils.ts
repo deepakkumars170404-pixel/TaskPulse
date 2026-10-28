@@ -85,20 +85,31 @@ export function parseDateString(str?: string | null): Date | null {
   const trimmed = str.trim();
   if (!trimmed) return null;
 
-  // Pattern: '28 Oct 2026' or '28-Oct-2026' or '28/Oct/2026'
-  const parts = trimmed.split(/[\s\-\/\.]+/);
-  if (parts.length === 3) {
-    // Check if parts[0] is day, parts[1] is month name, parts[2] is year
+  const lower = trimmed.toLowerCase();
+  const now = new Date();
+  if (lower === 'today') {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  }
+  if (lower === 'tomorrow') {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+  }
+
+  // Strip weekday prefix like 'Wed, ' or 'Sun ' or 'Fri '
+  const cleaned = trimmed.replace(/^(sun|mon|tue|wed|thu|fri|sat)[a-z]*,?\s*/i, '');
+  const parts = cleaned.split(/[\s\-\/\.,]+/);
+
+  if (parts.length >= 2) {
     const day = parseInt(parts[0], 10);
     const monthIdx = MONTH_NAMES_SHORT.findIndex(
       (m) => m.toLowerCase() === parts[1].toLowerCase().slice(0, 3)
     );
-    const year = parseInt(parts[2], 10);
+    const year = parts[2] ? parseInt(parts[2], 10) : now.getFullYear();
+
     if (!isNaN(day) && monthIdx !== -1 && !isNaN(year)) {
       return new Date(year, monthIdx, day, 0, 0, 0, 0);
     }
 
-    // Check if ISO format YYYY-MM-DD
+    // Check ISO format YYYY-MM-DD
     const isoYear = parseInt(parts[0], 10);
     const isoMonth = parseInt(parts[1], 10) - 1;
     const isoDay = parseInt(parts[2], 10);

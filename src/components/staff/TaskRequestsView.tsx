@@ -17,6 +17,7 @@ import {
   Trash2,
   ArrowRight,
   UserPlus,
+  ArrowLeft,
 } from 'lucide-react';
 
 export const TaskRequestsView: React.FC = () => {
@@ -106,6 +107,14 @@ export const TaskRequestsView: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    } else {
+      setCurrentPage('mytodo');
+    }
+  };
+
   return (
     <div className="w-full p-2.5 sm:p-4 lg:p-5 space-y-2.5 sm:space-y-3.5">
       {/* Toast Feedback */}
@@ -118,18 +127,29 @@ export const TaskRequestsView: React.FC = () => {
 
       {/* Clean Corporate Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 sm:pb-2.5 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
-              Colleague Task Requests
-            </h1>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
-              {orgSettings.orgName} Staff
-            </span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all shadow-2xs cursor-pointer shrink-0"
+            title="1-click return to previous page"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back</span>
+          </button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+                Colleague Task Requests
+              </h1>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-200">
+                {orgSettings.orgName} Staff
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
+              Manage work requests between team members — approve, decline with reasons, and track delegated tasks
+            </p>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium hidden sm:block">
-            Manage work requests between team members — approve, decline with reasons, and track delegated tasks
-          </p>
         </div>
 
         <button
