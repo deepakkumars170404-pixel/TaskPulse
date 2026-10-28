@@ -108,13 +108,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           </span>
         </div>
 
-        {/* User Profile / Switcher Dropdown */}
+        {/* Testing Character Switcher (Active for easy presentation between Admin and Staff) */}
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setShowSwitchDropdown(!showSwitchDropdown)}
             className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 p-1 sm:pr-3 rounded-full transition-all cursor-pointer shadow-2xs"
-            title="User Profile & Settings"
+            title="Click to switch persona (Admin vs Staff)"
             aria-expanded={showSwitchDropdown}
           >
             <div
@@ -141,127 +141,86 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
           </button>
 
-          {/* User Profile / Switcher Popover */}
+          {/* User Switcher Dropdown (Allows 1-click switching to any staff or admin for presentation) */}
           {showSwitchDropdown && (
             <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-              {currentUser.role === 'staff' ? (
-                /* Staff: Strictly restricted to their own account & Logout (Cannot switch to anyone) */
-                <div className="p-2 space-y-3">
-                  <div className="flex items-center gap-3 pb-2 border-b border-slate-100">
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-xs shrink-0 ${
-                        currentUser.avatarBg || 'bg-indigo-600'
-                      }`}
-                    >
-                      {currentUser.initials}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name}</p>
-                      <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
-                      <span className="inline-block mt-0.5 text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 capitalize">
-                        Staff Member · {orgSettings.orgName}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-[10px] text-slate-400 font-medium px-1 leading-relaxed">
-                    Account locked to your session. To switch users, please sign out.
+              <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Team Members & Switcher
                   </p>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSwitchDropdown(false);
-                      logout();
-                    }}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all cursor-pointer border border-rose-200"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out</span>
-                  </button>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    1-Click switch persona dashboard
+                  </p>
                 </div>
-              ) : (
-                /* Admin: Supervision persona switcher & Logout */
-                <>
-                  <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                        Admin Team Supervision
-                      </p>
-                      <p className="text-[11px] text-slate-400 font-medium">
-                        View dashboard as staff persona
-                      </p>
-                    </div>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700">
-                      {users.length} Active
-                    </span>
-                  </div>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                  {users.length} Active
+                </span>
+              </div>
 
-                  <div className="py-1 space-y-1 max-h-64 overflow-y-auto">
-                    {users.map((u) => {
-                      const isCurrent = u.id === currentUser.id;
-                      return (
-                        <button
-                          key={u.id}
-                          type="button"
-                          onClick={() => {
-                            switchUser(u.id);
-                            setShowSwitchDropdown(false);
-                          }}
-                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all cursor-pointer ${
-                            isCurrent
-                              ? 'bg-indigo-50/80 text-indigo-950 font-bold border border-indigo-200/60'
-                              : 'hover:bg-slate-50 text-slate-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div
-                              className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${
-                                u.avatarBg || 'bg-indigo-600'
-                              }`}
-                            >
-                              {u.initials}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
-                                {u.name}
-                                {u.role === 'admin' ? (
-                                  <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
-                                ) : (
-                                  <UserCheck className="w-3 h-3 text-slate-400 shrink-0" />
-                                )}
-                              </p>
-                              <p className="text-[10px] text-slate-500 truncate">
-                                {u.role} · {u.email}
-                              </p>
-                            </div>
-                          </div>
-
-                          {isCurrent && (
-                            <span className="text-[10px] font-black text-indigo-600 px-1.5 py-0.5 rounded bg-white shadow-2xs shrink-0">
-                              Active
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100">
+              <div className="py-1 space-y-1 max-h-64 overflow-y-auto">
+                {users.map((u) => {
+                  const isCurrent = u.id === currentUser.id;
+                  return (
                     <button
+                      key={u.id}
                       type="button"
                       onClick={() => {
+                        switchUser(u.id);
                         setShowSwitchDropdown(false);
-                        logout();
                       }}
-                      className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-bold transition-all cursor-pointer border border-slate-200"
+                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all cursor-pointer ${
+                        isCurrent
+                          ? 'bg-indigo-50/80 text-indigo-950 font-bold border border-indigo-200/60'
+                          : 'hover:bg-slate-50 text-slate-700'
+                      }`}
                     >
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out</span>
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${
+                            u.avatarBg || 'bg-indigo-600'
+                          }`}
+                        >
+                          {u.initials}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
+                            {u.name}
+                            {u.role === 'admin' ? (
+                              <ShieldCheck className="w-3 h-3 text-indigo-600 shrink-0" />
+                            ) : (
+                              <UserCheck className="w-3 h-3 text-slate-400 shrink-0" />
+                            )}
+                          </p>
+                          <p className="text-[10px] text-slate-500 truncate">
+                            {u.role} · {u.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      {isCurrent && (
+                        <span className="text-[10px] font-black text-indigo-600 px-1.5 py-0.5 rounded bg-white shadow-2xs shrink-0">
+                          Active
+                        </span>
+                      )}
                     </button>
-                  </div>
-                </>
-              )}
+                  );
+                })}
+              </div>
+
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSwitchDropdown(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-bold transition-all cursor-pointer border border-slate-200"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
