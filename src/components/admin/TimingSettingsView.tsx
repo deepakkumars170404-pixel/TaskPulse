@@ -16,7 +16,7 @@ export const TimingSettingsView: React.FC = () => {
   const [eventDate, setEventDate] = useState(eventTiming?.date || '27 Oct 2026');
   const [newEventTiming, setNewEventTiming] = useState(eventTiming?.newTiming || '8:00 AM - 6:00 PM');
   const [allottedStaffIds, setAllottedStaffIds] = useState<string[]>(
-    eventTiming?.allottedStaffIds || ['staff_arun', 'staff_meena', 'staff_priya', 'staff_karthik']
+    eventTiming?.allottedStaffIds || []
   );
   const [eventToast, setEventToast] = useState(false);
 

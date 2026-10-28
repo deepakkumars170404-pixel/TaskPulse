@@ -4,7 +4,7 @@ import { Role } from '../types';
 import { CheckSquare, ArrowRight, ShieldCheck, UserCheck } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
-  const { login, orgSettings } = useTaskToggle();
+  const { login, orgSettings, users } = useTaskToggle();
   const [role, setRole] = useState<Role>('admin');
   const [email, setEmail] = useState('admin@company.com');
   const [password, setPassword] = useState('••••••••');

@@ -342,8 +342,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       try {
         const parsed = JSON.parse(saved);
         // If saved users still have the old 'Arun Kumar' or legacy 'admin_1', refresh to INITIAL_USERS with 'Arun Patel'
-        if (parsed.some((u: User) => u.name === 'Arun Kumar' || u.id === 'admin_1')) {
+        if (parsed.some((u: User) => ['staff_arun', 'staff_priya', 'staff_meena', 'staff_karthik', 'staff_divya', 'admin_1'].includes(u.id) || u.name === 'Arun Kumar')) {
           localStorage.setItem(`${STORAGE_KEY_PREFIX}users`, JSON.stringify(INITIAL_USERS));
+          localStorage.removeItem(`${STORAGE_KEY_PREFIX}tasks`);
           return INITIAL_USERS;
         }
         return parsed;
