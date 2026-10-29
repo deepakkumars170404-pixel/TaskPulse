@@ -37,30 +37,36 @@ export const AdmissionsManagementView: React.FC = () => {
   const staffStats = useMemo(() => {
     const stats: Record<string, { user: typeof staffMembers[0]; count: number; courses: Set<string> }> = {};
     staffMembers.forEach((u) => {
+      if (!u || !u.id) return;
       stats[u.id] = { user: u, count: 0, courses: new Set() };
     });
 
     admissions.forEach((a) => {
-      if (stats[a.staffId]) {
-        stats[a.staffId].count += 1;
-        stats[a.staffId].courses.add(a.courseName);
+      if (!a) return;
+      const sId = a.staffId || 'unknown_staff';
+      const sName = a.staffName || 'Staff';
+      const cName = a.courseName || 'General Course';
+
+      if (stats[sId]) {
+        stats[sId].count += 1;
+        stats[sId].courses.add(cName);
       } else {
         // Exclude admin if encountered
-        const matchedUser = users.find((u) => u.id === a.staffId);
-        if (matchedUser?.role === 'admin' || a.staffId.toLowerCase().includes('admin')) {
+        const matchedUser = users.find((u) => u.id === sId);
+        if (matchedUser?.role === 'admin' || (typeof sId === 'string' && sId.toLowerCase().includes('admin'))) {
           return;
         }
         // Custom staff member
-        stats[a.staffId] = {
+        stats[sId] = {
           user: {
-            id: a.staffId,
-            name: a.staffName,
+            id: sId,
+            name: sName,
             email: '',
             role: 'staff',
-            initials: a.staffName.slice(0, 2).toUpperCase(),
+            initials: (sName || 'ST').slice(0, 2).toUpperCase(),
           },
           count: 1,
-          courses: new Set([a.courseName]),
+          courses: new Set([cName]),
         };
       }
     });
@@ -70,19 +76,28 @@ export const AdmissionsManagementView: React.FC = () => {
 
   // Unique courses across all admissions
   const uniqueCourses = useMemo(() => {
-    const set = new Set(admissions.map((a) => a.courseName));
-    return Array.from(set);
+    const set = new Set(admissions.map((a) => a?.courseName).filter(Boolean));
+    return Array.from(set) as string[];
   }, [admissions]);
 
   // Filtered admissions based on active filters & search
   const filteredAdmissions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return admissions.filter((a) => {
+      if (!a) return false;
+      const studentName = (a.studentName || '').toLowerCase();
+      const courseName = (a.courseName || '').toLowerCase();
+      const staffName = (a.staffName || '').toLowerCase();
+      const studentPhone = a.studentPhone || '';
+      const admissionNo = String(a.admissionNo || '');
+
       const matchesSearch =
-        a.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.courseName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.staffName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (a.studentPhone && a.studentPhone.includes(searchQuery)) ||
-        String(a.admissionNo).includes(searchQuery);
+        !query ||
+        studentName.includes(query) ||
+        courseName.includes(query) ||
+        staffName.includes(query) ||
+        studentPhone.includes(query) ||
+        admissionNo.includes(query);
 
       const matchesStaff = selectedStaffFilter === 'all' || a.staffId === selectedStaffFilter;
       const matchesCourse = selectedCourseFilter === 'all' || a.courseName === selectedCourseFilter;
@@ -486,7 +501,7 @@ export const AdmissionsManagementView: React.FC = () => {
                     <td className="py-3 px-4 font-bold text-slate-900">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-700 border border-primary-100 flex items-center justify-center font-black text-[11px]">
-                          {adm.studentName.charAt(0)}
+                          {(adm.studentName || 'Student').charAt(0)}
                         </div>
                         <div>
                           <div className="text-xs font-bold text-slate-900">{adm.studentName}</div>

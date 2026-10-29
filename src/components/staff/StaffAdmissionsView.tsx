@@ -27,23 +27,31 @@ export const StaffAdmissionsView: React.FC = () => {
 
   // Filter admissions that belong ONLY to the logged-in staff member
   const myAdmissions = useMemo(() => {
-    return admissions.filter((a) => a.staffId === currentUser.id);
+    return admissions.filter((a) => a && a.staffId === currentUser.id);
   }, [admissions, currentUser.id]);
 
   // Extract list of unique courses this staff's students enrolled in
   const uniqueCourses = useMemo(() => {
-    const set = new Set(myAdmissions.map((a) => a.courseName));
-    return Array.from(set);
+    const set = new Set(myAdmissions.map((a) => a?.courseName).filter(Boolean));
+    return Array.from(set) as string[];
   }, [myAdmissions]);
 
   // Filtered list based on search and course filter
   const filteredAdmissions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return myAdmissions.filter((a) => {
+      if (!a) return false;
+      const studentName = (a.studentName || '').toLowerCase();
+      const courseName = (a.courseName || '').toLowerCase();
+      const studentPhone = a.studentPhone || '';
+      const admissionNo = String(a.admissionNo || '');
+
       const matchesSearch =
-        a.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.courseName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (a.studentPhone && a.studentPhone.includes(searchQuery)) ||
-        String(a.admissionNo).includes(searchQuery);
+        !query ||
+        studentName.includes(query) ||
+        courseName.includes(query) ||
+        studentPhone.includes(query) ||
+        admissionNo.includes(query);
 
       const matchesCourse = selectedCourse === 'all' || a.courseName === selectedCourse;
       return matchesSearch && matchesCourse;
@@ -253,7 +261,7 @@ export const StaffAdmissionsView: React.FC = () => {
                     <td className="py-3 px-4 font-bold text-slate-900">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-lg bg-primary-50 text-primary-700 border border-primary-100 flex items-center justify-center font-black text-[11px]">
-                          {adm.studentName.charAt(0)}
+                          {(adm.studentName || 'Student').charAt(0)}
                         </div>
                         <div>
                           <div className="text-xs font-bold text-slate-900">{adm.studentName}</div>
