@@ -16,6 +16,7 @@ import {
   Zap,
   XCircle,
   Target,
+  GraduationCap,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { Task, TaskPriority, getTaskDeclineReason } from '../../types';
@@ -28,10 +29,17 @@ import {
   useLiveDateTime,
 } from '../../utils/dateUtils';
 
+const isExcludedTask = (t: Task): boolean =>
+  t.id === '__system_admissions_storage__' ||
+  Boolean(t.id?.startsWith('adm_')) ||
+  Boolean(t.title?.includes('[STUDENT_ADMISSION]')) ||
+  Boolean(t.title?.startsWith('__SYSTEM_'));
+
 export const AdminDashboard: React.FC = () => {
   const {
     tasks,
     users,
+    admissions,
     currentUser,
     setCurrentPage,
     eventTiming,
@@ -48,6 +56,22 @@ export const AdminDashboard: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<'today' | 'previous' | 'upcoming' | 'all'>('today');
   const [selectedTaskForIssue, setSelectedTaskForIssue] = useState<Task | null>(null);
 
+  // Group admissions by staff for quick ranking
+  const staffAdmissionRankings = useMemo(() => {
+    const counts: Record<string, { name: string; count: number }> = {};
+    users.forEach((u) => {
+      counts[u.id] = { name: u.name, count: 0 };
+    });
+    admissions.forEach((a) => {
+      if (counts[a.staffId]) {
+        counts[a.staffId].count += 1;
+      } else {
+        counts[a.staffId] = { name: a.staffName, count: 1 };
+      }
+    });
+    return Object.values(counts).sort((a, b) => b.count - a.count);
+  }, [users, admissions]);
+
   // Quick Add Admin Personal Task State
   const [quickTitle, setQuickTitle] = useState('');
   const [quickTime, setQuickTime] = useState('5:00 PM');
@@ -60,15 +84,17 @@ export const AdminDashboard: React.FC = () => {
   // 1. Separate Tasks: Admin Own Tasks vs Staff Target Tasks
   const adminOwnTasks = tasks.filter(
     (t) =>
-      t.type === 'self' ||
+      !isExcludedTask(t) &&
+      (t.type === 'self' ||
       t.assignedTo === currentUser.id ||
       t.assignedTo === 'admin_deepak' ||
       t.assignedTo === 'admin_1' ||
       t.assignedTo === 'admin' ||
-      Boolean(t.assignedToName?.toLowerCase().includes('admin'))
+      Boolean(t.assignedToName?.toLowerCase().includes('admin')))
   );
   const staffTargetTasks = tasks.filter(
     (t) =>
+      !isExcludedTask(t) &&
       t.type !== 'self' &&
       t.assignedTo !== currentUser.id &&
       t.assignedTo !== 'admin_deepak' &&
@@ -89,7 +115,7 @@ export const AdminDashboard: React.FC = () => {
 
   const filteredAdminTasks = filterByDate(adminOwnTasks);
   const filteredStaffTasks = filterByDate(staffTargetTasks);
-  const filteredAllTasks = filterByDate(tasks);
+  const filteredAllTasks = filterByDate(tasks.filter((t) => !isExcludedTask(t)));
 
   // 3. Admin Personal Completion Score (Strictly Calculated from Admin's Own Daily Tasks)
   const adminTotal = filteredAdminTasks.length;
@@ -470,15 +496,24 @@ export const AdminDashboard: React.FC = () => {
                   👑 You have {filteredAdminTasks.length} Admin personal tasks
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => setCurrentPage('admissions')}
+                className="text-xs font-bold text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200 shrink-0 self-start sm:self-auto shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Click to view which staff put admissions and student details"
+              >
+                <GraduationCap className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Admissions: <strong>{admissions.length}</strong></span>
+              </button>
               <div className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto shadow-2xs">
                 Delivery: <strong>{staffTeamRate}%</strong> ({staffCompleted}/{staffTotal})
               </div>
             </div>
           </div>
 
-          {/* Standalone Executive Overview Row: Staff Delivery & Special Event Schedule (Completely Separate from Tasks Table) */}
+          {/* Standalone Executive Overview Row: Staff Delivery, Event Schedule & Student Admissions */}
           {activeTab !== 'dual' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full">
               {/* Box 1: Staff Team Delivery Rate */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs relative overflow-hidden flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-2">
@@ -588,6 +623,75 @@ export const AdminDashboard: React.FC = () => {
                     No special event schedule currently active.
                   </div>
                 )}
+              </div>
+
+              {/* Box 3: Total Student Admissions & Staff Breakdown (Clickable -> Opens Admissions Hub) */}
+              <div
+                onClick={() => setCurrentPage('admissions')}
+                className="bg-white border-2 border-indigo-100 hover:border-primary-500 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between group md:col-span-2 lg:col-span-1"
+                title="Click to view student admission details & which staff enrolled them"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold group-hover:scale-105 transition-transform">
+                      <GraduationCap className="w-4.5 h-4.5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                        <span>Student Admissions</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          Live Count
+                        </span>
+                      </h4>
+                      <p className="text-[10px] text-slate-400 font-medium">Click to inspect students & staff breakdown</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-primary-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                    <span>Details →</span>
+                  </span>
+                </div>
+
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black font-['Outfit'] text-slate-900 tracking-tight">
+                      {admissions.length}
+                    </span>
+                    <span className="text-xs font-bold text-slate-500">Students Enrolled</span>
+                  </div>
+
+                  {/* Staff breakdown pills preview */}
+                  <div className="mt-2.5 pt-2 border-t border-slate-100">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
+                      <span>Staff Breakdown:</span>
+                      <span className="text-[10px] text-primary-600 font-bold">
+                        {staffAdmissionRankings.filter((s) => s.count > 0).length} staff members
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {staffAdmissionRankings.filter((s) => s.count > 0).length > 0 ? (
+                        staffAdmissionRankings
+                          .filter((s) => s.count > 0)
+                          .slice(0, 4)
+                          .map((s, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800"
+                            >
+                              <span className="truncate max-w-[90px]">{s.name}</span>
+                              <strong className="text-emerald-700 font-black">({s.count})</strong>
+                            </span>
+                          ))
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">No admissions recorded yet</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 text-[11px] text-primary-700 font-bold flex items-center justify-between bg-primary-50/70 p-2 rounded-xl border border-primary-100">
+                  <span>👥 Click to view which staff enrolled which student</span>
+                  <span>View Details →</span>
+                </div>
               </div>
             </div>
           )}

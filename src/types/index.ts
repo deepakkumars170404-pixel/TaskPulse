@@ -59,22 +59,20 @@ export interface OrgSettings {
 }
 
 export type ThemePreset =
-  | 'navy'
-  | 'violet'
-  | 'rose'
-  | 'emerald'
-  | 'cyan'
-  | 'amber'
-  | 'orange'
-  | 'slate';
+  | 'navy'       // Royal Navy (Stripe & Microsoft Blue - Default)
+  | 'midnight'   // Executive Midnight (Goldman Deep Navy)
+  | 'sapphire'   // Corporate Sapphire (Cloud Azure Blue)
+  | 'slate'      // Steel Slate (Apple Minimalist Titanium)
+  | 'emerald'    // Forest Emerald (Enterprise Green)
+  | 'teal';      // Corporate Teal (Deloitte Steel Teal)
 
 export type BgCanvas =
-  | 'slate'
-  | 'white'
-  | 'cashmere'
-  | 'rose'
-  | 'sage'
-  | 'dark';
+  | 'slate'      // Cool Slate (#F8FAFC) - Default
+  | 'white'      // Pure White (#FFFFFF)
+  | 'zinc'       // Corporate Zinc (#F4F4F5)
+  | 'ice'        // Executive Ice (#F0F7FF)
+  | 'cashmere'   // Subtle Cashmere (#FAF7F2)
+  | 'dark';      // Eclipse Dark (#0B0F19)
 
 export type FontFamily =
   | 'outfit'
@@ -94,6 +92,22 @@ export interface TaskAlert {
   dueTime?: string;
   priority?: string;
   type?: 'admin' | 'staff' | 'decline' | 'issue' | 'event';
+}
+
+export interface StudentAdmission {
+  id: string;
+  admissionNo: number; // Numeric admission number: e.g. 1001, 1002...
+  studentName: string;
+  courseName: string;
+  admissionDate: string; // e.g. "29 Oct 2026"
+  studentPhone?: string;
+  studentEmail?: string;
+  feesPaid?: string;
+  batchTiming?: string;
+  notes?: string;
+  staffId: string; // Staff member who enrolled the student
+  staffName: string;
+  createdAt: string;
 }
 
 /**

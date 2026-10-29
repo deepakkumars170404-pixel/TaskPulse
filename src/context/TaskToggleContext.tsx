@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority, TaskAlert, ThemePreset, BgCanvas, FontFamily } from '../types';
+import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority, TaskAlert, StudentAdmission, ThemePreset, BgCanvas, FontFamily } from '../types';
 import {
   INITIAL_USERS,
   INITIAL_TASKS,
   INITIAL_OFFICE_TIMING,
   INITIAL_EVENT_TIMING,
   INITIAL_ORG_SETTINGS,
+  INITIAL_ADMISSIONS,
 } from '../data/initialData';
 import { backendApi } from '../services/backendApi';
 import { mapDbTaskToFrontend } from '../lib/supabase';
@@ -18,6 +19,20 @@ interface TaskToggleContextType {
   officeTiming: OfficeTiming;
   eventTiming: EventTiming | null;
   orgSettings: OrgSettings;
+  admissions: StudentAdmission[];
+  addAdmission: (data: {
+    studentName: string;
+    courseName: string;
+    admissionDate: string;
+    studentPhone?: string;
+    studentEmail?: string;
+    feesPaid?: string;
+    batchTiming?: string;
+    notes?: string;
+    staffId?: string;
+  }) => Promise<StudentAdmission>;
+  deleteAdmission: (admissionId: string) => Promise<void>;
+  updateAdmission: (admissionId: string, updates: Partial<StudentAdmission>) => Promise<void>;
   currentPage: string;
   isAuthenticated: boolean;
   showCompleted: boolean;
@@ -455,6 +470,12 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return saved ? JSON.parse(saved) : INITIAL_EVENT_TIMING;
   });
 
+  // Student Admissions tracking state
+  const [admissions, setAdmissions] = useState<StudentAdmission[]>(() => {
+    const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}admissions`);
+    return saved ? JSON.parse(saved) : INITIAL_ADMISSIONS;
+  });
+
   // Organization settings (Default: Deepak)
   const [orgSettings, setOrgSettings] = useState<OrgSettings>(() => {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -466,13 +487,17 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return saved ? JSON.parse(saved) : INITIAL_ORG_SETTINGS;
   });
 
-  // Executive Theme, Background & Font Customizer States
+  // Executive Theme, Background & Font Customizer States (Strict Enterprise Professional Palettes)
   const [themePreset, setThemePreset] = useState<ThemePreset>(() => {
-    return (localStorage.getItem(`${STORAGE_KEY_PREFIX}theme_preset`) as ThemePreset) || 'navy';
+    const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}theme_preset`) as ThemePreset;
+    const valid: ThemePreset[] = ['navy', 'midnight', 'sapphire', 'slate', 'emerald', 'teal'];
+    return valid.includes(saved) ? saved : 'navy';
   });
 
   const [bgCanvas, setBgCanvas] = useState<BgCanvas>(() => {
-    return (localStorage.getItem(`${STORAGE_KEY_PREFIX}bg_canvas`) as BgCanvas) || 'slate';
+    const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}bg_canvas`) as BgCanvas;
+    const valid: BgCanvas[] = ['slate', 'white', 'zinc', 'ice', 'cashmere', 'dark'];
+    return valid.includes(saved) ? saved : 'slate';
   });
 
   const [fontFamily, setFontFamily] = useState<FontFamily>(() => {
@@ -696,12 +721,13 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Function to pull latest data from backend / database
   const refreshData = useCallback(async () => {
     try {
-      const [fetchedUsers, fetchedTasks, fetchedOffice, fetchedEvent, fetchedOrg] = await Promise.all([
+      const [fetchedUsers, fetchedTasks, fetchedOffice, fetchedEvent, fetchedOrg, fetchedAdmissions] = await Promise.all([
         backendApi.getUsers(),
         backendApi.getTasks(),
         backendApi.getOfficeTiming(),
         backendApi.getEventTiming(),
         backendApi.getOrgSettings(),
+        backendApi.getAdmissions(),
       ]);
 
       if (fetchedUsers && fetchedUsers.length > 0) {
@@ -806,6 +832,9 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
       if (fetchedOrg && !new URLSearchParams(window.location.search).get('org')) {
         setOrgSettings((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedOrg) ? fetchedOrg : curr));
+      }
+      if (fetchedAdmissions && fetchedAdmissions.length > 0) {
+        setAdmissions(fetchedAdmissions);
       }
     } catch (err) {
       console.warn('[TaskToggleContext] Initial sync error:', err);
@@ -1013,6 +1042,25 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               taskTitle: data.taskTitle || 'Assigned Work',
               senderName: data.reportedBy || 'Colleague',
               type: 'issue',
+            });
+          }
+        }
+
+        if (data.type === 'NEW_ADMISSION' && data.admission) {
+          setAdmissions((prev) => {
+            if (prev.some((a) => a.id === data.admission.id)) return prev;
+            return [data.admission, ...prev];
+          });
+          if (currentUser.role === 'admin') {
+            playRewardChime();
+            triggerTaskAlert({
+              id: `adm_bc_${Date.now()}`,
+              title: '🎓 New Student Admission Registered!',
+              taskTitle: `${data.admission.studentName} — ${data.admission.courseName}`,
+              message: `Admission #${data.admission.admissionNo} registered by Staff ${data.admission.staffName} on ${data.admission.admissionDate}`,
+              senderName: data.admission.staffName,
+              priority: 'High',
+              type: 'admin',
             });
           }
         }
@@ -1913,6 +1961,90 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   };
 
+  // ============================================================================
+  // STUDENT ADMISSIONS MANAGEMENT (STUDENT ENTITY & NUMERIC ADMISSION #)
+  // ============================================================================
+  const addAdmission = async (data: {
+    studentName: string;
+    courseName: string;
+    admissionDate: string;
+    studentPhone?: string;
+    studentEmail?: string;
+    feesPaid?: string;
+    batchTiming?: string;
+    notes?: string;
+    staffId?: string;
+  }): Promise<StudentAdmission> => {
+    const targetStaffId = data.staffId || currentUser.id;
+    const targetStaff = users.find((u) => u.id === targetStaffId) || currentUser;
+
+    // Calculate sequential numeric admission number (e.g. 1001, 1002, 1003...)
+    const maxNo = admissions.reduce((max, a) => Math.max(max, a.admissionNo || 1000), 1000);
+    const nextAdmissionNo = maxNo + 1;
+
+    const newAdmission: StudentAdmission = {
+      id: "adm_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+      admissionNo: nextAdmissionNo,
+      studentName: data.studentName.trim(),
+      courseName: data.courseName.trim(),
+      admissionDate: data.admissionDate.trim(),
+      studentPhone: data.studentPhone?.trim() || undefined,
+      studentEmail: data.studentEmail?.trim() || undefined,
+      feesPaid: data.feesPaid?.trim() || undefined,
+      batchTiming: data.batchTiming?.trim() || undefined,
+      notes: data.notes?.trim() || undefined,
+      staffId: targetStaffId,
+      staffName: targetStaff.name,
+      createdAt: new Date().toISOString(),
+    };
+
+    setAdmissions((prev) => [newAdmission, ...prev]);
+
+    try {
+      await backendApi.createAdmission(newAdmission);
+    } catch (e) {
+      console.warn("[Backend] createAdmission error:", e);
+    }
+
+    playRewardChime();
+
+    triggerTaskAlert({
+      id: "adm_alert_" + Date.now(),
+      title: "New Student Admission Registered!",
+      taskTitle: newAdmission.studentName + " - " + newAdmission.courseName,
+      message: "Admission #" + newAdmission.admissionNo + " successfully registered by " + newAdmission.staffName + " on " + newAdmission.admissionDate,
+      senderName: newAdmission.staffName,
+      priority: "High",
+      type: "admin",
+    });
+    if (broadcastChannelRef.current) {
+      try {
+        broadcastChannelRef.current.postMessage({
+          type: 'NEW_ADMISSION',
+          admission: newAdmission,
+          senderTabId: currentTabIdRef.current,
+        });
+      } catch (e) {}
+    }
+
+    return newAdmission;
+  };
+
+  const deleteAdmission = async (admissionId: string): Promise<void> => {
+    setAdmissions((prev) => prev.filter((a) => a.id !== admissionId));
+    try {
+      await backendApi.deleteAdmission(admissionId);
+    } catch (e) {
+      console.warn('[Backend] deleteAdmission error:', e);
+    }
+  };
+
+  const updateAdmission = async (admissionId: string, updates: Partial<StudentAdmission>): Promise<void> => {
+    setAdmissions((prev) =>
+      prev.map((a) => (a.id === admissionId ? { ...a, ...updates } : a))
+    );
+  };
+
   return (
     <TaskToggleContext.Provider
       value={{
@@ -1922,6 +2054,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         officeTiming,
         eventTiming,
         orgSettings,
+        admissions,
+        addAdmission,
+        deleteAdmission,
+        updateAdmission,
         currentPage,
         isAuthenticated,
         showCompleted,

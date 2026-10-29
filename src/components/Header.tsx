@@ -154,21 +154,31 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 </span>
               </div>
 
-              {/* 1. Theme Palette (8 Vibrant Palettes) */}
+              {/* 1. Theme Palette (6 Professional Corporate Palettes) */}
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  1. Color Palette ({8} Themes)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    1. Corporate Palette (6 Enterprise Themes)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setThemePreset('navy');
+                      setBgCanvas('slate');
+                    }}
+                    className="text-[10px] font-bold text-primary-600 hover:text-primary-800 underline cursor-pointer"
+                  >
+                    Royal Navy Standard
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { id: 'navy', label: 'Royal Navy', sub: 'Classic Stripe Blue', color: 'bg-blue-600' },
-                    { id: 'violet', label: 'Violet Velvet', sub: 'Linear Radiant Purple', color: 'bg-purple-600' },
-                    { id: 'rose', label: 'Ruby Rose', sub: 'Vibrant Berry Crimson', color: 'bg-rose-600' },
-                    { id: 'emerald', label: 'Emerald Jade', sub: 'Fresh Enterprise Mint', color: 'bg-emerald-600' },
-                    { id: 'cyan', label: 'Electric Cyan', sub: 'Cyber Ocean Teal', color: 'bg-cyan-600' },
-                    { id: 'amber', label: 'Golden Amber', sub: 'Warm Honey Sunset', color: 'bg-amber-500' },
-                    { id: 'orange', label: 'Terracotta', sub: 'Anthropic Tangerine', color: 'bg-orange-500' },
-                    { id: 'slate', label: 'Obsidian Slate', sub: 'Minimalist Titanium', color: 'bg-slate-900' },
+                    { id: 'navy', label: 'Royal Navy', sub: 'Classic Enterprise Stripe Blue', color: 'bg-blue-600' },
+                    { id: 'midnight', label: 'Executive Midnight', sub: 'Goldman Sachs Deep Navy', color: 'bg-blue-950' },
+                    { id: 'sapphire', label: 'Corporate Sapphire', sub: 'Azure Cloud Tech Blue', color: 'bg-sky-600' },
+                    { id: 'slate', label: 'Steel Slate', sub: 'Apple Minimalist Titanium', color: 'bg-slate-700' },
+                    { id: 'emerald', label: 'Forest Emerald', sub: 'Fidelity Enterprise Green', color: 'bg-emerald-700' },
+                    { id: 'teal', label: 'Corporate Teal', sub: 'Deloitte Professional Teal', color: 'bg-teal-700' },
                   ].map((t) => (
                     <button
                       key={t.id}
@@ -193,19 +203,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 </div>
               </div>
 
-              {/* 2. Background Canvas (6 Distinct Backdrops) */}
+              {/* 2. Background Canvas (6 Enterprise Corporate Backdrops) */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  2. Background Canvas ({6} Backdrops)
+                  2. Enterprise Canvas (6 Neutral Backdrops)
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {[
                     { id: 'slate', label: 'Cool Slate', code: '#F8FAFC', preview: 'bg-slate-100' },
                     { id: 'white', label: 'Pure White', code: '#FFFFFF', preview: 'bg-white border border-slate-200' },
+                    { id: 'zinc', label: 'Corporate Zinc', code: '#F4F4F5', preview: 'bg-zinc-100 border border-zinc-200' },
+                    { id: 'ice', label: 'Executive Ice', code: '#F0F7FF', preview: 'bg-[#F0F7FF] border border-blue-200/50' },
                     { id: 'cashmere', label: 'Cashmere', code: '#FAF7F2', preview: 'bg-[#FAF7F2] border border-amber-200/40' },
-                    { id: 'rose', label: 'Soft Rose', code: '#FFF5F6', preview: 'bg-[#FFF5F6] border border-rose-200/50' },
-                    { id: 'sage', label: 'Sage Mist', code: '#F2F8F4', preview: 'bg-[#F2F8F4] border border-emerald-200/50' },
-                    { id: 'dark', label: 'Eclipse', code: '#0B0F19', preview: 'bg-slate-950 text-white' },
+                    { id: 'dark', label: 'Eclipse Dark', code: '#0B0F19', preview: 'bg-slate-950 text-white' },
                   ].map((b) => (
                     <button
                       key={b.id}

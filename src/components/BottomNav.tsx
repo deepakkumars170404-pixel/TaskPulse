@@ -9,10 +9,11 @@ import {
   PlusCircle,
   Inbox,
   CalendarDays,
+  GraduationCap,
 } from 'lucide-react';
 
 export const BottomNav: React.FC = () => {
-  const { currentUser, currentPage, setCurrentPage, tasks, setRequestViewTab } = useTaskToggle();
+  const { currentUser, currentPage, setCurrentPage, tasks, admissions, setRequestViewTab } = useTaskToggle();
 
   const pendingRequestsCount = tasks.filter(
     (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'pending'
@@ -24,16 +25,20 @@ export const BottomNav: React.FC = () => {
 
   const totalRequestsBadge = pendingRequestsCount + declinedRequestsCount;
 
+  const totalAdmissionsBadge = admissions.length;
+  const myAdmissionsBadge = admissions.filter((a) => a.staffId === currentUser.id).length;
+
   const adminNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'assign', label: 'Assign', icon: UserPlus },
+    { id: 'admissions', label: 'Admissions', icon: GraduationCap, badge: totalAdmissionsBadge },
     { id: 'monitor', label: 'Monitor', icon: ListTodo },
     { id: 'timing', label: 'Timing', icon: Clock },
-    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
   ] as const;
 
   const staffNavItems = [
     { id: 'mytodo', label: 'My To-Do', icon: CheckCircle2 },
+    { id: 'admissions', label: 'Admissions', icon: GraduationCap, badge: myAdmissionsBadge },
     { id: 'create', label: 'Create', icon: PlusCircle },
     { id: 'requests', label: 'Requests', icon: Inbox, badge: totalRequestsBadge },
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },

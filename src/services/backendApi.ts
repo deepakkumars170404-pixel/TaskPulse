@@ -1,11 +1,12 @@
 import { supabase, isSupabaseConfigured, mapDbTaskToFrontend, mapFrontendTaskToDb } from '../lib/supabase';
-import { Task, User, OfficeTiming, EventTiming, OrgSettings } from '../types';
+import { Task, User, OfficeTiming, EventTiming, OrgSettings, StudentAdmission } from '../types';
 import {
   INITIAL_USERS,
   INITIAL_TASKS,
   INITIAL_OFFICE_TIMING,
   INITIAL_EVENT_TIMING,
   INITIAL_ORG_SETTINGS,
+  INITIAL_ADMISSIONS,
 } from '../data/initialData';
 
 const STORAGE_PREFIX = 'tasktoggle_';
@@ -96,7 +97,9 @@ class BackendApiService {
           .order('created_at', { ascending: false });
 
         if (!error && data) {
-          const mapped = data.map(mapDbTaskToFrontend);
+          const mapped = data
+            .filter((t: any) => t.id !== '__system_admissions_storage__' && !t.id?.startsWith('adm_') && (!t.title || (!t.title.startsWith('__SYSTEM_') && !t.title.startsWith('[STUDENT_ADMISSION]'))))
+            .map(mapDbTaskToFrontend);
           // Cache in local storage for offline speed
           localStorage.setItem(`${STORAGE_PREFIX}tasks`, JSON.stringify(mapped));
           return mapped;
@@ -291,6 +294,201 @@ class BackendApiService {
         console.warn('[BackendAPI] Error updating org settings in Supabase:', err);
       }
     }
+  }
+
+
+  // --- STUDENT ADMISSIONS (FULL CLOUD SYNC & LOCAL PERSISTENCE) ---
+  async getAdmissions(): Promise<StudentAdmission[]> {
+    const seenIds = new Set<string>();
+    const list: StudentAdmission[] = [];
+
+    if (this.hasSupabase && supabase) {
+      try {
+        // 1. Try dedicated student_admissions table
+        const { data, error } = await supabase
+          .from('student_admissions')
+          .select('*')
+          .order('admission_no', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          data.forEach((d: any) => {
+            if (!seenIds.has(d.id)) {
+              seenIds.add(d.id);
+              list.push({
+                id: d.id,
+                admissionNo: Number(d.admission_no || d.admissionNo || 1000),
+                studentName: d.student_name || d.studentName,
+                courseName: d.course_name || d.courseName,
+                admissionDate: d.admission_date || d.admissionDate,
+                studentPhone: d.student_phone || d.studentPhone,
+                studentEmail: d.student_email || d.studentEmail,
+                feesPaid: d.fees_paid || d.feesPaid,
+                batchTiming: d.batch_timing || d.batchTiming,
+                notes: d.notes,
+                staffId: d.staff_id || d.staffId,
+                staffName: d.staff_name || d.staffName,
+                createdAt: d.created_at || d.createdAt || new Date().toISOString(),
+              });
+            }
+          });
+        }
+      } catch (err) {
+        // Fallback gracefully
+      }
+
+      try {
+        // 2. Fetch from cloud system admissions store
+        const { data: storeRow } = await supabase
+          .from('tasks')
+          .select('description')
+          .eq('id', '__system_admissions_storage__')
+          .maybeSingle();
+
+        if (storeRow && storeRow.description) {
+          try {
+            const parsed = JSON.parse(storeRow.description);
+            if (Array.isArray(parsed)) {
+              parsed.forEach((item: StudentAdmission) => {
+                if (item && item.id && !seenIds.has(item.id)) {
+                  seenIds.add(item.id);
+                  list.push(item);
+                }
+              });
+            }
+          } catch (e) {}
+        }
+      } catch (err) {
+        console.warn('[BackendAPI] Cloud admissions store query error:', err);
+      }
+    }
+
+    // 3. Fallback to localStorage cache
+    try {
+      const saved = localStorage.getItem(`${STORAGE_PREFIX}admissions`);
+      if (saved) {
+        const localList: StudentAdmission[] = JSON.parse(saved);
+        if (Array.isArray(localList)) {
+          if (list.length === 0) {
+            localList.forEach((item) => {
+              if (item && item.id && !seenIds.has(item.id) && item.id !== 'adm_1001') {
+                seenIds.add(item.id);
+                list.push(item);
+              }
+            });
+          }
+        }
+      }
+    } catch (e) {}
+
+    list.sort((a, b) => (b.admissionNo || 0) - (a.admissionNo || 0));
+
+    try {
+      localStorage.setItem(`${STORAGE_PREFIX}admissions`, JSON.stringify(list));
+    } catch (e) {}
+
+    return list;
+  }
+
+  async createAdmission(admission: StudentAdmission): Promise<StudentAdmission> {
+    // 1. Immediately update localStorage cache
+    let currentList: StudentAdmission[] = [];
+    try {
+      const existing = localStorage.getItem(`${STORAGE_PREFIX}admissions`);
+      if (existing) {
+        currentList = JSON.parse(existing);
+      }
+    } catch (e) {}
+
+    const updatedList = [admission, ...currentList.filter((a) => a.id !== admission.id)];
+    try {
+      localStorage.setItem(`${STORAGE_PREFIX}admissions`, JSON.stringify(updatedList));
+    } catch (e) {}
+
+    // 2. Persist to Supabase
+    if (this.hasSupabase && supabase) {
+      try {
+        await supabase.from('student_admissions').insert([
+          {
+            id: admission.id,
+            admission_no: admission.admissionNo,
+            student_name: admission.studentName,
+            course_name: admission.courseName,
+            admission_date: admission.admissionDate,
+            student_phone: admission.studentPhone || null,
+            student_email: admission.studentEmail || null,
+            fees_paid: admission.feesPaid || null,
+            batch_timing: admission.batchTiming || null,
+            notes: admission.notes || null,
+            staff_id: admission.staffId,
+            staff_name: admission.staffName,
+            created_at: admission.createdAt,
+          },
+        ]);
+      } catch (err) {}
+
+      try {
+        await supabase.from('tasks').upsert({
+          id: '__system_admissions_storage__',
+          title: '__SYSTEM_ADMISSIONS_STORAGE__',
+          description: JSON.stringify(updatedList),
+          created_by: '__system_internal__',
+          created_by_name: 'System Store',
+          assigned_to: '__system_internal__',
+          assigned_to_name: 'System Store',
+          type: 'admin',
+          priority: 'Low',
+          due_date: 'Internal',
+          due_time: 'Internal',
+          status: 'done',
+          created_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn('[BackendAPI] Error persisting admissions to cloud storage:', err);
+      }
+    }
+
+    return admission;
+  }
+
+  async deleteAdmission(admissionId: string): Promise<boolean> {
+    let updatedList: StudentAdmission[] = [];
+    try {
+      const existing = localStorage.getItem(`${STORAGE_PREFIX}admissions`);
+      if (existing) {
+        const list: StudentAdmission[] = JSON.parse(existing);
+        updatedList = list.filter((a) => a.id !== admissionId);
+        localStorage.setItem(`${STORAGE_PREFIX}admissions`, JSON.stringify(updatedList));
+      }
+    } catch (e) {}
+
+    if (this.hasSupabase && supabase) {
+      try {
+        await supabase.from('student_admissions').delete().eq('id', admissionId);
+      } catch (err) {}
+
+      try {
+        await supabase.from('tasks').upsert({
+          id: '__system_admissions_storage__',
+          title: '__SYSTEM_ADMISSIONS_STORAGE__',
+          description: JSON.stringify(updatedList),
+          created_by: '__system_internal__',
+          created_by_name: 'System Store',
+          assigned_to: '__system_internal__',
+          assigned_to_name: 'System Store',
+          type: 'admin',
+          priority: 'Low',
+          due_date: 'Internal',
+          due_time: 'Internal',
+          status: 'done',
+          created_at: new Date().toISOString(),
+        });
+      } catch (err) {}
+
+      try {
+        await supabase.from('tasks').delete().eq('id', admissionId);
+      } catch (err) {}
+    }
+    return true;
   }
 
   // --- REAL-TIME SUBSCRIPTION ---

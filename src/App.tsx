@@ -8,9 +8,11 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AssignTaskView } from './components/admin/AssignTaskView';
 import { TaskMonitorView } from './components/admin/TaskMonitorView';
 import { TimingSettingsView } from './components/admin/TimingSettingsView';
+import { AdmissionsManagementView } from './components/admin/AdmissionsManagementView';
 import { MyToDoView } from './components/staff/MyToDoView';
 import { CreateToDoView } from './components/staff/CreateToDoView';
 import { TaskRequestsView } from './components/staff/TaskRequestsView';
+import { StaffAdmissionsView } from './components/staff/StaffAdmissionsView';
 import { FloatingTaskWidget } from './components/common/FloatingTaskWidget';
 import { FullPageCalendarView } from './components/common/FullPageCalendarView';
 import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubble';
@@ -55,12 +57,14 @@ const MainLayout: React.FC = () => {
               {currentPage === 'assign' && <AssignTaskView />}
               {currentPage === 'monitor' && <TaskMonitorView />}
               {currentPage === 'timing' && <TimingSettingsView />}
+              {currentPage === 'admissions' && <AdmissionsManagementView />}
             </>
           ) : (
             <>
               {currentPage === 'mytodo' && <MyToDoView />}
               {currentPage === 'create' && <CreateToDoView />}
               {currentPage === 'requests' && <TaskRequestsView />}
+              {currentPage === 'admissions' && <StaffAdmissionsView />}
             </>
           )}
         </main>

@@ -1,4 +1,4 @@
-import { User, Task, OfficeTiming, EventTiming, OrgSettings } from '../types';
+import { User, Task, OfficeTiming, EventTiming, OrgSettings, StudentAdmission } from '../types';
 
 export const INITIAL_USERS: User[] = [
   {
@@ -32,3 +32,5 @@ export const INITIAL_ORG_SETTINGS: OrgSettings = {
   orgName: 'Deepak',
   accentColor: '#4F46E5',
 };
+
+export const INITIAL_ADMISSIONS: StudentAdmission[] = [];

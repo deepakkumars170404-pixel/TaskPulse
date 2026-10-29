@@ -28,6 +28,8 @@ import {
   Trash2,
   Inbox,
   AlertCircle,
+  GraduationCap,
+  Plus,
 } from 'lucide-react';
 
 const MONTH_NAMES = [
@@ -105,6 +107,7 @@ export const MyToDoView: React.FC = () => {
     tasks,
     currentUser,
     users,
+    admissions,
     toggleTaskStatus,
     completeAllTasks,
     snoozeTask,
@@ -124,7 +127,7 @@ export const MyToDoView: React.FC = () => {
   const [reasonToast, setReasonToast] = useState<string | null>(null);
   const [reassigningTaskId, setReassigningTaskId] = useState<string | null>(null);
   const [reassignTargetUserId, setReassignTargetUserId] = useState<string>('');
-
+    
   // Routine Calendar Navigation State
   const [referenceDate, setReferenceDate] = useState<Date>(() => new Date());
   const [selectedDay, setSelectedDay] = useState<RoutineDay | 'all'>('all');

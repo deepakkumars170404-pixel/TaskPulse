@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   UserCheck,
   CalendarDays,
+  GraduationCap,
   Download,
 } from 'lucide-react';
 
@@ -22,13 +23,17 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
-  const { currentUser, currentPage, setCurrentPage, logout, tasks, officeTiming, orgSettings, setRequestViewTab } = useTaskToggle();
+  const { currentUser, currentPage, setCurrentPage, logout, tasks, admissions, officeTiming, orgSettings, setRequestViewTab } = useTaskToggle();
 
   // Calculate pending requests count for current staff member
   const pendingRequestsCount = tasks.filter(
     (t) => t.assignedTo === currentUser.id && t.type === 'staff' && t.status === 'pending'
   ).length;
 
+
+  // Admissions counts
+  const totalAdmissionsCount = admissions.length;
+  const myAdmissionsCount = admissions.filter((a) => a.staffId === currentUser.id).length;
   // Calculate declined requests count for tasks created by current staff member
   const declinedRequestsCount = tasks.filter(
     (t) => t.createdBy === currentUser.id && t.assignedTo !== currentUser.id && t.status === 'rejected'
@@ -130,6 +135,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 <span>Task Monitor</span>
               </button>
 
+
+              <button
+                type="button"
+                onClick={() => handleNavClick('admissions')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                  currentPage === 'admissions'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="w-4 h-4 shrink-0" />
+                  <span>Student Admissions</span>
+                </div>
+                {totalAdmissionsCount > 0 && (
+                  <span
+                    className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                      currentPage === 'admissions'
+                        ? 'bg-white text-primary-600'
+                        : 'bg-primary-100 text-primary-800'
+                    }`}
+                  >
+                    {totalAdmissionsCount}
+                  </span>
+                )}
+              </button>
+
               <button
                 type="button"
                 onClick={() => handleNavClick('timing')}
@@ -214,6 +246,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
                 )}
               </button>
 
+
+              <button
+                type="button"
+                onClick={() => handleNavClick('admissions')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm transition-all cursor-pointer ${
+                  currentPage === 'admissions'
+                    ? 'bg-primary-500 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="w-4 h-4 shrink-0" />
+                  <span>My Admissions</span>
+                </div>
+                {myAdmissionsCount > 0 && (
+                  <span
+                    className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                      currentPage === 'admissions'
+                        ? 'bg-white text-primary-600'
+                        : 'bg-primary-100 text-primary-800'
+                    }`}
+                  >
+                    {myAdmissionsCount}
+                  </span>
+                )}
+              </button>
               <button
                 type="button"
                 onClick={() => handleNavClick('calendar')}
