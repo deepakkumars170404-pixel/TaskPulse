@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    1. Corporate Palette (Blue & Green Palettes)
+                    1. Executive Palette (7 Professional Palettes)
                   </label>
                   <button
                     type="button"
@@ -174,6 +174,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
                     { id: 'navy', label: 'Royal Navy Blue', sub: 'Classic Enterprise Stripe Blue', color: 'bg-blue-600' },
+                    { id: 'monochrome', label: 'Obsidian B&W', sub: 'Minimalist Black & White', color: 'bg-black border border-slate-300' },
                     { id: 'emerald', label: 'Forest Emerald', sub: 'The Best Enterprise Green', color: 'bg-emerald-700' },
                     { id: 'crimson', label: 'Executive Crimson', sub: 'Vanguard Deep Wine Red', color: 'bg-red-700' },
                     { id: 'bronze', label: 'Corporate Bronze', sub: 'Bloomberg Warm Amber', color: 'bg-amber-600' },

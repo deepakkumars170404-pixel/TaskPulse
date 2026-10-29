@@ -50,6 +50,21 @@
   --bg-gradient: radial-gradient(at 50% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 65%);
 }
 
+[data-theme="monochrome"] {
+  --theme-50: #F4F4F5;
+  --theme-100: #E4E4E7;
+  --theme-200: #D4D4D8;
+  --theme-300: #A1A1AA;
+  --theme-400: #71717A;
+  --theme-500: #18181B;
+  --theme-600: #09090B;
+  --theme-700: #000000;
+  --theme-800: #000000;
+  --theme-900: #000000;
+  --theme-950: #000000;
+  --bg-gradient: radial-gradient(at 50% 0%, rgba(24, 24, 27, 0.05) 0px, transparent 65%);
+}
+
 [data-theme="emerald"] {
   --theme-50: #F0FDF4;
   --theme-100: #DCFCE7;

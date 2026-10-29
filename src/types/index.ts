@@ -60,6 +60,7 @@ export interface OrgSettings {
 
 export type ThemePreset =
   | 'navy'       // Royal Navy Blue (Enterprise Stripe & Microsoft Blue - Default)
+  | 'monochrome' // Obsidian B&W (Minimalist Executive Black & White)
   | 'emerald'    // Forest Emerald (Executive Enterprise Green)
   | 'crimson'    // Executive Crimson (Vanguard / Harvard Deep Wine Red)
   | 'bronze'     // Corporate Bronze (Bloomberg Warm Executive Amber)

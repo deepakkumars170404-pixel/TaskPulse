@@ -490,7 +490,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Executive Theme, Background & Font Customizer States (Professional Palettes: Navy, Emerald, Crimson, Bronze, Slate, Mocha)
   const [themePreset, setThemePreset] = useState<ThemePreset>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}theme_preset`) as ThemePreset;
-    const valid: ThemePreset[] = ['navy', 'emerald', 'crimson', 'bronze', 'slate', 'mocha'];
+    const valid: ThemePreset[] = ['navy', 'monochrome', 'emerald', 'crimson', 'bronze', 'slate', 'mocha'];
     return valid.includes(saved) ? saved : 'navy';
   });
 
