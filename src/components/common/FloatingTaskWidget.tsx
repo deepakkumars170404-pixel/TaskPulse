@@ -49,7 +49,7 @@ export const FloatingTaskWidget: React.FC = () => {
   // Listen to open-pip-window custom event from the Header button
   useEffect(() => {
     const handleOpenPipCustom = () => {
-      openPiP(false);
+      openPiP(true);
     };
 
     window.addEventListener('open-pip-window', handleOpenPipCustom);
@@ -62,7 +62,7 @@ export const FloatingTaskWidget: React.FC = () => {
   }, [pipWindow]);
 
   // Open Document Picture-in-Picture window (Floats outside Chrome over all other desktop apps!)
-  const openPiP = async (startInLogoMode = false) => {
+  const openPiP = async (startInLogoMode = true) => {
     if (window.electronAPI?.isElectron) {
       if (window.electronAPI.showFloating) {
         window.electronAPI.showFloating();
@@ -83,9 +83,9 @@ export const FloatingTaskWidget: React.FC = () => {
     }
 
     try {
-      // Consistent stable dimensions prevent Chrome Document PiP from jumping across screen
-      const initialWidth = 380;
-      const initialHeight = 540;
+      // Default initial dimensions: compact logo badge (260x140) or expanded tasks (380x540)
+      const initialWidth = startInLogoMode ? 260 : 380;
+      const initialHeight = startInLogoMode ? 140 : 540;
 
       const pipWin = await window.documentPictureInPicture.requestWindow({
         width: initialWidth,
@@ -162,7 +162,10 @@ export const FloatingTaskWidget: React.FC = () => {
         }
       });
 
-      setIsPipLogoOnly(false);
+      setIsPipLogoOnly(startInLogoMode);
+      if (startInLogoMode && pipWin.document?.body) {
+        pipWin.document.body.style.backgroundColor = '#F8FAFC';
+      }
       setPipWindow(pipWin);
     } catch (err) {
       console.warn('PiP open error:', err);
@@ -193,10 +196,10 @@ export const FloatingTaskWidget: React.FC = () => {
   const shrinkPiPToLogo = () => {
     setIsPipLogoOnly(true);
     if (pipWindow) {
-      pipWindow.document.body.style.backgroundColor = '#EEF2FF';
+      pipWindow.document.body.style.backgroundColor = '#F8FAFC';
       pipWindow.document.body.style.backgroundImage = 'none';
       try {
-        pipWindow.resizeTo(120, 120);
+        pipWindow.resizeTo(260, 140);
       } catch (e) {
         // Ignore if resizeTo restricted
       }
@@ -289,7 +292,7 @@ export const FloatingTaskWidget: React.FC = () => {
 
   // Reusable Tasks List with Click-to-Strike, Snooze, and Provenance Badge
   const renderTasksList = () => (
-    <div className="overflow-y-auto p-3 space-y-2 flex-1 max-h-[280px] divide-y divide-slate-100">
+    <div className="overflow-y-auto p-3 space-y-2 flex-1 min-h-0 divide-y divide-slate-100">
       {displayedTasks.length === 0 ? (
         <div className="py-8 text-center text-slate-400 text-xs font-semibold italic bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
           {filter === 'pending' ? '🎉 All tasks completed!' : 'No tasks in this tab'}
@@ -386,11 +389,11 @@ export const FloatingTaskWidget: React.FC = () => {
         createPortal(
           <div className="w-full h-full flex flex-col select-none overflow-hidden font-['Open_Sans',sans-serif]">
             {isPipLogoOnly ? (
-              /* PURE LOGO ONLY - Compact, centered, floating bubble badge */
+              /* PURE LOGO DISPLAY - Elegant, interactive floating logo badge */
               <div
                 onClick={expandPiP}
-                className="w-full h-full relative flex items-center justify-center bg-primary-50/90 hover:bg-primary-100 transition-colors cursor-pointer select-none p-2 group"
-                title="TaskToggle · Click logo to open tasks"
+                className="w-full h-full relative flex items-center justify-center p-3 bg-gradient-to-br from-white via-primary-50/60 to-primary-100/50 hover:from-primary-50 hover:to-primary-100/70 transition-all cursor-pointer select-none group"
+                title="TaskToggle Float · Click logo to open tasks"
               >
                 {/* Mini close button on logo mode */}
                 <button
@@ -399,21 +402,47 @@ export const FloatingTaskWidget: React.FC = () => {
                     e.stopPropagation();
                     closePiP();
                   }}
-                  className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-slate-200/90 hover:bg-rose-500 hover:text-white text-slate-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-pointer"
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-slate-200/90 hover:bg-rose-500 hover:text-white text-slate-600 flex items-center justify-center transition-colors z-10 cursor-pointer shadow-2xs"
                   title="Close floating widget"
                 >
-                  <X className="w-3 h-3 stroke-[2.5]" />
+                  <X className="w-3.5 h-3.5 stroke-[2.5]" />
                 </button>
 
-                <div className="relative">
-                  <div className="w-16 h-16 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-xl ring-3 ring-white group-hover:scale-105 active:scale-95 transition-transform">
-                    <CheckSquare className="w-8 h-8 stroke-[2.5]" />
+                <div className="flex items-center gap-3">
+                  {/* Brand Logo Icon with Badge */}
+                  <div className="relative shrink-0">
+                    <div className="w-13 h-13 rounded-2xl bg-primary-500 text-white flex items-center justify-center shadow-md ring-3 ring-white group-hover:scale-105 active:scale-95 transition-transform">
+                      <CheckSquare className="w-7 h-7 stroke-[2.5]" />
+                    </div>
+                    {pendingTasks.length > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-[20px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center shadow-md ring-2 ring-white">
+                        {pendingTasks.length}
+                      </span>
+                    )}
                   </div>
-                  {pendingTasks.length > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[24px] h-[24px] px-1.5 rounded-full bg-rose-600 text-white text-xs font-black flex items-center justify-center shadow-lg ring-2 ring-white">
-                      {pendingTasks.length}
-                    </span>
-                  )}
+
+                  {/* Brand Name & Action Prompt */}
+                  <div className="min-w-0 pr-4">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-['Outfit'] font-black text-sm tracking-tight text-slate-900 leading-none">
+                        Task<span className="text-primary-500">Toggle</span>
+                      </span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary-100 text-primary-800 border border-primary-200">
+                        {orgSettings.orgName}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-primary-600 group-hover:text-primary-700 mt-1">
+                      <span>Open Tasks</span>
+                      <span className="text-[10px] transition-transform group-hover:translate-x-0.5">↗</span>
+                    </div>
+
+                    <p className="text-[9px] text-slate-400 font-medium truncate mt-0.5">
+                      {pendingTasks.length > 0
+                        ? `${pendingTasks.length} pending task${pendingTasks.length === 1 ? '' : 's'}`
+                        : 'All caught up! 🎉'}
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (

@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
               if (window.electronAPI.showFloating) {
                 window.electronAPI.showFloating();
               } else {
-                window.electronAPI.resizeFloating('expanded');
+                window.electronAPI.resizeFloating('logo');
               }
               return;
             }
