@@ -833,7 +833,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (fetchedOrg && !new URLSearchParams(window.location.search).get('org')) {
         setOrgSettings((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedOrg) ? fetchedOrg : curr));
       }
-      if (fetchedAdmissions && fetchedAdmissions.length > 0) {
+      if (Array.isArray(fetchedAdmissions)) {
         setAdmissions(fetchedAdmissions);
       }
     } catch (err) {

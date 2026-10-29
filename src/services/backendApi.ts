@@ -25,7 +25,9 @@ class BackendApiService {
       try {
         const { data, error } = await supabase.from('users').select('*');
         if (!error && data && data.length > 0) {
-          return data.map((u) => ({
+          return data
+            .filter((u) => !u.id.startsWith('__system'))
+            .map((u) => ({
             id: u.id,
             name: u.name,
             email: u.email,
@@ -362,19 +364,40 @@ class BackendApiService {
       }
     }
 
-    // 3. Fallback to localStorage cache
+    // 3. Merge with localStorage cache & auto-sync to cloud if missing
     try {
       const saved = localStorage.getItem(`${STORAGE_PREFIX}admissions`);
       if (saved) {
         const localList: StudentAdmission[] = JSON.parse(saved);
         if (Array.isArray(localList)) {
-          if (list.length === 0) {
-            localList.forEach((item) => {
-              if (item && item.id && !seenIds.has(item.id) && item.id !== 'adm_1001') {
-                seenIds.add(item.id);
-                list.push(item);
-              }
-            });
+          let hasLocalAdditions = false;
+          localList.forEach((item) => {
+            if (item && item.id && !seenIds.has(item.id) && item.id !== 'adm_1001') {
+              seenIds.add(item.id);
+              list.push(item);
+              hasLocalAdditions = true;
+            }
+          });
+
+          // If local had unsynced admissions, immediately backup to Supabase Cloud
+          if (hasLocalAdditions && this.hasSupabase && supabase) {
+            try {
+              await supabase.from('tasks').upsert({
+                id: '__system_admissions_storage__',
+                title: '__SYSTEM_ADMISSIONS_STORAGE__',
+                description: JSON.stringify(list),
+                created_by: '__system_internal__',
+                created_by_name: 'System Store',
+                assigned_to: '__system_internal__',
+                assigned_to_name: 'System Store',
+                type: 'admin',
+                priority: 'Low',
+                due_date: 'Internal',
+                due_time: 'Internal',
+                status: 'done',
+                created_at: new Date().toISOString(),
+              });
+            } catch (syncErr) {}
           }
         }
       }
