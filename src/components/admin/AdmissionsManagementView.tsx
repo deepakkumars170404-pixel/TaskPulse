@@ -28,12 +28,12 @@ export const AdmissionsManagementView: React.FC = () => {
   const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>('all');
   const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>('all');
 
-  // List of all staff users
+  // List of all staff users (strictly staff members; excludes Admin from recruiter breakdown)
   const staffMembers = useMemo(() => {
-    return users.filter((u) => u.role === 'staff' || u.role === 'admin');
+    return users.filter((u) => u.role === 'staff');
   }, [users]);
 
-  // Aggregate count of admissions per staff member
+  // Aggregate count of admissions per staff member (strictly staff only; Admin excluded)
   const staffStats = useMemo(() => {
     const stats: Record<string, { user: typeof staffMembers[0]; count: number; courses: Set<string> }> = {};
     staffMembers.forEach((u) => {
@@ -45,7 +45,12 @@ export const AdmissionsManagementView: React.FC = () => {
         stats[a.staffId].count += 1;
         stats[a.staffId].courses.add(a.courseName);
       } else {
-        // Staff might be a custom or older staff ID
+        // Exclude admin if encountered
+        const matchedUser = users.find((u) => u.id === a.staffId);
+        if (matchedUser?.role === 'admin' || a.staffId.toLowerCase().includes('admin')) {
+          return;
+        }
+        // Custom staff member
         stats[a.staffId] = {
           user: {
             id: a.staffId,
@@ -61,7 +66,7 @@ export const AdmissionsManagementView: React.FC = () => {
     });
 
     return Object.values(stats).sort((a, b) => b.count - a.count);
-  }, [staffMembers, admissions]);
+  }, [staffMembers, admissions, users]);
 
   // Unique courses across all admissions
   const uniqueCourses = useMemo(() => {

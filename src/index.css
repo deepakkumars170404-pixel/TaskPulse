@@ -33,7 +33,7 @@
 }
 
 /* ============================================================================
-   EXECUTIVE CORPORATE COLOR SCHEMES (STRICT BLUE & GREEN HIGH-TRUST PALETTES)
+   EXECUTIVE CORPORATE COLOR SCHEMES (ROYAL NAVY, EMERALD, CRIMSON, BRONZE, SLATE, MOCHA)
    ============================================================================ */
 [data-theme="navy"] {
   --theme-50: #EFF6FF;
@@ -48,36 +48,6 @@
   --theme-900: #172554;
   --theme-950: #0F172A;
   --bg-gradient: radial-gradient(at 50% 0%, rgba(37, 99, 235, 0.05) 0px, transparent 65%);
-}
-
-[data-theme="oxford"] {
-  --theme-50: #EEF4FB;
-  --theme-100: #D8E5F6;
-  --theme-200: #B7D0EE;
-  --theme-300: #88B2E2;
-  --theme-400: #4B7EC2;
-  --theme-500: #1D428A;
-  --theme-600: #173673;
-  --theme-700: #132D60;
-  --theme-800: #10234B;
-  --theme-900: #0C1A38;
-  --theme-950: #081126;
-  --bg-gradient: radial-gradient(at 50% 0%, rgba(29, 66, 138, 0.05) 0px, transparent 65%);
-}
-
-[data-theme="cobalt"] {
-  --theme-50: #EFF6FF;
-  --theme-100: #DBEAFE;
-  --theme-200: #BFDBFE;
-  --theme-300: #93C5FD;
-  --theme-400: #3B82F6;
-  --theme-500: #1D4ED8;
-  --theme-600: #1E40AF;
-  --theme-700: #1E3A8A;
-  --theme-800: #172554;
-  --theme-900: #1E293B;
-  --theme-950: #0F172A;
-  --bg-gradient: radial-gradient(at 50% 0%, rgba(29, 78, 216, 0.05) 0px, transparent 65%);
 }
 
 [data-theme="emerald"] {
@@ -95,34 +65,64 @@
   --bg-gradient: radial-gradient(at 50% 0%, rgba(4, 120, 87, 0.05) 0px, transparent 65%);
 }
 
-[data-theme="mint"] {
-  --theme-50: #F2FBF7;
-  --theme-100: #E1F7EC;
-  --theme-200: #C4EFDA;
-  --theme-300: #97E2C0;
-  --theme-400: #5ECDA0;
-  --theme-500: #10B981;
-  --theme-600: #059669;
-  --theme-700: #047857;
-  --theme-800: #065F46;
-  --theme-900: #064E3B;
-  --theme-950: #022C22;
-  --bg-gradient: radial-gradient(at 50% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 65%);
+[data-theme="crimson"] {
+  --theme-50: #FEF2F2;
+  --theme-100: #FEE2E2;
+  --theme-200: #FECACA;
+  --theme-300: #FCA5A5;
+  --theme-400: #F87171;
+  --theme-500: #B91C1C;
+  --theme-600: #991B1B;
+  --theme-700: #7F1D1D;
+  --theme-800: #6B1717;
+  --theme-900: #450A0A;
+  --theme-950: #2C0505;
+  --bg-gradient: radial-gradient(at 50% 0%, rgba(185, 28, 28, 0.05) 0px, transparent 65%);
 }
 
-[data-theme="teal"] {
-  --theme-50: #F0FDFA;
-  --theme-100: #CCFBF1;
-  --theme-200: #99F6E4;
-  --theme-300: #5EEAD4;
-  --theme-400: #2DD4BF;
-  --theme-500: #0F766E;
-  --theme-600: #115E59;
-  --theme-700: #134E4A;
-  --theme-800: #042F2E;
-  --theme-900: #021D1C;
-  --theme-950: #011110;
-  --bg-gradient: radial-gradient(at 50% 0%, rgba(15, 118, 110, 0.05) 0px, transparent 65%);
+[data-theme="bronze"] {
+  --theme-50: #FFFBEB;
+  --theme-100: #FEF3C7;
+  --theme-200: #FDE68A;
+  --theme-300: #FCD34D;
+  --theme-400: #F59E0B;
+  --theme-500: #B45309;
+  --theme-600: #92400E;
+  --theme-700: #78350F;
+  --theme-800: #5C270A;
+  --theme-900: #451A03;
+  --theme-950: #290E02;
+  --bg-gradient: radial-gradient(at 50% 0%, rgba(180, 83, 9, 0.05) 0px, transparent 65%);
+}
+
+[data-theme="slate"] {
+  --theme-50: #F8FAFC;
+  --theme-100: #F1F5F9;
+  --theme-200: #E2E8F0;
+  --theme-300: #CBD5E1;
+  --theme-400: #94A3B8;
+  --theme-500: #475569;
+  --theme-600: #334155;
+  --theme-700: #1E293B;
+  --theme-800: #0F172A;
+  --theme-900: #090E1A;
+  --theme-950: #020617;
+  --bg-gradient: radial-gradient(at 50% 0%, rgba(71, 85, 105, 0.05) 0px, transparent 65%);
+}
+
+[data-theme="mocha"] {
+  --theme-50: #FAF5F0;
+  --theme-100: #F3E8DD;
+  --theme-200: #E4CDBA;
+  --theme-300: #CFAC91;
+  --theme-400: #B58463;
+  --theme-500: #8C532E;
+  --theme-600: #714123;
+  --theme-700: #59321A;
+  --theme-800: #442512;
+  --theme-900: #2E180B;
+  --theme-950: #1E0F07;
+  --bg-gradient: radial-gradient(at 50% 0%, rgba(140, 83, 46, 0.05) 0px, transparent 65%);
 }
 
 /* ============================================================================

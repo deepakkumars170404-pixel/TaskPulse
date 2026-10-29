@@ -487,10 +487,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return saved ? JSON.parse(saved) : INITIAL_ORG_SETTINGS;
   });
 
-  // Executive Theme, Background & Font Customizer States (Strict Blue & Green Corporate Palettes)
+  // Executive Theme, Background & Font Customizer States (Professional Palettes: Navy, Emerald, Crimson, Bronze, Slate, Mocha)
   const [themePreset, setThemePreset] = useState<ThemePreset>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}theme_preset`) as ThemePreset;
-    const valid: ThemePreset[] = ['navy', 'oxford', 'cobalt', 'emerald', 'mint', 'teal'];
+    const valid: ThemePreset[] = ['navy', 'emerald', 'crimson', 'bronze', 'slate', 'mocha'];
     return valid.includes(saved) ? saved : 'navy';
   });
 
@@ -1051,18 +1051,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             if (prev.some((a) => a.id === data.admission.id)) return prev;
             return [data.admission, ...prev];
           });
-          if (currentUser.role === 'admin') {
-            playRewardChime();
-            triggerTaskAlert({
-              id: `adm_bc_${Date.now()}`,
-              title: '🎓 New Student Admission Registered!',
-              taskTitle: `${data.admission.studentName} — ${data.admission.courseName}`,
-              message: `Admission #${data.admission.admissionNo} registered by Staff ${data.admission.staffName} on ${data.admission.admissionDate}`,
-              senderName: data.admission.staffName,
-              priority: 'High',
-              type: 'admin',
-            });
-          }
+          // Note: Task alert banner omitted for admissions per user preference
         }
 
         if (data.type === 'EVENT_TIMING_UPDATE') {
@@ -2008,15 +1997,6 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     playRewardChime();
 
-    triggerTaskAlert({
-      id: "adm_alert_" + Date.now(),
-      title: "New Student Admission Registered!",
-      taskTitle: newAdmission.studentName + " - " + newAdmission.courseName,
-      message: "Admission #" + newAdmission.admissionNo + " successfully registered by " + newAdmission.staffName + " on " + newAdmission.admissionDate,
-      senderName: newAdmission.staffName,
-      priority: "High",
-      type: "admin",
-    });
     if (broadcastChannelRef.current) {
       try {
         broadcastChannelRef.current.postMessage({

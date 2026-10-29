@@ -60,11 +60,11 @@ export interface OrgSettings {
 
 export type ThemePreset =
   | 'navy'       // Royal Navy Blue (Enterprise Stripe & Microsoft Blue - Default)
-  | 'oxford'     // Oxford Navy (Deep Classic Corporate Blue)
-  | 'cobalt'     // Executive Cobalt (High-Trust Business Blue)
-  | 'emerald'    // Forest Emerald (Enterprise Green)
-  | 'mint'       // Enterprise Mint (High-Trust Corporate Mint Green)
-  | 'teal';      // Corporate Teal (Deloitte Professional Green-Teal)
+  | 'emerald'    // Forest Emerald (Executive Enterprise Green)
+  | 'crimson'    // Executive Crimson (Vanguard / Harvard Deep Wine Red)
+  | 'bronze'     // Corporate Bronze (Bloomberg Warm Executive Amber)
+  | 'slate'      // Steel Slate (Apple Minimalist Neutral Slate)
+  | 'mocha';     // Corporate Mocha (Executive Warm Espresso Taupe)
 
 export type BgCanvas =
   | 'slate'      // Cool Slate (#F8FAFC) - Default

@@ -174,11 +174,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
                     { id: 'navy', label: 'Royal Navy Blue', sub: 'Classic Enterprise Stripe Blue', color: 'bg-blue-600' },
-                    { id: 'oxford', label: 'Oxford Navy', sub: 'Deep Classic Corporate Blue', color: 'bg-[#1D428A]' },
-                    { id: 'cobalt', label: 'Cobalt Blue', sub: 'Executive Business Blue', color: 'bg-blue-700' },
-                    { id: 'emerald', label: 'Forest Emerald', sub: 'Executive Enterprise Green', color: 'bg-emerald-700' },
-                    { id: 'mint', label: 'Enterprise Mint', sub: 'High-Trust Corporate Mint', color: 'bg-emerald-500' },
-                    { id: 'teal', label: 'Corporate Teal', sub: 'Deloitte Professional Teal', color: 'bg-teal-700' },
+                    { id: 'emerald', label: 'Forest Emerald', sub: 'The Best Enterprise Green', color: 'bg-emerald-700' },
+                    { id: 'crimson', label: 'Executive Crimson', sub: 'Vanguard Deep Wine Red', color: 'bg-red-700' },
+                    { id: 'bronze', label: 'Corporate Bronze', sub: 'Bloomberg Warm Amber', color: 'bg-amber-600' },
+                    { id: 'slate', label: 'Steel Slate', sub: 'Apple Minimalist Slate Titanium', color: 'bg-slate-600' },
+                    { id: 'mocha', label: 'Corporate Mocha', sub: 'Executive Warm Espresso Taupe', color: 'bg-[#8C532E]' },
                   ].map((t) => (
                     <button
                       key={t.id}
