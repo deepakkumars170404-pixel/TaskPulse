@@ -715,10 +715,10 @@ export const AdminDashboard: React.FC = () => {
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   {activeTab === 'all'
-                    ? 'Live feed of Admin personal agenda items & staff team target deliverables'
+                    ? 'Live feed of Admin agenda & staff deliverables · Click anywhere on a row to strike & complete'
                     : activeTab === 'admin'
-                    ? 'Your personal tasks and executive daily milestones'
-                    : 'Live feed of tasks allotted to staff members across departments'}
+                    ? 'Your personal tasks and executive daily milestones · Click anywhere on a row to strike & complete'
+                    : 'Live feed of tasks allotted to staff members · Click anywhere on a row to strike & complete'}
                 </p>
               </div>
 
@@ -781,15 +781,17 @@ export const AdminDashboard: React.FC = () => {
                   return (
                     <div
                       key={task.id}
-                      className={`p-3 space-y-2 transition-all ${
+                      onClick={() => toggleTaskStatus(task.id)}
+                      className={`p-3 space-y-2 transition-all cursor-pointer select-none rounded-xl ${
                         isDone
                           ? 'bg-slate-50/60 opacity-80'
                           : isRejected
                           ? 'bg-rose-50/20'
                           : isAdminTask
-                          ? 'bg-amber-50/20'
+                          ? 'bg-amber-50/20 hover:bg-amber-100/30'
                           : 'hover:bg-slate-50/60'
                       }`}
+                      title="Click anywhere to strike through & complete"
                     >
                       {/* Top Row: Checkbox/Icon + Title + Action */}
                       <div className="flex items-start gap-2.5">
@@ -853,7 +855,10 @@ export const AdminDashboard: React.FC = () => {
                             <div className="flex items-center gap-1">
                               <button
                                 type="button"
-                                onClick={() => toggleTaskStatus(task.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleTaskStatus(task.id);
+                                }}
                                 className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
                                   isDone
                                     ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
@@ -987,7 +992,8 @@ export const AdminDashboard: React.FC = () => {
                         return (
                           <tr
                             key={task.id}
-                            className={`hover:bg-slate-50/80 transition-all ${
+                            onClick={() => toggleTaskStatus(task.id)}
+                            className={`hover:bg-slate-100/80 transition-all cursor-pointer select-none group ${
                               isDone
                                 ? 'bg-slate-50/50'
                                 : isRejected
@@ -996,6 +1002,7 @@ export const AdminDashboard: React.FC = () => {
                                 ? 'bg-amber-50/15'
                                 : ''
                             }`}
+                            title="Click anywhere on row to strike through & complete"
                           >
                             {/* Task Details */}
                             <td className="py-2.5 px-3 sm:px-4">
@@ -1123,7 +1130,10 @@ export const AdminDashboard: React.FC = () => {
                                   <>
                                     <button
                                       type="button"
-                                      onClick={() => toggleTaskStatus(task.id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleTaskStatus(task.id);
+                                      }}
                                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
                                         isDone
                                           ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
