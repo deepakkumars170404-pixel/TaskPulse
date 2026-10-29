@@ -61,6 +61,17 @@ export const FloatingTaskWidget: React.FC = () => {
     };
   }, [pipWindow]);
 
+  // Keep floating window title updated with active logged-in staff / user name
+  useEffect(() => {
+    if (pipWindow && !pipWindow.closed) {
+      try {
+        pipWindow.document.title = `TaskToggle Float · ${currentUser.name}`;
+      } catch (e) {
+        // ignore closed or cross-origin errors
+      }
+    }
+  }, [pipWindow, currentUser.name]);
+
   // Open Document Picture-in-Picture window (Floats outside Chrome over all other desktop apps!)
   const openPiP = async (startInLogoMode = true) => {
     if (window.electronAPI?.isElectron) {
@@ -154,6 +165,8 @@ export const FloatingTaskWidget: React.FC = () => {
       pipWin.addEventListener('pagehide', () => {
         setPipWindow(null);
       });
+
+      pipWin.document.title = `TaskToggle Float · ${currentUser.name}`;
 
       // Reveal body immediately once styles are in place
       requestAnimationFrame(() => {
@@ -427,8 +440,8 @@ export const FloatingTaskWidget: React.FC = () => {
                       <span className="font-['Outfit'] font-black text-sm tracking-tight text-slate-900 leading-none">
                         Task<span className="text-primary-500">Toggle</span>
                       </span>
-                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary-100 text-primary-800 border border-primary-200">
-                        {orgSettings.orgName}
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary-100 text-primary-800 border border-primary-200 capitalize truncate max-w-[120px]" title={currentUser.name}>
+                        {currentUser.name}
                       </span>
                     </div>
 
@@ -455,8 +468,8 @@ export const FloatingTaskWidget: React.FC = () => {
                       <CheckSquare className="w-3.5 h-3.5 stroke-[2.5]" />
                     </div>
                     <span className="text-xs font-bold">TaskToggle Float</span>
-                    <span className="text-[9px] font-semibold px-1.5 py-0.2 bg-white/15 rounded-md">
-                      {orgSettings.orgName}
+                    <span className="text-[9px] font-semibold px-1.5 py-0.2 bg-white/15 rounded-md capitalize truncate max-w-[120px]" title={currentUser.name}>
+                      {currentUser.name}
                     </span>
                   </div>
 
