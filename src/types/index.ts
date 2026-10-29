@@ -59,20 +59,19 @@ export interface OrgSettings {
 }
 
 export type ThemePreset =
-  | 'navy'       // Royal Navy (Stripe & Microsoft Blue - Default)
-  | 'midnight'   // Executive Midnight (Goldman Deep Navy)
-  | 'sapphire'   // Corporate Sapphire (Cloud Azure Blue)
-  | 'slate'      // Steel Slate (Apple Minimalist Titanium)
+  | 'navy'       // Royal Navy Blue (Enterprise Stripe & Microsoft Blue - Default)
+  | 'oxford'     // Oxford Navy (Deep Classic Corporate Blue)
+  | 'cobalt'     // Executive Cobalt (High-Trust Business Blue)
   | 'emerald'    // Forest Emerald (Enterprise Green)
-  | 'teal';      // Corporate Teal (Deloitte Steel Teal)
+  | 'mint'       // Enterprise Mint (High-Trust Corporate Mint Green)
+  | 'teal';      // Corporate Teal (Deloitte Professional Green-Teal)
 
 export type BgCanvas =
   | 'slate'      // Cool Slate (#F8FAFC) - Default
   | 'white'      // Pure White (#FFFFFF)
   | 'zinc'       // Corporate Zinc (#F4F4F5)
   | 'ice'        // Executive Ice (#F0F7FF)
-  | 'cashmere'   // Subtle Cashmere (#FAF7F2)
-  | 'dark';      // Eclipse Dark (#0B0F19)
+  | 'cashmere';  // Subtle Cashmere (#FAF7F2)
 
 export type FontFamily =
   | 'outfit'

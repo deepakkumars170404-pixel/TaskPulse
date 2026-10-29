@@ -154,11 +154,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 </span>
               </div>
 
-              {/* 1. Theme Palette (6 Professional Corporate Palettes) */}
+              {/* 1. Theme Palette (Exclusive Blue & Green Corporate Palettes) */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    1. Corporate Palette (6 Enterprise Themes)
+                    1. Corporate Palette (Blue & Green Palettes)
                   </label>
                   <button
                     type="button"
@@ -173,11 +173,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { id: 'navy', label: 'Royal Navy', sub: 'Classic Enterprise Stripe Blue', color: 'bg-blue-600' },
-                    { id: 'midnight', label: 'Executive Midnight', sub: 'Goldman Sachs Deep Navy', color: 'bg-blue-950' },
-                    { id: 'sapphire', label: 'Corporate Sapphire', sub: 'Azure Cloud Tech Blue', color: 'bg-sky-600' },
-                    { id: 'slate', label: 'Steel Slate', sub: 'Apple Minimalist Titanium', color: 'bg-slate-700' },
-                    { id: 'emerald', label: 'Forest Emerald', sub: 'Fidelity Enterprise Green', color: 'bg-emerald-700' },
+                    { id: 'navy', label: 'Royal Navy Blue', sub: 'Classic Enterprise Stripe Blue', color: 'bg-blue-600' },
+                    { id: 'oxford', label: 'Oxford Navy', sub: 'Deep Classic Corporate Blue', color: 'bg-[#1D428A]' },
+                    { id: 'cobalt', label: 'Cobalt Blue', sub: 'Executive Business Blue', color: 'bg-blue-700' },
+                    { id: 'emerald', label: 'Forest Emerald', sub: 'Executive Enterprise Green', color: 'bg-emerald-700' },
+                    { id: 'mint', label: 'Enterprise Mint', sub: 'High-Trust Corporate Mint', color: 'bg-emerald-500' },
                     { id: 'teal', label: 'Corporate Teal', sub: 'Deloitte Professional Teal', color: 'bg-teal-700' },
                   ].map((t) => (
                     <button
@@ -203,10 +203,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 </div>
               </div>
 
-              {/* 2. Background Canvas (6 Enterprise Corporate Backdrops) */}
+              {/* 2. Background Canvas (5 Clean Neutral Light Backdrops - No Dark/Black) */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                  2. Enterprise Canvas (6 Neutral Backdrops)
+                  2. Enterprise Canvas (5 Light Neutral Backdrops)
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {[
@@ -215,7 +215,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                     { id: 'zinc', label: 'Corporate Zinc', code: '#F4F4F5', preview: 'bg-zinc-100 border border-zinc-200' },
                     { id: 'ice', label: 'Executive Ice', code: '#F0F7FF', preview: 'bg-[#F0F7FF] border border-blue-200/50' },
                     { id: 'cashmere', label: 'Cashmere', code: '#FAF7F2', preview: 'bg-[#FAF7F2] border border-amber-200/40' },
-                    { id: 'dark', label: 'Eclipse Dark', code: '#0B0F19', preview: 'bg-slate-950 text-white' },
                   ].map((b) => (
                     <button
                       key={b.id}

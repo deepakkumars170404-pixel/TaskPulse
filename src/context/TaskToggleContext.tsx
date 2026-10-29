@@ -487,16 +487,16 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return saved ? JSON.parse(saved) : INITIAL_ORG_SETTINGS;
   });
 
-  // Executive Theme, Background & Font Customizer States (Strict Enterprise Professional Palettes)
+  // Executive Theme, Background & Font Customizer States (Strict Blue & Green Corporate Palettes)
   const [themePreset, setThemePreset] = useState<ThemePreset>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}theme_preset`) as ThemePreset;
-    const valid: ThemePreset[] = ['navy', 'midnight', 'sapphire', 'slate', 'emerald', 'teal'];
+    const valid: ThemePreset[] = ['navy', 'oxford', 'cobalt', 'emerald', 'mint', 'teal'];
     return valid.includes(saved) ? saved : 'navy';
   });
 
   const [bgCanvas, setBgCanvas] = useState<BgCanvas>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}bg_canvas`) as BgCanvas;
-    const valid: BgCanvas[] = ['slate', 'white', 'zinc', 'ice', 'cashmere', 'dark'];
+    const valid: BgCanvas[] = ['slate', 'white', 'zinc', 'ice', 'cashmere'];
     return valid.includes(saved) ? saved : 'slate';
   });
 
