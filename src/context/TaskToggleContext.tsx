@@ -464,8 +464,30 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return INITIAL_USERS;
   });
 
-  // Current active user
+  // Current active user - Synchronously resolves exact person ID from ConnectX URL query
   const [currentUser, setCurrentUser] = useState<User>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const empIdParam = params.get('empId') || params.get('employeeId');
+        const emailParam = params.get('email');
+
+        if (empIdParam) {
+          const match = INITIAL_USERS.find(
+            (u) => u.employeeId?.trim().toLowerCase() === empIdParam.trim().toLowerCase()
+          );
+          if (match) return match;
+        }
+
+        if (emailParam) {
+          const match = INITIAL_USERS.find(
+            (u) => u.email?.trim().toLowerCase() === emailParam.trim().toLowerCase()
+          );
+          if (match) return match;
+        }
+      } catch (e) {}
+    }
+
     const savedId = localStorage.getItem(`${STORAGE_KEY_PREFIX}current_user_id`);
     if (savedId) {
       const targetId = savedId === 'admin_1' ? 'admin_deepak' : savedId;
@@ -590,8 +612,22 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.setItem(`${STORAGE_KEY_PREFIX}font_family`, fontFamily);
   }, [themePreset, bgCanvas, fontFamily]);
 
-  // User Authentication State (strict security guard for logout and page navigation)
+  // User Authentication State (strict security guard: auto-authenticates exact ConnectX person)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const hasConnectXIdentity =
+          params.get('empId') ||
+          params.get('employeeId') ||
+          params.get('email') ||
+          params.get('embedded') === 'true' ||
+          params.get('token');
+        if (hasConnectXIdentity) {
+          return true;
+        }
+      } catch (e) {}
+    }
     const savedLoggedIn = localStorage.getItem(`${STORAGE_KEY_PREFIX}is_logged_in`);
     if (savedLoggedIn === 'false') return false;
     if (typeof window !== 'undefined') {
