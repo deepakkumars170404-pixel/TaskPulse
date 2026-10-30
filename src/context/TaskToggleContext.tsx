@@ -124,7 +124,7 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
-const STORAGE_CLEAN_VERSION = 'v9_connectx_official_emp_ids_and_app_switcher';
+const STORAGE_CLEAN_VERSION = 'v11_connectx_all_23_staff_sync_verified';
 const PENDING_STAFF_ALERTS_KEY = 'tasktoggle_pending_staff_alerts';
 
 export function queuePendingStaffAlert(userId: string, alert: TaskAlert) {
@@ -471,7 +471,17 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const params = new URLSearchParams(window.location.search);
         const empIdParam = params.get('empId') || params.get('employeeId');
         const emailParam = params.get('email');
+        const nameParam = params.get('name');
 
+        // 1. Prioritize globally unique email match
+        if (emailParam) {
+          const match = INITIAL_USERS.find(
+            (u) => u.email?.trim().toLowerCase() === emailParam.trim().toLowerCase()
+          );
+          if (match) return match;
+        }
+
+        // 2. Match by synchronized official ConnectX employee ID
         if (empIdParam) {
           const match = INITIAL_USERS.find(
             (u) => u.employeeId?.trim().toLowerCase() === empIdParam.trim().toLowerCase()
@@ -479,9 +489,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           if (match) return match;
         }
 
-        if (emailParam) {
+        // 3. Fallback match by exact person name
+        if (nameParam) {
           const match = INITIAL_USERS.find(
-            (u) => u.email?.trim().toLowerCase() === emailParam.trim().toLowerCase()
+            (u) => u.name?.trim().toLowerCase() === nameParam.trim().toLowerCase()
           );
           if (match) return match;
         }
@@ -1218,7 +1229,32 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const emailParam = params.get('email');
     const roleParam = params.get('role');
 
-    // 1. Auto-login by Employee ID (e.g. ?empId=WG-EMP-001)
+    const nameParam = params.get('name');
+
+    // 1. Auto-login by globally unique Email (highest priority)
+    if (emailParam && users.length > 0) {
+      const match = users.find(
+        (u) => u.email?.trim().toLowerCase() === emailParam.trim().toLowerCase()
+      );
+      if (match) {
+        setActiveDueReminder(null);
+        setCurrentUser(match);
+        setIsAuthenticated(true);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, match.id);
+        if (match.branch && match.branch !== 'All Branches') {
+          setSelectedBranch(match.branch);
+        } else if (match.role === 'super_admin' || match.role === 'admin') {
+          setSelectedBranch('All Branches');
+        }
+        const targetPage = isExecutiveRole(match.role) ? 'dashboard' : 'mytodo';
+        setCurrentPage(targetPage);
+        checkAndTriggerPendingStaffAlerts(match.id, triggerTaskAlert);
+        return;
+      }
+    }
+
+    // 2. Auto-login by synchronized Employee ID (e.g. ?empId=WG-EMP-010)
     if (empIdParam && users.length > 0) {
       const match = users.find(
         (u) => u.employeeId?.trim().toLowerCase() === empIdParam.trim().toLowerCase()
@@ -1241,10 +1277,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     }
 
-    // 2. Auto-login by Email (e.g. ?email=dr.thavabalan@gmail.com)
-    if (emailParam && users.length > 0) {
+    // 3. Auto-login by full Name fallback
+    if (nameParam && users.length > 0) {
       const match = users.find(
-        (u) => u.email?.trim().toLowerCase() === emailParam.trim().toLowerCase()
+        (u) => u.name?.trim().toLowerCase() === nameParam.trim().toLowerCase()
       );
       if (match) {
         setActiveDueReminder(null);
