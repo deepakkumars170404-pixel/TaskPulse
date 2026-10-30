@@ -35,13 +35,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // WeGrow Ecosystem App Switcher State
-  const DEFAULT_CONNECTX_URL = 'https://wegrow-connectx-frontend.vercel.app/';
+  const isLocalHost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const DEFAULT_CONNECTX_URL = isLocalHost ? 'http://localhost:5174/' : 'https://wegrow-connectx-frontend.vercel.app/';
   const [showAppSwitcher, setShowAppSwitcher] = useState(false);
   const appSwitcherRef = useRef<HTMLDivElement>(null);
   const [connectxUrl, setConnectxUrl] = useState<string>(() => {
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const defaultUrl = isLocal ? 'http://localhost:5174/' : 'https://wegrow-connectx-frontend.vercel.app/';
     const saved = localStorage.getItem('tasktoggle_connectx_url');
+    // If on localhost, never point to old remote vercel URL
+    if (isLocal && saved && saved.includes('vercel.app')) {
+      localStorage.setItem('tasktoggle_connectx_url', defaultUrl);
+      return defaultUrl;
+    }
     if (saved && !saved.includes('connectx.wegrow.edu.in')) return saved;
-    return DEFAULT_CONNECTX_URL;
+    return defaultUrl;
   });
   const [isEditingConnectxUrl, setIsEditingConnectxUrl] = useState(false);
   const [tempConnectxUrl, setTempConnectxUrl] = useState(connectxUrl);
