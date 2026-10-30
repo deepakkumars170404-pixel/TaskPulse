@@ -19,6 +19,7 @@ import {
   Edit2,
   CheckCheck,
   Loader2,
+  ArrowLeft,
 } from 'lucide-react';
 import { getRoleDisplayName } from '../types';
 
@@ -62,6 +63,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
       localStorage.setItem('tasktoggle_connectx_url', clean);
       setIsEditingConnectxUrl(false);
     }
+  };
+
+  const handleReturnToConnectX = () => {
+    // 1. If embedded inside ConnectX iframe, notify parent ConnectX shell to switch to chat
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'RETURN_TO_CONNECTX', app: 'chat' }, '*');
+      return;
+    }
+    // 2. If opened in a standalone tab, launch ConnectX directly
+    handleLaunchConnectX();
   };
 
   // ConnectX Direct Single Sign-On (SSO) Handler
@@ -174,6 +185,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
 
       {/* Right controls: Float Over Apps, Office Hours & User Switcher */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Direct Back to ConnectX Hub Button */}
+        <button
+          type="button"
+          onClick={handleReturnToConnectX}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#0C2F9A] via-[#0A2A8C] to-[#061B5C] hover:from-[#0A2A8C] hover:to-[#082270] text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all border border-blue-900/30"
+          title="Return to ConnectX Hub (Chat & Channels)"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Back to ConnectX</span>
+          <span className="sm:hidden">ConnectX</span>
+        </button>
         {/* Float Over All Apps Button (Opens floating window outside Chrome over all desktop apps) */}
         <button
           type="button"
