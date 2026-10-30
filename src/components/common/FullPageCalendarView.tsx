@@ -297,29 +297,32 @@ export const FullPageCalendarView: React.FC = () => {
             <CalendarIcon className="w-3.5 h-3.5" />
             <span>Today</span>
           </button>
-
-          <span className="hidden md:inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary-500 text-white shadow-2xs">
-            {orgSettings.orgName} Calendar
-          </span>
         </div>
 
-        {/* Right: Legend Chips */}
+        {/* Right: Legend Chips (Pending, Done, Admin to Staff, Staff to Staff) */}
         <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-bold">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-rose-600" />
-            <span>Pending (Red Date)</span>
+          {/* Pending Status Color */}
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-800 border border-rose-300 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-rose-600 ring-2 ring-rose-200" />
+            <span>Pending (Red)</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>Overdue (Yellow Date)</span>
+
+          {/* Done Status Color */}
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-600 ring-2 ring-emerald-200" />
+            <span>Done (Green)</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-600" />
-            <span>Completed (Green Date)</span>
+
+          {/* Admin to Staff Work Text Color Indicator */}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-900 border border-blue-300 shadow-2xs font-bold">
+            <ShieldCheck className="w-3 h-3 text-blue-600" />
+            <span>Admin → Staff</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-800 border border-slate-200">
-            <Flag className="w-2.5 h-2.5 text-amber-600" />
-            <span>Govt Holiday</span>
+
+          {/* Staff to Staff Work Text Color Indicator */}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-900 border border-purple-300 shadow-2xs font-bold">
+            <UserCheck className="w-3 h-3 text-purple-600" />
+            <span>Staff → Staff</span>
           </span>
         </div>
       </div>
@@ -444,14 +447,14 @@ export const FullPageCalendarView: React.FC = () => {
                   {dayTasks.slice(0, 3).map((task) => (
                     <span
                       key={task.id}
-                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      className={`w-2 h-2 rounded-full shrink-0 ${
                         task.status === 'done'
-                          ? 'bg-emerald-500'
+                          ? 'bg-emerald-600 ring-1 ring-emerald-300'
                           : task.type === 'admin'
-                          ? 'bg-primary-500'
-                          : 'bg-purple-600'
+                          ? 'bg-blue-600 ring-1 ring-blue-300'
+                          : 'bg-purple-600 ring-1 ring-purple-300'
                       }`}
-                      title={`${task.title} (${task.assignedToName})`}
+                      title={`${task.title} (${task.type === 'admin' ? 'Admin → Staff' : 'Staff → Staff'}: ${task.assignedToName})`}
                     />
                   ))}
                   {dayTasks.length > 3 && (
@@ -461,7 +464,7 @@ export const FullPageCalendarView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Desktop: Full Title Chips */}
+                {/* Desktop: Full Title Chips with Type Label & Status Colors */}
                 <div className="hidden sm:block space-y-1 my-0.5 overflow-hidden">
                   {dayTasks.slice(0, 2).map((task) => {
                     const isDone = task.status === 'done';
@@ -471,18 +474,29 @@ export const FullPageCalendarView: React.FC = () => {
                         key={task.id}
                         className={`px-1.5 py-0.5 rounded text-[10px] font-bold truncate flex items-center gap-1 ${
                           isDone
-                            ? 'bg-emerald-50 text-emerald-700 line-through border border-emerald-200'
+                            ? 'bg-emerald-50 text-emerald-800 line-through border border-emerald-300'
                             : isAdmin
-                            ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                            : 'bg-purple-50 text-purple-800 border border-purple-200'
+                            ? 'bg-blue-50 text-blue-900 border border-blue-300'
+                            : 'bg-purple-50 text-purple-900 border border-purple-300'
                         }`}
-                        title={`${task.title} (${task.assignedToName})`}
+                        title={`${task.title} (${isAdmin ? 'Admin → Staff' : 'Staff → Staff'}: ${task.assignedToName})`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                            isDone ? 'bg-emerald-500' : isAdmin ? 'bg-primary-500' : 'bg-purple-600'
+                            isDone ? 'bg-emerald-600' : isAdmin ? 'bg-blue-600' : 'bg-purple-600'
                           }`}
                         />
+                        <span
+                          className={`text-[8px] font-black uppercase px-1 py-0.2 rounded shrink-0 ${
+                            isDone
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : isAdmin
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-purple-100 text-purple-800'
+                          }`}
+                        >
+                          {isAdmin ? 'Admin' : 'Staff'}
+                        </span>
                         <span className="truncate">{task.title}</span>
                       </div>
                     );
@@ -586,12 +600,12 @@ export const FullPageCalendarView: React.FC = () => {
                       {selectedDateDetails.allTasks.length === 1 ? 'task scheduled' : 'tasks scheduled'}
                     </span>
                     <span className="text-slate-300">•</span>
-                    <span className="text-primary-600 font-bold">
-                      {selectedDateDetails.adminTasks.length} Admin Allot
+                    <span className="text-blue-700 font-bold">
+                      {selectedDateDetails.adminTasks.length} Admin → Staff
                     </span>
                     <span className="text-slate-300">•</span>
                     <span className="text-purple-700 font-bold">
-                      {selectedDateDetails.staffTasks.length} Staff Allot
+                      {selectedDateDetails.staffTasks.length} Staff → Staff
                     </span>
                   </div>
                 </div>
@@ -614,7 +628,7 @@ export const FullPageCalendarView: React.FC = () => {
                 onClick={() => setModalTaskFilter('all')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   modalTaskFilter === 'all'
-                    ? 'bg-white text-primary-600 shadow-2xs border border-primary-200'
+                    ? 'bg-white text-slate-900 shadow-2xs border border-slate-300'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -626,12 +640,12 @@ export const FullPageCalendarView: React.FC = () => {
                 onClick={() => setModalTaskFilter('admin')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   modalTaskFilter === 'admin'
-                    ? 'bg-primary-500 text-white shadow-xs'
-                    : 'text-primary-600 hover:bg-primary-100/60'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-blue-700 hover:bg-blue-50 border border-blue-200'
                 }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin Allot Work ({selectedDateDetails.adminTasks.length})</span>
+                <span>Admin → Staff Work ({selectedDateDetails.adminTasks.length})</span>
               </button>
 
               <button
@@ -640,11 +654,11 @@ export const FullPageCalendarView: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   modalTaskFilter === 'staff'
                     ? 'bg-purple-600 text-white shadow-xs'
-                    : 'text-purple-700 hover:bg-purple-100/60'
+                    : 'text-purple-700 hover:bg-purple-50 border border-purple-200'
                 }`}
               >
                 <UserCheck className="w-3.5 h-3.5" />
-                <span>Staff Allot Work ({selectedDateDetails.staffTasks.length})</span>
+                <span>Staff → Staff Work ({selectedDateDetails.staffTasks.length})</span>
               </button>
             </div>
 
@@ -744,18 +758,18 @@ export const FullPageCalendarView: React.FC = () => {
                         <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {isAdmin ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-primary-100 text-primary-700 border border-primary-200 shadow-2xs">
-                                <ShieldCheck className="w-3 h-3 text-primary-500" />
-                                <span>Admin Allot Work</span>
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-300 shadow-2xs">
+                                <ShieldCheck className="w-3 h-3 text-blue-600" />
+                                <span>Admin → Staff Work</span>
                               </span>
                             ) : isStaffAllot ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200 shadow-2xs">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-900 border border-purple-300 shadow-2xs">
                                 <UserCheck className="w-3 h-3 text-purple-600" />
-                                <span>Staff Allot Work</span>
+                                <span>Staff → Staff Work</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
-                                <User className="w-3 h-3 text-slate-500" />
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-800 border border-slate-300">
+                                <User className="w-3 h-3 text-slate-600" />
                                 <span>Self To-Do</span>
                               </span>
                             )}
