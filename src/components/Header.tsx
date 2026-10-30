@@ -66,13 +66,24 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   };
 
   const handleReturnToConnectX = () => {
-    // 1. If embedded inside ConnectX iframe, notify parent ConnectX shell to switch to chat
+    // 1. If embedded inside ConnectX iframe, notify parent ConnectX shell to switch to chat instantly (0ms)
     if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
       window.parent.postMessage({ type: 'RETURN_TO_CONNECTX', app: 'chat' }, '*');
       return;
     }
-    // 2. If opened in a standalone tab, launch ConnectX directly
-    handleLaunchConnectX();
+
+    // 2. If opened from ConnectX, immediately bring the parent ConnectX tab to front
+    if (typeof window !== 'undefined' && window.opener && !window.opener.closed) {
+      try {
+        window.opener.focus();
+        window.close();
+        return;
+      } catch (e) {}
+    }
+
+    // 3. Instant navigate to ConnectX with staff identity without waiting for slow API network round-trip
+    const targetUrl = `${connectxUrl.replace(/\/+$/, '')}/?empId=${encodeURIComponent(currentUser.employeeId || '')}&email=${encodeURIComponent(currentUser.email || '')}`;
+    window.location.href = targetUrl;
   };
 
   // ConnectX Direct Single Sign-On (SSO) Handler
