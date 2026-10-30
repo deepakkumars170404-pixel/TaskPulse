@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Edit2,
   CheckCheck,
+  Loader2,
 } from 'lucide-react';
 import { getRoleDisplayName } from '../types';
 
@@ -53,6 +54,44 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
       localStorage.setItem('tasktoggle_connectx_url', clean);
       setIsEditingConnectxUrl(false);
     }
+  };
+
+  // ConnectX Direct Single Sign-On (SSO) Handler
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const handleLaunchConnectX = async () => {
+    setIsConnecting(true);
+    try {
+      // 1. Authenticate with ConnectX backend API using active staff credentials
+      if (currentUser.email && currentUser.password) {
+        const resp = await fetch('https://wegrow-connectx-backend.onrender.com/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: currentUser.email.trim(),
+            password: currentUser.password,
+          }),
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.token) {
+            // Open ConnectX with the authenticated session token and employeeId
+            const ssoUrl = `${connectxUrl.replace(/\/+$/, '')}/?token=${encodeURIComponent(data.token)}&empId=${encodeURIComponent(currentUser.employeeId || '')}`;
+            window.open(ssoUrl, '_blank', 'noopener,noreferrer');
+            setIsConnecting(false);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('ConnectX SSO direct login error, falling back to direct link:', e);
+    }
+
+    // Fallback if backend API is offline or user has no password
+    const fallbackUrl = `${connectxUrl.replace(/\/+$/, '')}/?empId=${encodeURIComponent(currentUser.employeeId || '')}`;
+    window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    setIsConnecting(false);
   };
 
   // Close App Switcher on outside click
@@ -349,28 +388,34 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
 
               {/* App Grid */}
               <div className="grid grid-cols-2 gap-2.5 mb-3">
-                {/* 1. ConnectX App Card */}
-                <a
-                  href={connectxUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-sky-300 hover:bg-sky-50/60 transition-all text-center cursor-pointer shadow-2xs hover:shadow-sm"
-                  title={`Open ConnectX: ${connectxUrl}`}
+                {/* 1. ConnectX App Card (Single Sign-On Engine) */}
+                <button
+                  type="button"
+                  onClick={handleLaunchConnectX}
+                  disabled={isConnecting}
+                  className="group flex flex-col items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-sky-300 hover:bg-sky-50/60 transition-all text-center cursor-pointer shadow-2xs hover:shadow-sm relative overflow-hidden"
+                  title={`Launch ConnectX as ${currentUser.name} (${currentUser.employeeId})`}
                 >
                   <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-500 via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-xs group-hover:scale-105 transition-transform">
-                    <span className="font-black text-sm tracking-tight">CX</span>
+                    {isConnecting ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    ) : (
+                      <span className="font-black text-sm tracking-tight">CX</span>
+                    )}
                   </div>
                   <div className="my-1.5">
                     <div className="text-xs font-bold text-slate-800 group-hover:text-blue-700 flex items-center justify-center gap-1">
                       <span>ConnectX</span>
                       <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-blue-600" />
                     </div>
-                    <p className="text-[9px] text-slate-500 line-clamp-1">Directory & Chat</p>
+                    <p className="text-[9px] text-slate-500 line-clamp-1">
+                      {isConnecting ? 'Signing in...' : 'Direct SSO Launch'}
+                    </p>
                   </div>
                   <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
-                    Live Portal
+                    {isConnecting ? 'Authenticating' : `As ${currentUser.name.split(' ')[0]}`}
                   </span>
-                </a>
+                </button>
 
                 {/* 2. TaskToggle App Card (Current) */}
                 <div className="flex flex-col items-center justify-between p-3 rounded-xl border-2 border-primary-500 bg-primary-50/70 text-center shadow-2xs relative">
