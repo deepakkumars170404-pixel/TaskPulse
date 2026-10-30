@@ -19,16 +19,24 @@ import {
   UserPlus,
   Trash2,
   ArrowLeft,
+  Edit3,
+  Building2,
+  Crown,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
 import { AddStaffModal } from './AddStaffModal';
-import { Task, User, getTaskDeclineReason } from '../../types';
+import { Task, User, BranchName, isSuperAdmin, getRoleDisplayName, getTaskDeclineReason } from '../../types';
 
 export const TaskMonitorView: React.FC = () => {
-  const { tasks, users, orgSettings, deleteStaffUser, setCurrentPage } = useTaskToggle();
+  const { tasks, users, orgSettings, deleteStaffUser, setCurrentPage, currentUser, selectedBranch, setSelectedBranch } = useTaskToggle();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTaskForIssue, setSelectedTaskForIssue] = useState<Task | null>(null);
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+  const [editingStaffUser, setEditingStaffUser] = useState<User | null>(null);
+
+  const isSuper = isSuperAdmin(currentUser.role);
 
   // Expanded staff members (track which staff cards are currently open)
   const [expandedStaffIds, setExpandedStaffIds] = useState<Record<string, boolean>>({});
@@ -36,10 +44,15 @@ export const TaskMonitorView: React.FC = () => {
   // Filter inside expanded staff member's tasks: 'all' | 'pending' | 'completed' | 'declined'
   const [staffTaskFilters, setStaffTaskFilters] = useState<Record<string, 'all' | 'pending' | 'completed' | 'declined'>>({});
 
-  // Get all staff members from users list
+  // Get staff and managers filtered by selected branch
   const staffMembers = useMemo(() => {
-    return users.filter((u) => u.role === 'staff');
-  }, [users]);
+    return users.filter((u) => {
+      // Exclude Super Admins from staff workload list
+      if (u.role === 'super_admin') return false;
+      if (selectedBranch !== 'All Branches' && u.branch !== selectedBranch) return false;
+      return true;
+    });
+  }, [users, selectedBranch]);
 
   // Toggle staff card accordion
   const toggleStaffExpand = (staffId: string) => {
@@ -133,15 +146,77 @@ export const TaskMonitorView: React.FC = () => {
             />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowAddStaffModal(true)}
-            className="px-3 py-1.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-2xs cursor-pointer active:scale-95 transition-all flex items-center gap-1 shrink-0"
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>+ Add Staff</span>
-          </button>
+          {isSuper ? (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingStaffUser(null);
+                setShowAddStaffModal(true);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-2xs cursor-pointer active:scale-95 transition-all flex items-center gap-1 shrink-0"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>+ Add Member</span>
+            </button>
+          ) : (
+            <span
+              className="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[11px] font-semibold border border-slate-200 flex items-center gap-1.5 shrink-0"
+              title="Only Super Admins (Dr. Thavabalan / Deepak) can add or remove members"
+            >
+              <Lock className="w-3 h-3 text-slate-400" />
+              <span>Super Admin Exclusive</span>
+            </span>
+          )}
         </div>
+      </div>
+
+      {/* Roster Policy Banner for Non-Super-Admins */}
+      {!isSuper && (
+        <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-800 text-xs flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              <strong>Organization Policy:</strong> Staff additions, removals, and role/branch assignments can only be changed by <strong>Super Admins (Dr. Thavabalan / Deepak)</strong>.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Multi-Branch Selector Pills */}
+      <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold shrink-0">
+          <Building2 className="w-3.5 h-3.5 text-primary-500" />
+          <span className="uppercase tracking-wider text-[10px]">Filter Branch:</span>
+        </div>
+
+        {(['All Branches', 'sivakasi 1.0', 'sivakasi 3.0', 'srivi 2.0'] as BranchName[]).map((branch) => {
+          const isSelected = selectedBranch === branch;
+          const count = branch === 'All Branches'
+            ? users.filter((u) => u.role !== 'super_admin').length
+            : users.filter((u) => u.role !== 'super_admin' && u.branch === branch).length;
+
+          return (
+            <button
+              key={branch}
+              type="button"
+              onClick={() => setSelectedBranch(branch)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                isSelected
+                  ? 'bg-primary-500 text-white shadow-xs'
+                  : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <span>{branch}</span>
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* KPI Overview Summary */}
@@ -280,15 +355,24 @@ export const TaskMonitorView: React.FC = () => {
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-base font-bold text-slate-900 font-['Outfit'] truncate">
                           {staff.name}
                         </h3>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 uppercase">
-                          {staff.role}
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                          {getRoleDisplayName(staff.role)}
                         </span>
+                        {staff.branch && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200">
+                            {staff.branch}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-slate-500 font-medium truncate mt-0.5">{staff.email}</p>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium truncate mt-0.5">
+                        <span>{staff.email}</span>
+                        {staff.employeeId && <span className="font-mono">· {staff.employeeId}</span>}
+                        {staff.designation && <span>· {staff.designation}</span>}
+                      </div>
                     </div>
                   </div>
 
@@ -351,20 +435,37 @@ export const TaskMonitorView: React.FC = () => {
                       </span>
                     )}
 
-                    {/* Remove Staff Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`Remove staff member "${staff.name}" from ${orgSettings.orgName}?`)) {
-                          deleteStaffUser(staff.id);
-                        }
-                      }}
-                      className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
-                      title={`Remove ${staff.name}`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {/* Super Admin Exclusive: Edit Position & Branch Button */}
+                    {isSuper && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingStaffUser(staff);
+                        }}
+                        className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-primary-50 text-slate-500 hover:text-primary-600 flex items-center justify-center transition-colors cursor-pointer"
+                        title={`Edit ${staff.name} position / branch`}
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    {/* Super Admin Exclusive: Remove Staff Button */}
+                    {isSuper && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Remove staff member "${staff.name}" from ${orgSettings.orgName}?`)) {
+                            deleteStaffUser(staff.id);
+                          }
+                        }}
+                        className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
+                        title={`Remove ${staff.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
 
                     {/* Chevron Expand Indicator */}
                     <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center transition-transform">
@@ -593,10 +694,14 @@ export const TaskMonitorView: React.FC = () => {
         onClose={() => setSelectedTaskForIssue(null)}
       />
 
-      {/* Add Staff Member Modal */}
+      {/* Add or Edit Staff Member Modal */}
       <AddStaffModal
-        isOpen={showAddStaffModal}
-        onClose={() => setShowAddStaffModal(false)}
+        isOpen={showAddStaffModal || Boolean(editingStaffUser)}
+        staffToEdit={editingStaffUser}
+        onClose={() => {
+          setShowAddStaffModal(false);
+          setEditingStaffUser(null);
+        }}
       />
     </div>
   );

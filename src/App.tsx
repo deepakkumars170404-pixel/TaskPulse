@@ -19,6 +19,7 @@ import { ElectronFloatingBubble } from './components/common/ElectronFloatingBubb
 import { DueReminderBanner } from './components/common/DueReminderBanner';
 import { TaskAlertBanner } from './components/common/TaskAlertBanner';
 import { PwaInstallPrompt } from './components/common/PwaInstallPrompt';
+import { isExecutiveRole } from './types';
 
 const MainLayout: React.FC = () => {
   const { currentPage, currentUser, isAuthenticated } = useTaskToggle();
@@ -51,7 +52,7 @@ const MainLayout: React.FC = () => {
         {/* Main Content Area - Full width edge-to-edge with smooth scrolling */}
         <main className={`flex-1 overflow-y-auto min-w-0 w-full ${currentPage === 'calendar' ? 'pb-20 md:pb-0 flex flex-col p-0' : 'pb-20 md:pb-4'}`}>
           {currentPage === 'calendar' && <FullPageCalendarView />}
-          {currentUser.role === 'admin' ? (
+          {isExecutiveRole(currentUser.role) ? (
             <>
               {currentPage === 'dashboard' && <AdminDashboard />}
               {currentPage === 'assign' && <AssignTaskView />}

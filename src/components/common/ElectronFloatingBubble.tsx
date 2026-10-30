@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { getTodayDateString } from '../../utils/dateUtils';
+import { isExecutiveRole } from '../../types';
 import {
   Check,
   CheckSquare,
@@ -162,7 +163,7 @@ export const ElectronFloatingBubble: React.FC = () => {
 
   // Filter tasks based on current user and selected tab (exclude declined tasks for staff)
   const relevantTasks = tasks.filter((t) => {
-    if (currentUser.role === 'admin') return true;
+    if (isExecutiveRole(currentUser.role)) return true;
     return t.assignedTo === currentUser.id && t.status !== 'rejected';
   });
 
@@ -183,7 +184,7 @@ export const ElectronFloatingBubble: React.FC = () => {
     const TODAY_STR = getTodayDateString();
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    if (currentUser.role === 'admin') {
+    if (isExecutiveRole(currentUser.role)) {
       const staffList = users.filter((u) => u.role === 'staff');
       const targetStaffId = staffList.length > 0 ? staffList[0].id : currentUser.id;
       assignAdminTask({

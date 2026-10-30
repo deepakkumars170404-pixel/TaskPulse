@@ -3,6 +3,7 @@ import { useTaskToggle } from '../../context/TaskToggleContext';
 import { QuickDatePicker } from './DateTimePicker';
 import { getTodayDateString } from '../../utils/dateUtils';
 import { X, GraduationCap, User, BookOpen, Phone, Mail, Clock, DollarSign, FileText, Sparkles, Check } from 'lucide-react';
+import { isExecutiveRole } from '../../types';
 
 interface AddAdmissionModalProps {
   isOpen: boolean;
@@ -63,7 +64,7 @@ export const AddAdmissionModal: React.FC<AddAdmissionModalProps> = ({
         feesPaid: feesPaid || undefined,
         batchTiming: batchTiming || undefined,
         notes: notes || undefined,
-        staffId: currentUser.role === 'admin' ? selectedStaffId : currentUser.id,
+        staffId: isExecutiveRole(currentUser.role) ? selectedStaffId : currentUser.id,
       });
 
       setSuccessToast(true);
@@ -249,7 +250,7 @@ export const AddAdmissionModal: React.FC<AddAdmissionModalProps> = ({
                 <User className="w-3.5 h-3.5 text-primary-600" />
                 <span>Admission Credited To</span>
               </label>
-              {currentUser.role === 'admin' ? (
+              {isExecutiveRole(currentUser.role) ? (
                 <select
                   value={selectedStaffId}
                   onChange={(e) => setSelectedStaffId(e.target.value)}

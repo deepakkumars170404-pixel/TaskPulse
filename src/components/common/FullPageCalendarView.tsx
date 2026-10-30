@@ -18,7 +18,7 @@ import {
   Flag,
   CalendarDays,
 } from 'lucide-react';
-import { Task, getTaskDeclineReason } from '../../types';
+import { Task, getTaskDeclineReason, isExecutiveRole } from '../../types';
 
 interface Holiday {
   dateStr: string; // 'YYYY-MM-DD'
@@ -208,7 +208,7 @@ export const FullPageCalendarView: React.FC = () => {
 
   // Tasks visible to current user (Admin sees all company tasks, Staff sees assigned & delegated, excluding declined)
   const relevantTasks = useMemo(() => {
-    if (currentUser.role === 'admin') return tasks;
+    if (isExecutiveRole(currentUser.role)) return tasks;
     return tasks.filter((t) => (t.assignedTo === currentUser.id && t.status !== 'rejected') || t.createdBy === currentUser.id);
   }, [tasks, currentUser]);
 

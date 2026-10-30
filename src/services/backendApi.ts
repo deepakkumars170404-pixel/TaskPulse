@@ -25,16 +25,32 @@ class BackendApiService {
       try {
         const { data, error } = await supabase.from('users').select('*');
         if (!error && data && data.length > 0) {
+          const initialMap = new Map(INITIAL_USERS.map((u) => [u.id, u]));
+
           return data
             .filter((u) => !u.id.startsWith('__system'))
-            .map((u) => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            role: u.role,
-            initials: u.initials,
-            avatarBg: u.avatar_bg,
-          }));
+            .map((u) => {
+              const fallback = initialMap.get(u.id);
+              let meta: any = null;
+              if (u.avatar_bg && typeof u.avatar_bg === 'string' && u.avatar_bg.startsWith('{')) {
+                try {
+                  meta = JSON.parse(u.avatar_bg);
+                } catch (e) {}
+              }
+
+              return {
+                id: u.id,
+                name: u.name,
+                email: u.email,
+                role: meta?.role || u.role || fallback?.role || 'staff',
+                initials: u.initials || fallback?.initials || 'TT',
+                avatarBg: meta?.bg || (u.avatar_bg && !u.avatar_bg.startsWith('{') ? u.avatar_bg : fallback?.avatarBg || 'bg-primary-500'),
+                branch: meta?.branch || u.branch || fallback?.branch || 'sivakasi 1.0',
+                employeeId: meta?.employeeId || u.employee_id || fallback?.employeeId,
+                password: meta?.password || fallback?.password,
+                designation: meta?.designation || u.designation || fallback?.designation,
+              } as User;
+            });
         }
       } catch (err) {
         console.warn('[BackendAPI] Error fetching users from Supabase, using local cache:', err);
@@ -47,33 +63,62 @@ class BackendApiService {
   async createUser(user: User): Promise<User> {
     if (this.hasSupabase && supabase) {
       try {
+        const dbRole = (user.role === 'super_admin' || user.role === 'admin') ? 'admin' : 'staff';
+        const metaStr = JSON.stringify({
+          bg: user.avatarBg,
+          role: user.role,
+          branch: user.branch,
+          employeeId: user.employeeId,
+          password: user.password,
+          designation: user.designation,
+        });
+
         const { data, error } = await supabase.from('users').insert([
           {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role,
+            role: dbRole,
             initials: user.initials,
-            avatar_bg: user.avatarBg,
+            avatar_bg: metaStr,
           },
         ]).select();
         if (error) {
           console.warn('[BackendAPI] Error inserting user into Supabase:', error);
         } else if (data && data[0]) {
-          return {
-            id: data[0].id,
-            name: data[0].name,
-            email: data[0].email,
-            role: data[0].role,
-            initials: data[0].initials,
-            avatarBg: data[0].avatar_bg,
-          };
+          return user;
         }
       } catch (err) {
         console.warn('[BackendAPI] Error creating user in Supabase:', err);
       }
     }
     return user;
+  }
+
+  async updateUser(user: User): Promise<void> {
+    if (this.hasSupabase && supabase) {
+      try {
+        const dbRole = (user.role === 'super_admin' || user.role === 'admin') ? 'admin' : 'staff';
+        const metaStr = JSON.stringify({
+          bg: user.avatarBg,
+          role: user.role,
+          branch: user.branch,
+          employeeId: user.employeeId,
+          password: user.password,
+          designation: user.designation,
+        });
+
+        await supabase.from('users').update({
+          name: user.name,
+          email: user.email,
+          role: dbRole,
+          initials: user.initials,
+          avatar_bg: metaStr,
+        }).eq('id', user.id);
+      } catch (err) {
+        console.warn('[BackendAPI] Error updating user in Supabase:', err);
+      }
+    }
   }
 
   async deleteUser(userId: string): Promise<void> {

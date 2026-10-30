@@ -15,7 +15,10 @@ import {
   CalendarDays,
   GraduationCap,
   Download,
+  Crown,
+  Building2,
 } from 'lucide-react';
+import { isExecutiveRole, getRoleDisplayName } from '../types';
 
 interface SidebarProps {
   isMobileOpen?: boolean;
@@ -64,13 +67,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
               <div className="text-xs font-bold text-slate-900 leading-tight truncate">
                 {currentUser.name}
               </div>
-              <div className="text-[10px] text-slate-500 capitalize font-medium flex items-center gap-1 mt-0.5">
-                {currentUser.role === 'admin' ? (
-                  <ShieldCheck className="w-3 h-3 text-primary-500" />
+              <div className="text-[10px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                {currentUser.role === 'super_admin' ? (
+                  <Crown className="w-3 h-3 text-purple-600" />
+                ) : currentUser.role === 'admin' ? (
+                  <ShieldCheck className="w-3 h-3 text-blue-500" />
+                ) : currentUser.role === 'branch_manager' ? (
+                  <Building2 className="w-3 h-3 text-emerald-600" />
                 ) : (
                   <UserCheck className="w-3 h-3 text-slate-400" />
                 )}
-                <span className="truncate">{currentUser.role} · {orgSettings.orgName}</span>
+                <span className="truncate">
+                  {getRoleDisplayName(currentUser.role)}
+                  {currentUser.branch && currentUser.branch !== 'All Branches' ? ` · ${currentUser.branch}` : ''}
+                </span>
               </div>
             </div>
           </div>
@@ -88,13 +98,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
 
         {/* Panel label */}
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 flex items-center justify-between">
-          <span>{currentUser.role === 'admin' ? 'Executive Panel' : 'Staff Workspace'}</span>
+          <span>
+            {isExecutiveRole(currentUser.role)
+              ? currentUser.role === 'super_admin'
+                ? 'Super Admin Panel'
+                : currentUser.role === 'branch_manager'
+                ? `${currentUser.branch} Panel`
+                : 'Executive Panel'
+              : 'Staff Workspace'}
+          </span>
           <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
         </div>
 
         {/* Navigation list */}
         <nav className="space-y-1.5">
-          {currentUser.role === 'admin' ? (
+          {isExecutiveRole(currentUser.role) ? (
             <>
               <button
                 type="button"

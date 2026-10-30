@@ -12,6 +12,7 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react';
+import { isExecutiveRole } from '../../types';
 
 export const TaskAlertBanner: React.FC = () => {
   const { activeTaskAlert, dismissTaskAlert, setCurrentPage, currentUser } = useTaskToggle();
@@ -35,11 +36,11 @@ export const TaskAlertBanner: React.FC = () => {
 
   const handleActionClick = () => {
     if (isDecline) {
-      setCurrentPage(currentUser.role === 'admin' ? 'monitor' : 'requests');
+      setCurrentPage(isExecutiveRole(currentUser.role) ? 'monitor' : 'requests');
     } else if (isEvent) {
       setCurrentPage('mytodo');
     } else {
-      setCurrentPage(currentUser.role === 'admin' ? 'dashboard' : 'mytodo');
+      setCurrentPage(isExecutiveRole(currentUser.role) ? 'dashboard' : 'mytodo');
     }
     dismissTaskAlert();
   };

@@ -1,5 +1,21 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { User, Task, OfficeTiming, EventTiming, OrgSettings, Role, TaskPriority, TaskAlert, StudentAdmission, ThemePreset, BgCanvas, FontFamily } from '../types';
+import {
+  User,
+  Task,
+  OfficeTiming,
+  EventTiming,
+  OrgSettings,
+  Role,
+  BranchName,
+  TaskPriority,
+  TaskAlert,
+  StudentAdmission,
+  ThemePreset,
+  BgCanvas,
+  FontFamily,
+  isExecutiveRole,
+  isSuperAdmin,
+} from '../types';
 import {
   INITIAL_USERS,
   INITIAL_TASKS,
@@ -37,10 +53,12 @@ interface TaskToggleContextType {
   isAuthenticated: boolean;
   showCompleted: boolean;
   isBackendConnected: boolean;
+  selectedBranch: BranchName;
+  setSelectedBranch: (branch: BranchName) => void;
   setShowCompleted: (val: boolean) => void;
   setCurrentPage: (page: string) => void;
   switchUser: (userId: string) => void;
-  login: (email: string, role: Role) => void;
+  login: (identifier: string, password?: string, preferredRole?: Role) => boolean | void;
   logout: () => void;
   assignAdminTask: (data: {
     title: string;
@@ -84,7 +102,8 @@ interface TaskToggleContextType {
   dismissDueReminder: () => void;
   triggerDueReminderPreview: (customTitle?: string, minutes?: number) => void;
   playThirtyMinReminderSound: () => void;
-  addStaffUser: (name: string, email: string) => void;
+  addStaffUser: (name: string, email: string, options?: Partial<User>) => void;
+  updateStaffUser: (userId: string, updates: Partial<User>) => void;
   deleteStaffUser: (userId: string) => void;
   clearAllTasks: () => void;
   updateOfficeTiming: (timing: OfficeTiming) => void;
@@ -400,14 +419,11 @@ export const VALID_PAGES = [
 
 export function normalizePageFromUrl(pathname: string, userRole: Role, isAuth = true): string {
   if (!isAuth) return 'login';
-  if (typeof window === 'undefined') return userRole === 'admin' ? 'dashboard' : 'mytodo';
+  if (typeof window === 'undefined') return isExecutiveRole(userRole) ? 'dashboard' : 'mytodo';
   const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase().split('?')[0].split('#')[0];
   if (clean === 'login') return 'login';
   if (VALID_PAGES.includes(clean as any)) {
-    if (userRole === 'admin') {
-      if (['mytodo', 'create', 'requests'].includes(clean)) {
-        return 'dashboard';
-      }
+    if (isExecutiveRole(userRole)) {
       return clean;
     } else {
       if (['dashboard', 'assign', 'monitor', 'timing'].includes(clean)) {
@@ -416,7 +432,7 @@ export function normalizePageFromUrl(pathname: string, userRole: Role, isAuth = 
       return clean;
     }
   }
-  return userRole === 'admin' ? 'dashboard' : 'mytodo';
+  return isExecutiveRole(userRole) ? 'dashboard' : 'mytodo';
 }
 
 export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -428,10 +444,11 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // If saved users still have the old 'Arun Kumar' or legacy 'admin_1', refresh to INITIAL_USERS with 'Arun Patel'
-        if (parsed.some((u: User) => ['staff_arun', 'staff_priya', 'staff_meena', 'staff_karthik', 'staff_divya', 'admin_1'].includes(u.id) || u.name === 'Arun Kumar')) {
+        // Clear obsolete legacy accounts and old dummy friend names (Rohinth, karpagam, sathya, olivu)
+        const oldFriendNames = ['Rohinth', 'karpagam', 'sathya', 'olivu', 'Arun Kumar'];
+        const oldFriendIds = ['staff_1793165256238_tpz8', 'staff_1793165269177_i0mh', 'staff_1793165279734_d8kf', 'staff_1793165284065_n77i'];
+        if (parsed.some((u: User) => oldFriendNames.includes(u.name) || oldFriendIds.includes(u.id) || ['staff_arun', 'staff_priya', 'admin_1'].includes(u.id))) {
           localStorage.setItem(`${STORAGE_KEY_PREFIX}users`, JSON.stringify(INITIAL_USERS));
-          localStorage.removeItem(`${STORAGE_KEY_PREFIX}tasks`);
           return INITIAL_USERS;
         }
         return parsed;
@@ -444,13 +461,25 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [currentUser, setCurrentUser] = useState<User>(() => {
     const savedId = localStorage.getItem(`${STORAGE_KEY_PREFIX}current_user_id`);
     if (savedId) {
-      // Map legacy 'admin_1' to 'admin_deepak'
       const targetId = savedId === 'admin_1' ? 'admin_deepak' : savedId;
       const found = INITIAL_USERS.find((u) => u.id === targetId);
       if (found) return found;
     }
     return INITIAL_USERS[0];
   });
+
+  // Selected Branch for multi-branch organization filtering
+  const [selectedBranch, setSelectedBranch] = useState<BranchName>(() => {
+    const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}selected_branch`) as BranchName;
+    const valid: BranchName[] = ['All Branches', 'sivakasi 1.0', 'sivakasi 3.0', 'srivi 2.0'];
+    if (valid.includes(saved)) return saved;
+    if (currentUser?.branch && valid.includes(currentUser.branch)) return currentUser.branch;
+    return 'All Branches';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}selected_branch`, selectedBranch);
+  }, [selectedBranch]);
 
   // Tasks state
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -1255,28 +1284,66 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setIsAuthenticated(true);
       localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
       localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, user.id);
-      if (user.role === 'admin') {
+      if (isExecutiveRole(user.role)) {
         setCurrentPage('dashboard');
       } else {
         setCurrentPage('mytodo');
+      }
+      if (user.branch && user.branch !== 'All Branches') {
+        setSelectedBranch(user.branch);
       }
       checkAndTriggerPendingStaffAlerts(user.id, triggerTaskAlert);
     }
   };
 
-  const login = (email: string, role: Role) => {
-    const user =
-      users.find((u) => u.role === role && (u.email.toLowerCase() === email.toLowerCase() || !email)) ||
-      users.find((u) => u.role === role);
-    if (user) {
-      setActiveDueReminder(null);
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
-      localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, user.id);
-      setCurrentPage(user.role === 'admin' ? 'dashboard' : 'mytodo');
-      checkAndTriggerPendingStaffAlerts(user.id, triggerTaskAlert);
+  const login = (identifier: string, password?: string, preferredRole?: Role): boolean => {
+    const cleanId = (identifier || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim();
+
+    // 1. Try finding by email or employee ID
+    let user = users.find(
+      (u) =>
+        (u.email && u.email.toLowerCase() === cleanId) ||
+        (u.employeeId && u.employeeId.toLowerCase() === cleanId)
+    );
+
+    // 2. If not found and preferredRole is supplied, find by role
+    if (!user && preferredRole) {
+      user = users.find((u) => u.role === preferredRole);
     }
+
+    // 3. Fallback: match by partial name
+    if (!user && cleanId) {
+      user = users.find((u) => u.name.toLowerCase().includes(cleanId));
+    }
+
+    if (!user) {
+      return false;
+    }
+
+    // 4. Verify password if password was provided and user has a configured password
+    if (user.password && cleanPass) {
+      if (user.password !== cleanPass) {
+        return false;
+      }
+    }
+
+    setActiveDueReminder(null);
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, user.id);
+
+    if (user.branch && user.branch !== 'All Branches') {
+      setSelectedBranch(user.branch);
+    } else if (user.role === 'super_admin' || user.role === 'admin') {
+      setSelectedBranch('All Branches');
+    }
+
+    const targetPage = isExecutiveRole(user.role) ? 'dashboard' : 'mytodo';
+    setCurrentPage(targetPage);
+    checkAndTriggerPendingStaffAlerts(user.id, triggerTaskAlert);
+    return true;
   };
 
   const logout = () => {
@@ -1896,7 +1963,17 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  const addStaffUser = (name: string, email: string) => {
+  const addStaffUser = (
+    name: string,
+    email: string,
+    options?: Partial<User>
+  ) => {
+    // Only Super Admin has permission to add staff members
+    if (!isSuperAdmin(currentUser.role)) {
+      alert('Access Restricted: Only Super Admins (Dr. Thavabalan / Deepak) have permission to add staff members.');
+      return;
+    }
+
     const trimmedName = name.trim();
     if (!trimmedName) return;
 
@@ -1922,16 +1999,46 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       id: `staff_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: trimmedName,
       email: email.trim().toLowerCase() || `${trimmedName.toLowerCase().replace(/\s+/g, '.')}@company.com`,
-      role: 'staff',
+      role: options?.role || 'staff',
+      branch: options?.branch || 'sivakasi 1.0',
+      employeeId: options?.employeeId,
+      password: options?.password || 'Staff@123',
+      designation: options?.designation || (options?.role === 'branch_manager' ? 'Branch Manager' : 'Staff Associate'),
       initials: initials || 'ST',
-      avatarBg,
+      avatarBg: options?.avatarBg || avatarBg,
     };
 
     setUsers((prev) => [...prev, newStaff]);
     backendApi.createUser(newStaff).catch((err) => console.warn('[Backend] createUser error:', err));
   };
 
+  const updateStaffUser = (userId: string, updates: Partial<User>) => {
+    // Only Super Admin has permission to alter staff designation, role, or branch
+    if (!isSuperAdmin(currentUser.role)) {
+      alert('Access Restricted: Only Super Admins (Dr. Thavabalan / Deepak) have permission to alter staff positions or branches.');
+      return;
+    }
+
+    setUsers((prev) => {
+      const target = prev.find((u) => u.id === userId);
+      if (!target) return prev;
+      const updatedUser: User = { ...target, ...updates };
+      backendApi.updateUser(updatedUser).catch((err) => console.warn('[Backend] updateUser error:', err));
+      return prev.map((u) => (u.id === userId ? updatedUser : u));
+    });
+
+    if (currentUser.id === userId) {
+      setCurrentUser((prev) => ({ ...prev, ...updates }));
+    }
+  };
+
   const deleteStaffUser = (userId: string) => {
+    // Only Super Admin has permission to remove staff members
+    if (!isSuperAdmin(currentUser.role)) {
+      alert('Access Restricted: Only Super Admins (Dr. Thavabalan / Deepak) have permission to remove staff members.');
+      return;
+    }
+
     setUsers((prev) => prev.filter((u) => u.id !== userId));
     setTasks((prev) => prev.filter((t) => t.assignedTo !== userId));
     backendApi.deleteUser(userId).catch((err) => console.warn('[Backend] deleteUser error:', err));
@@ -2042,6 +2149,8 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         isAuthenticated,
         showCompleted,
         isBackendConnected,
+        selectedBranch,
+        setSelectedBranch,
         setShowCompleted,
         setCurrentPage,
         switchUser,
@@ -2074,6 +2183,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         triggerDueReminderPreview,
         playThirtyMinReminderSound,
         addStaffUser,
+        updateStaffUser,
         deleteStaffUser,
         clearAllTasks,
         refreshData,

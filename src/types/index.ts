@@ -1,4 +1,6 @@
-export type Role = 'admin' | 'staff';
+export type Role = 'super_admin' | 'admin' | 'branch_manager' | 'staff';
+
+export type BranchName = 'sivakasi 1.0' | 'sivakasi 3.0' | 'srivi 2.0' | 'All Branches';
 
 export type TaskPriority = 'Low' | 'Medium' | 'High';
 
@@ -13,7 +15,37 @@ export interface User {
   role: Role;
   initials: string;
   avatarBg?: string;
+  branch?: BranchName;
+  employeeId?: string;
+  password?: string;
+  designation?: string;
 }
+
+/** Check if user has an executive / managerial role */
+export const isExecutiveRole = (role?: Role | null): boolean => {
+  return role === 'super_admin' || role === 'admin' || role === 'branch_manager';
+};
+
+/** Only Super Admins (Dr. Thavabalan & Deepak) have authority to add/remove staff or alter designations */
+export const isSuperAdmin = (role?: Role | null): boolean => {
+  return role === 'super_admin';
+};
+
+/** Human-readable display label for roles */
+export const getRoleDisplayName = (role: Role): string => {
+  switch (role) {
+    case 'super_admin':
+      return 'Super Admin';
+    case 'admin':
+      return 'Admin';
+    case 'branch_manager':
+      return 'Branch Manager';
+    case 'staff':
+      return 'Staff';
+    default:
+      return role;
+  }
+};
 
 export interface Task {
   id: string;
@@ -126,4 +158,3 @@ export const getTaskDeclineReason = (task: Partial<Task>): string | null => {
   }
   return null;
 };
-

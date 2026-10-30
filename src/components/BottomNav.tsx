@@ -11,6 +11,7 @@ import {
   CalendarDays,
   GraduationCap,
 } from 'lucide-react';
+import { isExecutiveRole } from '../types';
 
 export const BottomNav: React.FC = () => {
   const { currentUser, currentPage, setCurrentPage, tasks, admissions, setRequestViewTab } = useTaskToggle();
@@ -44,7 +45,7 @@ export const BottomNav: React.FC = () => {
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
   ] as const;
 
-  const navItems = currentUser.role === 'admin' ? adminNavItems : staffNavItems;
+  const navItems = isExecutiveRole(currentUser.role) ? adminNavItems : staffNavItems;
 
   return (
     <nav

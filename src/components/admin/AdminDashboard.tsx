@@ -17,9 +17,10 @@ import {
   XCircle,
   Target,
   GraduationCap,
+  Building2,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
-import { Task, TaskPriority, getTaskDeclineReason } from '../../types';
+import { Task, TaskPriority, BranchName, getTaskDeclineReason } from '../../types';
 import {
   getTodayDateString,
   getTodayShortString,
@@ -44,6 +45,8 @@ export const AdminDashboard: React.FC = () => {
     setCurrentPage,
     eventTiming,
     orgSettings,
+    selectedBranch,
+    setSelectedBranch,
     toggleTaskStatus,
     assignAdminPersonalTask,
     deleteTask,
@@ -92,16 +95,21 @@ export const AdminDashboard: React.FC = () => {
       t.assignedTo === 'admin' ||
       Boolean(t.assignedToName?.toLowerCase().includes('admin')))
   );
-  const staffTargetTasks = tasks.filter(
-    (t) =>
-      !isExcludedTask(t) &&
-      t.type !== 'self' &&
-      t.assignedTo !== currentUser.id &&
-      t.assignedTo !== 'admin_deepak' &&
-      t.assignedTo !== 'admin_1' &&
-      t.assignedTo !== 'admin' &&
-      !t.assignedToName?.toLowerCase().includes('admin')
-  );
+  const staffTargetTasks = tasks.filter((t) => {
+    if (isExcludedTask(t)) return false;
+    if (t.type === 'self') return false;
+    if (t.assignedTo === currentUser.id || t.assignedTo === 'admin_deepak' || t.assignedTo === 'admin_1' || t.assignedTo === 'admin') return false;
+    if (t.assignedToName?.toLowerCase().includes('admin')) return false;
+
+    // Filter by branch if a branch is chosen
+    if (selectedBranch !== 'All Branches') {
+      const assignedUser = users.find((u) => u.id === t.assignedTo);
+      if (assignedUser && assignedUser.branch !== selectedBranch) {
+        return false;
+      }
+    }
+    return true;
+  });
 
   // 2. Dynamic Real-Time Date Timeline Filter
   const filterByDate = (taskList: Task[]) => {
@@ -129,7 +137,8 @@ export const AdminDashboard: React.FC = () => {
   const staffDeclined = filteredStaffTasks.filter((t) => t.status === 'rejected').length;
   const staffPending = filteredStaffTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected').length;
   const staffTeamRate = staffTotal > 0 ? Math.round((staffCompleted / staffTotal) * 100) : 0;
-  const staffCount = users.filter((u) => u.role === 'staff').length;
+  const branchStaff = users.filter((u) => u.role === 'staff' && (selectedBranch === 'All Branches' || u.branch === selectedBranch));
+  const staffCount = branchStaff.length;
 
   // Allotted Staff Members for Special Event (resolved with full names & avatar details)
   const allottedStaffMembers = useMemo(() => {
@@ -216,6 +225,52 @@ export const AdminDashboard: React.FC = () => {
             <span>Assign New Task</span>
           </button>
         </div>
+      </div>
+
+      {/* Multi-Branch Filter Navigation Pills */}
+      <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold shrink-0">
+            <Building2 className="w-3.5 h-3.5 text-primary-500" />
+            <span className="uppercase tracking-wider text-[10px]">Branch:</span>
+          </div>
+
+          {(['All Branches', 'sivakasi 1.0', 'sivakasi 3.0', 'srivi 2.0'] as BranchName[]).map((branch) => {
+            const isSelected = selectedBranch === branch;
+            const staffInBranchCount = branch === 'All Branches'
+              ? users.filter((u) => u.role === 'staff').length
+              : users.filter((u) => u.role === 'staff' && u.branch === branch).length;
+
+            return (
+              <button
+                key={branch}
+                type="button"
+                onClick={() => setSelectedBranch(branch)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  isSelected
+                    ? 'bg-primary-500 text-white shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                <span>{branch}</span>
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {staffInBranchCount}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {currentUser.branch && currentUser.branch !== 'All Branches' && (
+          <div className="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Your Assigned Branch: <strong className="text-slate-800">{currentUser.branch}</strong></span>
+          </div>
+        )}
       </div>
 
       {/* Date Navigation Bar (Dynamic Real-Time Date Tracking) */}

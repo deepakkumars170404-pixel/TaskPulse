@@ -21,6 +21,7 @@ import {
   Sparkles,
   CheckCircle2,
 } from 'lucide-react';
+import { isExecutiveRole } from '../../types';
 
 export const AdmissionsManagementView: React.FC = () => {
   const { currentUser, users, admissions, deleteAdmission, setCurrentPage, orgSettings } = useTaskToggle();
@@ -53,7 +54,7 @@ export const AdmissionsManagementView: React.FC = () => {
       } else {
         // Exclude admin if encountered
         const matchedUser = users.find((u) => u.id === sId);
-        if (matchedUser?.role === 'admin' || (typeof sId === 'string' && sId.toLowerCase().includes('admin'))) {
+        if ((matchedUser && isExecutiveRole(matchedUser.role)) || (typeof sId === 'string' && sId.toLowerCase().includes('admin'))) {
           return;
         }
         // Custom staff member

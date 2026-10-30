@@ -21,6 +21,7 @@ import {
   Users,
   User,
 } from 'lucide-react';
+import { isExecutiveRole } from '../../types';
 
 export const FloatingTaskWidget: React.FC = () => {
   const {
@@ -251,7 +252,7 @@ export const FloatingTaskWidget: React.FC = () => {
 
   // Filter tasks based on role and active tab (exclude declined tasks for staff)
   const relevantTasks = tasks.filter((t) => {
-    if (currentUser.role === 'admin') return true;
+    if (isExecutiveRole(currentUser.role)) return true;
     return t.assignedTo === currentUser.id && t.status !== 'rejected';
   });
 
@@ -279,7 +280,7 @@ export const FloatingTaskWidget: React.FC = () => {
     const TODAY_STR = getTodayDateString();
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    if (currentUser.role === 'admin') {
+    if (isExecutiveRole(currentUser.role)) {
       const staffList = users.filter((u) => u.role === 'staff');
       const targetStaffId = staffList.length > 0 ? staffList[0].id : currentUser.id;
       assignAdminTask({

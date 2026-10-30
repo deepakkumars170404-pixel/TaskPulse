@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
-import { Task, getTaskDeclineReason } from '../../types';
+import { Task, getTaskDeclineReason, isExecutiveRole } from '../../types';
 import { isDateToday, isDateUpcoming, isDatePrevious } from '../../utils/dateUtils';
 import {
   Check,
@@ -295,7 +295,7 @@ export const MyToDoView: React.FC = () => {
   const completedTasks = myTasks.filter((t) => t.status === 'done').length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const pendingCountInView = filteredTasks.filter((t) => t.status !== 'done').length;
-  const strikablePendingCountInView = filteredTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected' && (currentUser.role === 'admin' || t.assignedTo === currentUser.id)).length;
+  const strikablePendingCountInView = filteredTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected' && (isExecutiveRole(currentUser.role) || t.assignedTo === currentUser.id)).length;
 
   // Sunday routine status check
   const sundayInfo = weekDays.find((d) => d.dayName === 'Sunday');
@@ -898,7 +898,7 @@ export const MyToDoView: React.FC = () => {
                   const isEditingReason = editingReasonTaskId === task.id;
                   const senderUser = users.find((u) => u.id === task.createdBy);
                   const isDelegatedByMe = task.createdBy === currentUser.id && task.assignedTo !== currentUser.id;
-                  const canStrike = currentUser.role === 'admin' || task.assignedTo === currentUser.id;
+                  const canStrike = isExecutiveRole(currentUser.role) || task.assignedTo === currentUser.id;
 
                   return (
                     <div
