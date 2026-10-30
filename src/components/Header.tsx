@@ -34,10 +34,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // WeGrow Ecosystem App Switcher State
+  const DEFAULT_CONNECTX_URL = 'https://wegrow-connectx-frontend.vercel.app/';
   const [showAppSwitcher, setShowAppSwitcher] = useState(false);
   const appSwitcherRef = useRef<HTMLDivElement>(null);
   const [connectxUrl, setConnectxUrl] = useState<string>(() => {
-    return localStorage.getItem('tasktoggle_connectx_url') || 'https://connectx.wegrow.edu.in';
+    const saved = localStorage.getItem('tasktoggle_connectx_url');
+    if (saved && !saved.includes('connectx.wegrow.edu.in')) return saved;
+    return DEFAULT_CONNECTX_URL;
   });
   const [isEditingConnectxUrl, setIsEditingConnectxUrl] = useState(false);
   const [tempConnectxUrl, setTempConnectxUrl] = useState(connectxUrl);
