@@ -18,9 +18,14 @@ import {
   Target,
   GraduationCap,
   Building2,
+  Edit3,
+  Search,
+  X,
+  UserCheck,
 } from 'lucide-react';
 import { IssueModal } from '../common/IssueModal';
-import { Task, TaskPriority, BranchName, getTaskDeclineReason } from '../../types';
+import { AddStaffModal } from './AddStaffModal';
+import { Task, TaskPriority, BranchName, getTaskDeclineReason, isSuperAdmin, User as UserType } from '../../types';
 import {
   getTodayDateString,
   getTodayShortString,
@@ -50,6 +55,7 @@ export const AdminDashboard: React.FC = () => {
     toggleTaskStatus,
     assignAdminPersonalTask,
     deleteTask,
+    deleteStaffUser,
   } = useTaskToggle();
 
   // Active Main Tab: 'all' (All Tasks) | 'staff' (Staff Target Tasks) | 'admin' (Admin Personal Tasks) | 'dual' (Side-by-Side Dual View)
@@ -58,6 +64,13 @@ export const AdminDashboard: React.FC = () => {
   // Selected Date Filter: 'today' | 'upcoming' | 'previous' | 'all'
   const [dateFilter, setDateFilter] = useState<'today' | 'previous' | 'upcoming' | 'all'>('today');
   const [selectedTaskForIssue, setSelectedTaskForIssue] = useState<Task | null>(null);
+
+  // Staff Directory & Roster Management Modal (Super Admin exclusive)
+  const [showStaffRosterModal, setShowStaffRosterModal] = useState(false);
+  const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+  const [editingStaffUser, setEditingStaffUser] = useState<UserType | null>(null);
+  const [rosterSearchQuery, setRosterSearchQuery] = useState('');
+  const [rosterBranchFilter, setRosterBranchFilter] = useState<'All' | BranchName>('All');
 
   // Group admissions by staff for quick ranking (Strictly filtering out dummy friend accounts)
   const staffAdmissionRankings = useMemo(() => {
@@ -139,8 +152,27 @@ export const AdminDashboard: React.FC = () => {
   const staffDeclined = filteredStaffTasks.filter((t) => t.status === 'rejected').length;
   const staffPending = filteredStaffTasks.filter((t) => t.status !== 'done' && t.status !== 'rejected').length;
   const staffTeamRate = staffTotal > 0 ? Math.round((staffCompleted / staffTotal) * 100) : 0;
-  const branchStaff = users.filter((u) => u.role === 'staff' && (selectedBranch === 'All Branches' || u.branch === selectedBranch));
-  const staffCount = branchStaff.length;
+  // Total organization personnel (Strictly 23 active personnel, excluding system dev Deepak)
+  const orgTotalPersonnel = useMemo(() => {
+    return users.filter((u) => u.id !== 'admin_deepak' && !u.id.startsWith('__system'));
+  }, [users]);
+  const staffCount = orgTotalPersonnel.length;
+
+  // Filtered members for Super Admin Roster Management Modal
+  const filteredRosterMembers = useMemo(() => {
+    return orgTotalPersonnel.filter((m) => {
+      if (rosterBranchFilter !== 'All' && m.branch !== rosterBranchFilter) return false;
+      if (rosterSearchQuery.trim()) {
+        const query = rosterSearchQuery.toLowerCase();
+        const matchesName = m.name.toLowerCase().includes(query);
+        const matchesEmpId = (m.employeeId || '').toLowerCase().includes(query);
+        const matchesDesignation = (m.designation || '').toLowerCase().includes(query);
+        const matchesRole = (m.role || '').toLowerCase().includes(query);
+        return matchesName || matchesEmpId || matchesDesignation || matchesRole;
+      }
+      return true;
+    });
+  }, [orgTotalPersonnel, rosterBranchFilter, rosterSearchQuery]);
 
   // Allotted Staff Members for Special Event (resolved with full names & avatar details)
   const allottedStaffMembers = useMemo(() => {
@@ -208,6 +240,18 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {isSuperAdmin(currentUser.role) && (
+            <button
+              type="button"
+              onClick={() => setShowStaffRosterModal(true)}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-800 text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
+              title="Super Admin Roster Management: newly add, edit designation, or remove staff"
+            >
+              <UserCheck className="w-3.5 h-3.5 text-primary-600" />
+              <span>Manage Staff & Designations</span>
+            </button>
+          )}
+
           <button
             onClick={() => setCurrentPage('assign')}
             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs sm:text-sm font-bold shadow-xs transition-all cursor-pointer shrink-0 active:scale-95"
@@ -218,50 +262,44 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Multi-Branch Filter Navigation Pills */}
-      <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold shrink-0">
-            <Building2 className="w-3.5 h-3.5 text-primary-500" />
+      {/* Branch Headcount Breakdown (Clean informational display with no click/hover effect) */}
+      <div className="bg-white p-2 sm:p-2.5 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-black shrink-0">
+            <Building2 className="w-3.5 h-3.5 text-primary-600" />
             <span className="uppercase tracking-wider text-[10px]">Branch:</span>
           </div>
 
-          {(['All Branches', 'sivakasi 1.0', 'sivakasi 3.0', 'srivi 2.0'] as BranchName[]).map((branch) => {
-            const isSelected = selectedBranch === branch;
-            const staffInBranchCount = branch === 'All Branches'
-              ? users.filter((u) => u.role === 'staff').length
-              : users.filter((u) => u.role === 'staff' && u.branch === branch).length;
+          {(
+            [
+              { id: 'All Branches', label: 'All Branches' },
+              { id: 'sivakasi 1.0', label: 'sivakasi 1.0' },
+              { id: 'sivakasi 3.0', label: 'sivakasi 3.0' },
+              { id: 'srivi 2.0', label: 'srivi 2.0' },
+            ] as const
+          ).map((b) => {
+            const count = b.id === 'All Branches'
+              ? orgTotalPersonnel.length
+              : orgTotalPersonnel.filter((u) => u.branch === b.id).length;
 
             return (
-              <button
-                key={branch}
-                type="button"
-                onClick={() => setSelectedBranch(branch)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  isSelected
-                    ? 'bg-primary-500 text-white shadow-xs'
-                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
-                }`}
+              <div
+                key={b.id}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200 text-slate-700 flex items-center gap-1.5 shrink-0 select-none cursor-default"
               >
-                <span>{branch}</span>
-                <span
-                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  {staffInBranchCount}
+                <span>{b.label}</span>
+                <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-800">
+                  {count}
                 </span>
-              </button>
+              </div>
             );
           })}
         </div>
 
-        {currentUser.branch && currentUser.branch !== 'All Branches' && (
-          <div className="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Your Assigned Branch: <strong className="text-slate-800">{currentUser.branch}</strong></span>
-          </div>
-        )}
+        <div className="text-[11px] text-slate-500 font-semibold flex items-center gap-2 pr-1">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-200" />
+          <span>Organization Personnel: <strong className="text-slate-900 font-black">{staffCount} Active Staff</strong></span>
+        </div>
       </div>
 
       {/* Date Navigation Bar (Dynamic Real-Time Date Tracking) */}
@@ -394,7 +432,17 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Card 4: Active Staff Team Members */}
-        <div className="bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3.5 shadow-2xs hover:border-slate-300 transition-all">
+        <div
+          onClick={() => {
+            if (isSuperAdmin(currentUser.role)) {
+              setShowStaffRosterModal(true);
+            }
+          }}
+          className={`bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3.5 shadow-2xs transition-all ${
+            isSuperAdmin(currentUser.role) ? 'hover:border-primary-400 cursor-pointer group' : ''
+          }`}
+          title={isSuperAdmin(currentUser.role) ? 'Click to open Super Admin Staff Roster manager' : undefined}
+        >
           <div className="flex items-center justify-between">
             <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Team Roster
@@ -403,11 +451,16 @@ export const AdminDashboard: React.FC = () => {
               <Users className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 mt-1">
-            {staffCount}
+          <div className="text-xl sm:text-2xl font-black font-['Outfit'] text-slate-900 mt-1 flex items-baseline justify-between">
+            <span>{staffCount}</span>
+            {isSuperAdmin(currentUser.role) && (
+              <span className="text-[10px] text-primary-600 font-bold group-hover:underline">
+                Manage →
+              </span>
+            )}
           </div>
           <div className="text-[10px] text-slate-400 font-medium mt-1 truncate">
-            Staff in {orgSettings.orgName}
+            {staffCount} personnel across 3 branches
           </div>
         </div>
       </div>
@@ -1561,6 +1614,211 @@ export const AdminDashboard: React.FC = () => {
       <IssueModal
         task={selectedTaskForIssue}
         onClose={() => setSelectedTaskForIssue(null)}
+      />
+
+      {/* Super Admin Staff Roster & Designation Management Modal */}
+      {showStaffRosterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div
+            className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-slate-50 border-b border-slate-200 px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary-500 text-white flex items-center justify-center shadow-xs">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 font-['Outfit']">
+                    Organization Personnel Roster & Designations
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Super Admin Exclusive Authority · {orgTotalPersonnel.length} Active Personnel across Branches
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingStaffUser(null);
+                    setShowAddStaffModal(true);
+                  }}
+                  className="px-3.5 py-1.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                  <span>+ Add New Member</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowStaffRosterModal(false)}
+                  className="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="p-3 sm:p-4 border-b border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search by name, employee ID, designation, branch..."
+                  value={rosterSearchQuery}
+                  onChange={(e) => setRosterSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 font-medium"
+                />
+              </div>
+
+              {/* Branch Filter Tabs */}
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                {(['All', 'sivakasi 1.0', 'sivakasi 3.0', 'srivi 2.0'] as const).map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setRosterBranchFilter(b)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      rosterBranchFilter === b
+                        ? 'bg-primary-500 text-white shadow-2xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>{b}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Personnel List Table / Cards */}
+            <div className="p-4 overflow-y-auto flex-1 space-y-2">
+              {filteredRosterMembers.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 text-xs font-medium">
+                  No organization members match the current search or branch filter.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {filteredRosterMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="p-3 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white shadow-2xs flex items-center justify-between gap-3 transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 ${
+                            member.avatarBg || 'bg-slate-700'
+                          }`}
+                        >
+                          {member.initials || member.name.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                              {member.name}
+                            </span>
+                            {member.employeeId && (
+                              <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                                {member.employeeId}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="text-[11px] text-slate-600 font-semibold truncate mt-0.5">
+                            {member.designation || (member.role === 'branch_manager' ? 'Branch Manager' : member.role === 'admin' ? 'General Manager' : 'Staff Associate')}
+                          </div>
+
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span
+                              className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
+                                member.role === 'super_admin'
+                                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                  : member.role === 'admin'
+                                  ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                  : member.role === 'branch_manager'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
+                              }`}
+                            >
+                              {member.role === 'super_admin'
+                                ? 'Super Admin'
+                                : member.role === 'admin'
+                                ? 'Admin'
+                                : member.role === 'branch_manager'
+                                ? 'Branch Mgr'
+                                : 'Staff'}
+                            </span>
+
+                            <span className="text-[9px] font-semibold text-slate-500 bg-slate-50 px-1.5 py-0.2 rounded border border-slate-200 truncate">
+                              {member.branch || 'All Branches'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons: Edit Designation & Remove */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingStaffUser(member);
+                            setShowAddStaffModal(true);
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          title="Edit staff designation, role, branch, or login details"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-primary-600" />
+                          <span className="hidden sm:inline">Edit</span>
+                        </button>
+
+                        {member.role !== 'super_admin' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to remove "${member.name}" (${member.employeeId || member.designation}) from the organization roster?`)) {
+                                deleteStaffUser(member.id);
+                              }
+                            }}
+                            className="p-1.5 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-600 hover:text-rose-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                            title="Remove staff member"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-50 border-t border-slate-200 px-6 py-3 flex items-center justify-between text-xs text-slate-500 shrink-0">
+              <span>Showing {filteredRosterMembers.length} of {orgTotalPersonnel.length} organization personnel</span>
+              <button
+                type="button"
+                onClick={() => setShowStaffRosterModal(false)}
+                className="px-4 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Staff Modal */}
+      <AddStaffModal
+        isOpen={showAddStaffModal || Boolean(editingStaffUser)}
+        staffToEdit={editingStaffUser}
+        onClose={() => {
+          setShowAddStaffModal(false);
+          setEditingStaffUser(null);
+        }}
       />
     </div>
   );

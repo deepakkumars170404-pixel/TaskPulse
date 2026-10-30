@@ -450,7 +450,11 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // Clear obsolete legacy accounts and old dummy friend names (Rohinth, karpagam, sathya, olivu)
         const oldFriendNames = ['Rohinth', 'karpagam', 'sathya', 'olivu', 'Arun Kumar'];
         const oldFriendIds = ['staff_1793165256238_tpz8', 'staff_1793165269177_i0mh', 'staff_1793165279734_d8kf', 'staff_1793165284065_n77i'];
-        if (parsed.some((u: User) => oldFriendNames.includes(u.name) || oldFriendIds.includes(u.id) || ['staff_arun', 'staff_priya', 'admin_1'].includes(u.id))) {
+        if (
+          !Array.isArray(parsed) ||
+          parsed.length < INITIAL_USERS.length ||
+          parsed.some((u: User) => oldFriendNames.includes(u.name) || oldFriendIds.includes(u.id) || ['staff_arun', 'staff_priya', 'admin_1'].includes(u.id))
+        ) {
           localStorage.setItem(`${STORAGE_KEY_PREFIX}users`, JSON.stringify(INITIAL_USERS));
           return INITIAL_USERS;
         }

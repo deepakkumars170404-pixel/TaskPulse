@@ -14,39 +14,44 @@ export const AssignTaskView: React.FC = () => {
     return 'All Branches';
   });
 
-  // Dynamically determine who the active user can assign tasks to:
-  // - Super Admin can assign to: Admin, Branch Managers, and Staff
-  // - Admin can assign to: Branch Managers and Staff
-  // - Branch Manager can assign to: Staff in their branch
+  // Strict Top-to-Bottom Work Delegation Hierarchy:
+  // 1. Nobody can assign work to Super Admin
+  // 2. Super Admin can assign work to: Admin, Branch Managers, and Staff
+  // 3. Admin can assign work to: Branch Managers and Staff
+  // 4. Branch Manager can assign work to: Other Branch Managers and Staff
   const staffList = users.filter((u) => {
     if (u.id === currentUser.id || u.id.startsWith('__system')) return false;
 
-    // Super Admin assigning
+    // RULE 1: Nobody can give work to Super Admin
+    if (u.role === 'super_admin') return false;
+
+    // RULE 2: Super Admin can give work to everyone below (Admin, Branch Managers, Staff)
     if (currentUser.role === 'super_admin') {
-      if (u.role === 'super_admin') return false;
       if (assignBranchFilter !== 'All Branches' && u.branch !== assignBranchFilter && u.branch !== 'All Branches') {
         return false;
       }
       return true;
     }
 
-    // Admin assigning
+    // RULE 3: Admin can give work to Branch Managers and Staff (Cannot give work to Super Admin or Admin)
     if (currentUser.role === 'admin') {
-      if (u.role === 'super_admin' || u.role === 'admin') return false;
+      if (u.role === 'admin') return false;
       if (assignBranchFilter !== 'All Branches' && u.branch !== assignBranchFilter && u.branch !== 'All Branches') {
         return false;
       }
       return true;
     }
 
-    // Branch Manager assigning
+    // RULE 4: Branch Manager can give work to other Branch Managers and Staff (Cannot give work to Admin or Super Admin)
     if (currentUser.role === 'branch_manager') {
-      if (u.role !== 'staff') return false;
-      if (currentUser.branch && u.branch !== currentUser.branch) return false;
+      if (u.role === 'admin') return false;
+      if (assignBranchFilter !== 'All Branches' && u.branch !== assignBranchFilter && u.branch !== 'All Branches') {
+        return false;
+      }
       return true;
     }
 
-    return u.role === 'staff';
+    return false;
   });
 
   const [assignmentTarget, setAssignmentTarget] = useState<'staff' | 'myself'>('staff');
@@ -340,20 +345,27 @@ export const AssignTaskView: React.FC = () => {
                           >
                             {staff.initials}
                           </div>
-                          <span>{staff.name}</span>
+                          <div className="flex flex-col text-left">
+                            <span className="font-bold leading-tight">{staff.name}</span>
+                            {staff.designation && (
+                              <span className={`text-[10px] font-medium leading-tight truncate max-w-[140px] ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
+                                {staff.designation}
+                              </span>
+                            )}
+                          </div>
 
                           {/* Role Designation Badges */}
                           {staff.role === 'admin' ? (
-                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-900 border border-blue-200'}`}>
+                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ml-1 ${isSelected ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-900 border border-blue-200'}`}>
                               Admin
                             </span>
                           ) : staff.role === 'branch_manager' ? (
-                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'}`}>
+                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ml-1 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'}`}>
                               Branch Mgr
                             </span>
                           ) : (
                             staff.branch && (
-                              <span className={`text-[9px] px-1.5 py-0.2 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded ml-1 ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
                                 {staff.branch}
                               </span>
                             )
