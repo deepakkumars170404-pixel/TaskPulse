@@ -124,7 +124,7 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
-const STORAGE_CLEAN_VERSION = 'v7_disable_auto_due_popup';
+const STORAGE_CLEAN_VERSION = 'v8_purge_dummy_friends_and_ghost_event_staff';
 const PENDING_STAFF_ALERTS_KEY = 'tasktoggle_pending_staff_alerts';
 
 export function queuePendingStaffAlert(userId: string, alert: TaskAlert) {
@@ -161,6 +161,9 @@ if (typeof window !== 'undefined') {
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}tasks`);
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}users`);
     localStorage.removeItem(`${STORAGE_KEY_PREFIX}current_user_id`);
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}admissions`);
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}event_timing`);
+    localStorage.removeItem(`${STORAGE_KEY_PREFIX}office_timing`);
     localStorage.setItem('tasktoggle_data_version', STORAGE_CLEAN_VERSION);
   }
 }
@@ -484,7 +487,21 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Tasks state
   const [tasks, setTasks] = useState<Task[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}tasks`);
-    return saved ? JSON.parse(saved) : INITIAL_TASKS;
+    if (saved) {
+      try {
+        const parsed: Task[] = JSON.parse(saved);
+        const staleNames = ['sathya', 'olivu', 'karpagam', 'rohinth', 'arun'];
+        return parsed.filter(
+          (t) =>
+            !staleNames.some(
+              (n) =>
+                (t.assignedToName || '').toLowerCase().includes(n) ||
+                (t.createdByName || '').toLowerCase().includes(n)
+            )
+        );
+      } catch (e) {}
+    }
+    return INITIAL_TASKS;
   });
 
   // Office hours state
@@ -496,13 +513,40 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Event timing state
   const [eventTiming, setEventTiming] = useState<EventTiming | null>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}event_timing`);
-    return saved ? JSON.parse(saved) : INITIAL_EVENT_TIMING;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.allottedStaffIds)) {
+          parsed.allottedStaffIds = parsed.allottedStaffIds.filter((id: string) =>
+            INITIAL_USERS.some((u) => u.id === id)
+          );
+          return parsed;
+        }
+      } catch (e) {}
+    }
+    return INITIAL_EVENT_TIMING;
   });
 
   // Student Admissions tracking state
   const [admissions, setAdmissions] = useState<StudentAdmission[]>(() => {
     const saved = localStorage.getItem(`${STORAGE_KEY_PREFIX}admissions`);
-    return saved ? JSON.parse(saved) : INITIAL_ADMISSIONS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const staleNames = ['sathya', 'olivu', 'karpagam', 'rohinth', 'arun'];
+          return parsed.filter(
+            (a) =>
+              a &&
+              !staleNames.some((n) => (a.staffName || '').toLowerCase().includes(n)) &&
+              INITIAL_USERS.some(
+                (u) => u.id === a.staffId || u.name.toLowerCase() === (a.staffName || '').toLowerCase()
+              )
+          );
+        }
+      } catch (e) {}
+    }
+    return INITIAL_ADMISSIONS;
   });
 
   // Organization settings (Default: Deepak)
@@ -857,13 +901,27 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setOfficeTiming((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedOffice) ? fetchedOffice : curr));
       }
       if (fetchedEvent) {
-        setEventTiming((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedEvent) ? fetchedEvent : curr));
+        const cleanEvent: EventTiming = {
+          ...fetchedEvent,
+          allottedStaffIds: (fetchedEvent.allottedStaffIds || []).filter((id) =>
+            users.some((u) => u.id === id)
+          ),
+        };
+        setEventTiming((curr) => (JSON.stringify(curr) !== JSON.stringify(cleanEvent) ? cleanEvent : curr));
       }
       if (fetchedOrg && !new URLSearchParams(window.location.search).get('org')) {
         setOrgSettings((curr) => (JSON.stringify(curr) !== JSON.stringify(fetchedOrg) ? fetchedOrg : curr));
       }
       if (Array.isArray(fetchedAdmissions)) {
-        setAdmissions(fetchedAdmissions);
+        const staleNames = ['sathya', 'olivu', 'karpagam', 'rohinth', 'arun'];
+        const cleanAdmissions = fetchedAdmissions.filter(
+          (a) =>
+            a &&
+            !staleNames.some((n) => (a.staffName || '').toLowerCase().includes(n)) &&
+            users.some((u) => u.id === a.staffId || u.name.toLowerCase() === (a.staffName || '').toLowerCase())
+        );
+        setAdmissions(cleanAdmissions);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}admissions`, JSON.stringify(cleanAdmissions));
       }
     } catch (err) {
       console.warn('[TaskToggleContext] Initial sync error:', err);
@@ -1146,6 +1204,10 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY_PREFIX}org_settings`, JSON.stringify(orgSettings));
   }, [orgSettings]);
+
+  useEffect(() => {
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}admissions`, JSON.stringify(admissions));
+  }, [admissions]);
 
   // 30-Minute Pending Task Due Reminder Engine
   useEffect(() => {

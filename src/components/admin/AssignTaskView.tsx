@@ -14,10 +14,39 @@ export const AssignTaskView: React.FC = () => {
     return 'All Branches';
   });
 
+  // Dynamically determine who the active user can assign tasks to:
+  // - Super Admin can assign to: Admin, Branch Managers, and Staff
+  // - Admin can assign to: Branch Managers and Staff
+  // - Branch Manager can assign to: Staff in their branch
   const staffList = users.filter((u) => {
-    if (u.role !== 'staff') return false;
-    if (assignBranchFilter !== 'All Branches' && u.branch !== assignBranchFilter) return false;
-    return true;
+    if (u.id === currentUser.id || u.id.startsWith('__system')) return false;
+
+    // Super Admin assigning
+    if (currentUser.role === 'super_admin') {
+      if (u.role === 'super_admin') return false;
+      if (assignBranchFilter !== 'All Branches' && u.branch !== assignBranchFilter && u.branch !== 'All Branches') {
+        return false;
+      }
+      return true;
+    }
+
+    // Admin assigning
+    if (currentUser.role === 'admin') {
+      if (u.role === 'super_admin' || u.role === 'admin') return false;
+      if (assignBranchFilter !== 'All Branches' && u.branch !== assignBranchFilter && u.branch !== 'All Branches') {
+        return false;
+      }
+      return true;
+    }
+
+    // Branch Manager assigning
+    if (currentUser.role === 'branch_manager') {
+      if (u.role !== 'staff') return false;
+      if (currentUser.branch && u.branch !== currentUser.branch) return false;
+      return true;
+    }
+
+    return u.role === 'staff';
   });
 
   const [assignmentTarget, setAssignmentTarget] = useState<'staff' | 'myself'>('staff');
@@ -237,7 +266,7 @@ export const AssignTaskView: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Assign To (Select one or more staff)
+                    Assign To (Select Team Members)
                   </label>
                   {staffList.length > 0 && (
                     <button
@@ -275,8 +304,8 @@ export const AssignTaskView: React.FC = () => {
                 {staffList.length === 0 ? (
                   <div className="p-4 rounded-xl border border-dashed border-primary-200 bg-primary-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-bold text-slate-800">No staff members in {assignBranchFilter}</p>
-                      <p className="text-[11px] text-slate-500">Switch branch or add staff members to assign tasks</p>
+                      <p className="text-xs font-bold text-slate-800">No members available in {assignBranchFilter}</p>
+                      <p className="text-[11px] text-slate-500">Switch branch or add members to assign tasks</p>
                     </div>
                     {isSuperAdmin(currentUser.role) && (
                       <button
@@ -285,7 +314,7 @@ export const AssignTaskView: React.FC = () => {
                         className="px-3.5 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 self-start sm:self-auto shrink-0"
                       >
                         <UserPlus className="w-3.5 h-3.5" />
-                        <span>+ Add Staff</span>
+                        <span>+ Add Member</span>
                       </button>
                     )}
                   </div>
@@ -312,10 +341,22 @@ export const AssignTaskView: React.FC = () => {
                             {staff.initials}
                           </div>
                           <span>{staff.name}</span>
-                          {staff.branch && (
-                            <span className={`text-[9px] px-1.5 py-0.2 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                              {staff.branch}
+
+                          {/* Role Designation Badges */}
+                          {staff.role === 'admin' ? (
+                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-900 border border-blue-200'}`}>
+                              Admin
                             </span>
+                          ) : staff.role === 'branch_manager' ? (
+                            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'}`}>
+                              Branch Mgr
+                            </span>
+                          ) : (
+                            staff.branch && (
+                              <span className={`text-[9px] px-1.5 py-0.2 rounded ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                                {staff.branch}
+                              </span>
+                            )
                           )}
                           {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                         </button>

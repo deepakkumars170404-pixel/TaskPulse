@@ -260,6 +260,9 @@ class BackendApiService {
   }
 
   async getEventTiming(): Promise<EventTiming | null> {
+    const isGhostId = (id: string) =>
+      !id || id.startsWith('staff_179316') || ['staff_arun', 'staff_priya', 'staff_meena', 'staff_karthik'].includes(id);
+
     if (this.hasSupabase && supabase) {
       try {
         const { data, error } = await supabase
@@ -270,12 +273,14 @@ class BackendApiService {
           .maybeSingle();
 
         if (!error && data) {
+          const rawIds = Array.isArray(data.allotted_staff_ids) ? data.allotted_staff_ids : [];
+          const validIds = rawIds.filter((id: string) => !isGhostId(id));
           const evt: EventTiming = {
             id: data.id,
             eventName: data.event_name,
             date: data.date,
             newTiming: data.new_timing,
-            allottedStaffIds: data.allotted_staff_ids || [],
+            allottedStaffIds: validIds,
             isActive: data.is_active,
           };
           localStorage.setItem(`${STORAGE_PREFIX}event_timing`, JSON.stringify(evt));
@@ -287,7 +292,16 @@ class BackendApiService {
     }
 
     const saved = localStorage.getItem(`${STORAGE_PREFIX}event_timing`);
-    return saved ? JSON.parse(saved) : INITIAL_EVENT_TIMING;
+    if (saved) {
+      try {
+        const parsed: EventTiming = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.allottedStaffIds)) {
+          parsed.allottedStaffIds = parsed.allottedStaffIds.filter((id) => !isGhostId(id));
+          return parsed;
+        }
+      } catch (e) {}
+    }
+    return INITIAL_EVENT_TIMING;
   }
 
   async updateEventTiming(event: EventTiming): Promise<void> {
@@ -346,6 +360,15 @@ class BackendApiService {
 
   // --- STUDENT ADMISSIONS (FULL CLOUD SYNC & LOCAL PERSISTENCE) ---
   async getAdmissions(): Promise<StudentAdmission[]> {
+    const staleFriendNames = ['sathya', 'olivu', 'karpagam', 'rohinth', 'arun', 'arun kumar'];
+    const isStale = (staffName?: string, staffId?: string) => {
+      const lower = (staffName || '').toLowerCase().trim();
+      const idLower = (staffId || '').toLowerCase().trim();
+      if (staleFriendNames.some((n) => lower.includes(n))) return true;
+      if (idLower.startsWith('staff_179316') || idLower === 'staff_arun' || idLower === 'staff_priya') return true;
+      return false;
+    };
+
     const seenIds = new Set<string>();
     const list: StudentAdmission[] = [];
 
@@ -359,6 +382,10 @@ class BackendApiService {
 
         if (!error && data && data.length > 0) {
           data.forEach((d: any) => {
+            const staffName = d.staff_name || d.staffName;
+            const staffId = d.staff_id || d.staffId;
+            if (isStale(staffName, staffId)) return;
+
             if (!seenIds.has(d.id)) {
               seenIds.add(d.id);
               list.push({
@@ -372,8 +399,8 @@ class BackendApiService {
                 feesPaid: d.fees_paid || d.feesPaid,
                 batchTiming: d.batch_timing || d.batchTiming,
                 notes: d.notes,
-                staffId: d.staff_id || d.staffId,
-                staffName: d.staff_name || d.staffName,
+                staffId: staffId,
+                staffName: staffName,
                 createdAt: d.created_at || d.createdAt || new Date().toISOString(),
               });
             }
@@ -396,7 +423,7 @@ class BackendApiService {
             const parsed = JSON.parse(storeRow.description);
             if (Array.isArray(parsed)) {
               parsed.forEach((item: StudentAdmission) => {
-                if (item && item.id && !seenIds.has(item.id)) {
+                if (item && item.id && !isStale(item.staffName, item.staffId) && !seenIds.has(item.id)) {
                   seenIds.add(item.id);
                   list.push(item);
                 }
@@ -415,8 +442,12 @@ class BackendApiService {
       if (saved) {
         const localList: StudentAdmission[] = JSON.parse(saved);
         if (Array.isArray(localList)) {
+          // Immediately purge any stale friend entries from local list
+          const cleanLocalList = localList.filter((item) => item && !isStale(item.staffName, item.staffId));
+          localStorage.setItem(`${STORAGE_PREFIX}admissions`, JSON.stringify(cleanLocalList));
+
           let hasLocalAdditions = false;
-          localList.forEach((item) => {
+          cleanLocalList.forEach((item) => {
             if (item && item.id && !seenIds.has(item.id) && item.id !== 'adm_1001') {
               seenIds.add(item.id);
               list.push(item);

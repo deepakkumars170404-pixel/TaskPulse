@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTaskToggle } from '../../context/TaskToggleContext';
 import { Clock, Calendar, Check, CheckCircle2, Bell, Sparkles, ArrowLeft } from 'lucide-react';
 import { QuickDatePicker, QuickTimePicker } from '../common/DateTimePicker';
@@ -38,10 +38,17 @@ export const TimingSettingsView: React.FC = () => {
   const [eventDate, setEventDate] = useState(() => eventTiming?.date || getTodayDateString());
   const [eventStartTime, setEventStartTime] = useState(initialRange.start);
   const [eventEndTime, setEventEndTime] = useState(initialRange.end);
-  const [allottedStaffIds, setAllottedStaffIds] = useState<string[]>(
-    eventTiming?.allottedStaffIds || []
-  );
+  const [allottedStaffIds, setAllottedStaffIds] = useState<string[]>(() => {
+    const raw = eventTiming?.allottedStaffIds || [];
+    return raw.filter((id) => users.some((u) => u.id === id));
+  });
   const [eventToast, setEventToast] = useState(false);
+
+  useEffect(() => {
+    if (eventTiming?.allottedStaffIds) {
+      setAllottedStaffIds(eventTiming.allottedStaffIds.filter((id) => users.some((u) => u.id === id)));
+    }
+  }, [eventTiming, users]);
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -78,7 +85,7 @@ export const TimingSettingsView: React.FC = () => {
       eventName,
       date: eventDate,
       newTiming: finalTiming,
-      allottedStaffIds,
+      allottedStaffIds: allottedStaffIds.filter((id) => users.some((u) => u.id === id)),
       isActive: true,
     });
     setEventToast(true);
@@ -281,15 +288,26 @@ export const TimingSettingsView: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Allot Staff to Event
+                  Allot Staff & Managers to Event
                 </label>
-                <span className="text-[11px] font-bold text-primary-700">
-                  {allottedStaffIds.length} staff selected
-                </span>
+                <div className="flex items-center gap-2">
+                  {allottedStaffIds.filter((id) => users.some((u) => u.id === id)).length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setAllottedStaffIds([])}
+                      className="text-[11px] font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
+                    >
+                      Clear Selection
+                    </button>
+                  )}
+                  <span className="text-[11px] font-bold text-primary-700">
+                    {allottedStaffIds.filter((id) => users.some((u) => u.id === id)).length} members selected
+                  </span>
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1 border border-slate-100 rounded-xl bg-slate-50/50">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1 border border-slate-100 rounded-xl bg-slate-50/50">
                 {users
-                  .filter((u) => u.role === 'staff')
+                  .filter((u) => u.role === 'staff' || u.role === 'branch_manager')
                   .map((staff) => {
                     const isAllotted = allottedStaffIds.includes(staff.id);
                     return (
@@ -305,6 +323,11 @@ export const TimingSettingsView: React.FC = () => {
                       >
                         {isAllotted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                         <span className="truncate">{staff.name}</span>
+                        {staff.role === 'branch_manager' && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-amber-100 text-amber-900 ml-auto shrink-0 font-bold">
+                            Mgr
+                          </span>
+                        )}
                       </button>
                     );
                   })}

@@ -59,16 +59,21 @@ export const AdminDashboard: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<'today' | 'previous' | 'upcoming' | 'all'>('today');
   const [selectedTaskForIssue, setSelectedTaskForIssue] = useState<Task | null>(null);
 
-  // Group admissions by staff for quick ranking
+  // Group admissions by staff for quick ranking (Strictly filtering out dummy friend accounts)
   const staffAdmissionRankings = useMemo(() => {
+    const staleNames = ['sathya', 'olivu', 'karpagam', 'rohinth', 'arun'];
     const counts: Record<string, { name: string; count: number }> = {};
-    users.forEach((u) => {
-      counts[u.id] = { name: u.name, count: 0 };
-    });
+    users
+      .filter((u) => !staleNames.some((n) => u.name.toLowerCase().includes(n)))
+      .forEach((u) => {
+        counts[u.id] = { name: u.name, count: 0 };
+      });
     admissions.forEach((a) => {
+      const staffNameLower = (a.staffName || '').toLowerCase();
+      if (staleNames.some((n) => staffNameLower.includes(n))) return;
       if (counts[a.staffId]) {
         counts[a.staffId].count += 1;
-      } else {
+      } else if (users.some((u) => u.id === a.staffId || u.name.toLowerCase() === staffNameLower)) {
         counts[a.staffId] = { name: a.staffName, count: 1 };
       }
     });
@@ -84,27 +89,24 @@ export const AdminDashboard: React.FC = () => {
   // Dynamic live date reference string (updates in real-time)
   const { todayStandard: todayStr, todayShort } = useLiveDateTime();
 
-  // 1. Separate Tasks: Admin Own Tasks vs Staff Target Tasks
+  // 1. Separate Tasks: Admin Own Tasks vs Staff / Delegated Tasks
+  // When an admin / super admin / branch manager views their dashboard:
+  // - Admin Own Tasks = tasks assigned to this active user (personal agenda)
+  // - Staff / Team Tasks = tasks delegated to other team members
   const adminOwnTasks = tasks.filter(
     (t) =>
       !isExcludedTask(t) &&
-      (t.type === 'self' ||
-      t.assignedTo === currentUser.id ||
-      t.assignedTo === 'admin_deepak' ||
-      t.assignedTo === 'admin_1' ||
-      t.assignedTo === 'admin' ||
-      Boolean(t.assignedToName?.toLowerCase().includes('admin')))
+      (t.assignedTo === currentUser.id ||
+        (t.createdBy === currentUser.id && t.type === 'self'))
   );
   const staffTargetTasks = tasks.filter((t) => {
     if (isExcludedTask(t)) return false;
-    if (t.type === 'self') return false;
-    if (t.assignedTo === currentUser.id || t.assignedTo === 'admin_deepak' || t.assignedTo === 'admin_1' || t.assignedTo === 'admin') return false;
-    if (t.assignedToName?.toLowerCase().includes('admin')) return false;
+    if (t.assignedTo === currentUser.id) return false;
 
     // Filter by branch if a branch is chosen
     if (selectedBranch !== 'All Branches') {
       const assignedUser = users.find((u) => u.id === t.assignedTo);
-      if (assignedUser && assignedUser.branch !== selectedBranch) {
+      if (assignedUser && assignedUser.branch !== selectedBranch && assignedUser.branch !== 'All Branches') {
         return false;
       }
     }
@@ -142,21 +144,10 @@ export const AdminDashboard: React.FC = () => {
 
   // Allotted Staff Members for Special Event (resolved with full names & avatar details)
   const allottedStaffMembers = useMemo(() => {
-    if (!eventTiming) return [];
-    if (Array.isArray(eventTiming.allottedStaffIds) && eventTiming.allottedStaffIds.length > 0) {
-      const matched = users.filter((u) => eventTiming.allottedStaffIds.includes(u.id));
-      if (matched.length > 0) return matched;
-      const matchedByName = users.filter((u) =>
-        eventTiming.allottedStaffIds.some(
-          (val) =>
-            u.id.toLowerCase().includes(val.toLowerCase()) ||
-            u.name.toLowerCase().includes(val.toLowerCase())
-        )
-      );
-      if (matchedByName.length > 0) return matchedByName;
+    if (!eventTiming || !Array.isArray(eventTiming.allottedStaffIds) || eventTiming.allottedStaffIds.length === 0) {
+      return [];
     }
-    // Fallback: list all staff team members if none explicitly allotted
-    return users.filter((u) => u.role === 'staff');
+    return users.filter((u) => eventTiming.allottedStaffIds.includes(u.id));
   }, [eventTiming, users]);
 
   // Handle Quick Add for Admin's Personal Task (uses dynamic today date)
@@ -656,20 +647,24 @@ export const AdminDashboard: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5">
-                        {allottedStaffMembers.map((staff) => (
-                          <div
-                            key={staff.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs text-slate-800 transition-colors shadow-2xs"
-                            title={staff.name}
-                          >
-                            <span className="w-5 h-5 rounded-full bg-primary-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 uppercase ring-1 ring-primary-300">
-                              {staff.initials || staff.name.charAt(0)}
-                            </span>
-                            <span className="font-bold text-slate-900 capitalize whitespace-nowrap text-xs">
-                              {staff.name}
-                            </span>
-                          </div>
-                        ))}
+                        {allottedStaffMembers.length > 0 ? (
+                          allottedStaffMembers.map((staff) => (
+                            <div
+                              key={staff.id}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs text-slate-800 transition-colors shadow-2xs"
+                              title={staff.name}
+                            >
+                              <span className="w-5 h-5 rounded-full bg-primary-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 uppercase ring-1 ring-primary-300">
+                                {staff.initials || staff.name.charAt(0)}
+                              </span>
+                              <span className="font-bold text-slate-900 capitalize whitespace-nowrap text-xs">
+                                {staff.name}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">No specific staff allotted (All on standard hours)</span>
+                        )}
                       </div>
                     </div>
                   </div>
