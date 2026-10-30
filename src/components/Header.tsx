@@ -27,7 +27,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
-  const { currentUser, users, switchUser, logout, officeTiming, orgSettings, themePreset, setThemePreset, bgCanvas, setBgCanvas, fontFamily, setFontFamily } = useTaskToggle();
+  const { currentUser, logout, officeTiming, orgSettings, themePreset, setThemePreset, bgCanvas, setBgCanvas, fontFamily, setFontFamily } = useTaskToggle();
   const { weekdayDate, timeString } = useLiveDateTime();
   const [showThemeDropdown, setShowThemeDropdown] = useState(false);
   const themeRef = useRef<HTMLDivElement>(null);
@@ -501,13 +501,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
           )}
         </div>
 
-        {/* Testing Character Switcher (Active for easy presentation between Admin and Staff) */}
+        {/* Active Personnel Profile Badge (Locked to authenticated user - no switching rights) */}
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setShowSwitchDropdown(!showSwitchDropdown)}
             className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 p-1 sm:pr-3 rounded-full transition-all cursor-pointer shadow-2xs"
-            title="Click to switch persona (Admin vs Staff)"
+            title="Active Personnel Profile"
             aria-expanded={showSwitchDropdown}
           >
             <div
@@ -548,79 +548,62 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
           </button>
 
-          {/* User Switcher Dropdown (Allows 1-click switching to any staff or admin for presentation) */}
+          {/* Active Account Profile Summary (Locked Session - No other staff shown) */}
           {showSwitchDropdown && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                    Organization Roster & Switcher
-                  </p>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    1-Click switch active account
-                  </p>
+            <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-3.5 z-50 animate-in fade-in zoom-in-95 duration-100 text-xs">
+              {/* Profile Card */}
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-xs ${
+                    currentUser.avatarBg || 'bg-primary-500'
+                  }`}
+                >
+                  {currentUser.initials}
                 </div>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary-50 text-primary-600">
-                  {users.length} Members
-                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-extrabold text-slate-900 truncate text-sm">{currentUser.name}</p>
+                  <p className="text-[11px] text-slate-500 truncate">{currentUser.email || 'Staff Account'}</p>
+                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 border border-primary-200/50">
+                      {currentUser.employeeId || 'WG-EMP'}
+                    </span>
+                    <span className="text-[9px] font-semibold text-slate-500">
+                      {getRoleDisplayName(currentUser.role)}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="py-1 space-y-1 max-h-72 overflow-y-auto">
-                {users.map((u) => {
-                  const isCurrent = u.id === currentUser.id;
-                  return (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => {
-                        switchUser(u.id);
-                        setShowSwitchDropdown(false);
-                      }}
-                      className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-all cursor-pointer ${
-                        isCurrent
-                          ? 'bg-primary-50/80 text-primary-950 font-bold border border-primary-200/60'
-                          : 'hover:bg-slate-50 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shrink-0 ${
-                            u.avatarBg || 'bg-primary-500'
-                          }`}
-                        >
-                          {u.initials}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
-                            <span className="truncate">{u.name}</span>
-                            {u.role === 'super_admin' ? (
-                              <Crown className="w-3 h-3 text-purple-600 shrink-0" />
-                            ) : u.role === 'admin' ? (
-                              <ShieldCheck className="w-3 h-3 text-blue-600 shrink-0" />
-                            ) : u.role === 'branch_manager' ? (
-                              <Building2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                            ) : (
-                              <UserCheck className="w-3 h-3 text-slate-400 shrink-0" />
-                            )}
-                          </p>
-                          <p className="text-[10px] text-slate-500 truncate flex items-center gap-1">
-                            <span className="font-semibold text-slate-700">{getRoleDisplayName(u.role)}</span>
-                            {u.branch && <span>· {u.branch}</span>}
-                          </p>
-                        </div>
-                      </div>
-
-                      {isCurrent && (
-                        <span className="text-[10px] font-black text-primary-500 px-1.5 py-0.5 rounded bg-white shadow-2xs shrink-0">
-                          Active
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              {/* Account Attributes */}
+              <div className="py-2.5 space-y-2 border-b border-slate-100 text-[11px]">
+                {currentUser.designation && (
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span className="text-slate-400">Designation</span>
+                    <span className="font-medium text-slate-800 truncate max-w-[150px]">{currentUser.designation}</span>
+                  </div>
+                )}
+                {currentUser.branch && (
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span className="text-slate-400">Branch</span>
+                    <span className="font-medium text-slate-800 capitalize">{currentUser.branch}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-slate-600">
+                  <span className="text-slate-400">Security</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600">
+                    <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                    Verified ConnectX Identity
+                  </span>
+                </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100">
+              {/* Security Lock Notice */}
+              <div className="py-2 text-[10px] text-slate-400 leading-tight">
+                🔒 Account locked to your authenticated ConnectX session. You do not have permissions to switch to other personnel.
+              </div>
+
+              {/* Sign Out Button */}
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => {
