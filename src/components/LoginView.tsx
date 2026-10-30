@@ -13,6 +13,7 @@ import {
   EyeOff,
   AlertCircle,
   Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
