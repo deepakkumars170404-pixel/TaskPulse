@@ -124,7 +124,7 @@ interface TaskToggleContextType {
 const TaskToggleContext = createContext<TaskToggleContextType | undefined>(undefined);
 
 const STORAGE_KEY_PREFIX = 'tasktoggle_';
-const STORAGE_CLEAN_VERSION = 'v8_purge_dummy_friends_and_ghost_event_staff';
+const STORAGE_CLEAN_VERSION = 'v9_connectx_official_emp_ids_and_app_switcher';
 const PENDING_STAFF_ALERTS_KEY = 'tasktoggle_pending_staff_alerts';
 
 export function queuePendingStaffAlert(userId: string, alert: TaskAlert) {
@@ -1174,11 +1174,61 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, [currentUser, sendTaskAssignmentNotification]);
 
-  // Sync role and view from URL if embedded from ConnectX
+  // Sync user and view from URL query params (from ConnectX launcher or embedded mode)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
+    const empIdParam = params.get('empId') || params.get('employeeId');
+    const emailParam = params.get('email');
     const roleParam = params.get('role');
+
+    // 1. Auto-login by Employee ID (e.g. ?empId=WG-EMP-001)
+    if (empIdParam && users.length > 0) {
+      const match = users.find(
+        (u) => u.employeeId?.trim().toLowerCase() === empIdParam.trim().toLowerCase()
+      );
+      if (match) {
+        setActiveDueReminder(null);
+        setCurrentUser(match);
+        setIsAuthenticated(true);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, match.id);
+        if (match.branch && match.branch !== 'All Branches') {
+          setSelectedBranch(match.branch);
+        } else if (match.role === 'super_admin' || match.role === 'admin') {
+          setSelectedBranch('All Branches');
+        }
+        const targetPage = isExecutiveRole(match.role) ? 'dashboard' : 'mytodo';
+        setCurrentPage(targetPage);
+        checkAndTriggerPendingStaffAlerts(match.id, triggerTaskAlert);
+        return;
+      }
+    }
+
+    // 2. Auto-login by Email (e.g. ?email=dr.thavabalan@gmail.com)
+    if (emailParam && users.length > 0) {
+      const match = users.find(
+        (u) => u.email?.trim().toLowerCase() === emailParam.trim().toLowerCase()
+      );
+      if (match) {
+        setActiveDueReminder(null);
+        setCurrentUser(match);
+        setIsAuthenticated(true);
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}is_logged_in`, 'true');
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}current_user_id`, match.id);
+        if (match.branch && match.branch !== 'All Branches') {
+          setSelectedBranch(match.branch);
+        } else if (match.role === 'super_admin' || match.role === 'admin') {
+          setSelectedBranch('All Branches');
+        }
+        const targetPage = isExecutiveRole(match.role) ? 'dashboard' : 'mytodo';
+        setCurrentPage(targetPage);
+        checkAndTriggerPendingStaffAlerts(match.id, triggerTaskAlert);
+        return;
+      }
+    }
+
+    // 3. Fallback role switcher
     if (roleParam === 'admin' || roleParam === 'staff') {
       const match = users.find((u) => u.role === roleParam);
       if (match) {
@@ -1186,7 +1236,7 @@ export const TaskToggleProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setCurrentPage(roleParam === 'admin' ? 'dashboard' : 'mytodo');
       }
     }
-  }, [users]);
+  }, [users, setCurrentPage, triggerTaskAlert]);
 
   // Sync state to localStorage for offline cache
   useEffect(() => {

@@ -69,7 +69,7 @@ export const LoginView: React.FC = () => {
       role: 'Branch Mgr',
       branch: 'srivi 2.0',
       email: 'mfvat.vicky@gmail.com',
-      empId: 'WG-EMP-013',
+      empId: 'WG-EMP-003',
       pass: 'WG@Mfv7#Rt42',
       type: 'branch_manager' as Role,
       badgeColor: 'bg-teal-100 text-teal-800 border-teal-200',
